@@ -92,4 +92,4 @@ Para contribuir, por favor crear un issue o pull request.
 
 ---
 
-Desarrollado con ❤️ para Casa Costanera# Test push Tue Sep  2 16:40:23 -04 2025
+Desarrollado con ❤️ para Casa Costanera
