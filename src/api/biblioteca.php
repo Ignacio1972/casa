@@ -592,7 +592,7 @@ function uploadExternalFile() {
         }
         
         // Guardar metadata en la base de datos (misma BD que calendar y saved-messages)
-        $db = new PDO("sqlite:" . __DIR__ . "/../calendario/api/db/calendar.db");
+        $db = new PDO("sqlite:" . __DIR__ . "/../../database/casa.db");
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
         $stmt = $db->prepare("

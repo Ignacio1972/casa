@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Configuración
-$dbPath = __DIR__ . '/../calendario/api/db/calendar.db';
+$dbPath = __DIR__ . '/../../database/casa.db';
 
 /**
 * Obtener todos los mensajes guardados (audio + texto)
