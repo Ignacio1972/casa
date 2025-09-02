@@ -1,0 +1,423 @@
+/**
+ * Audio Archive Module Styles
+ * Adaptado del mockup /new-design/archivos1.html
+ * Sistema MBI-v4 - Diseño corporativo oscuro
+ */
+
+/* ============================================
+ * CONTAINER PRINCIPAL
+ * ============================================ */
+.audio-archive-module {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+}
+
+.archive-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.archive-page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.archive-page-title-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+/* ============================================
+ * CONTROLES DE FILTRO
+ * ============================================ */
+.archive-filter-controls {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.archive-search-box {
+    position: relative;
+}
+
+.archive-search-input {
+    padding: var(--space-sm) var(--space-md);
+    padding-left: 36px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    width: 250px;
+}
+
+.archive-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.archive-filter-select {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+/* ============================================
+ * CONTADOR DE RESULTADOS
+ * ============================================ */
+.archive-results-count {
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.archive-count-number {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ============================================
+ * LISTA/TABLA DE ARCHIVOS
+ * ============================================ */
+.archive-list {
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Header de la tabla */
+.archive-list-header {
+    display: grid;
+    grid-template-columns: 50px 2fr 120px 120px 150px 100px;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+/* Items de la lista */
+.archive-list-items {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.archive-list-item {
+    display: grid;
+    grid-template-columns: 50px 2fr 120px 120px 150px 100px;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    align-items: center;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.archive-list-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.archive-list-item:last-child {
+    border-bottom: none;
+}
+
+.archive-list-item.deleted {
+    opacity: 0.6;
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.archive-list-item.saved {
+    border-left: 3px solid var(--primary);
+}
+
+/* ============================================
+ * ELEMENTOS DE LA LISTA
+ * ============================================ */
+
+/* Botón de preview */
+.archive-btn-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.archive-btn-preview:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.archive-btn-preview.playing {
+    background: var(--primary);
+    color: white;
+}
+
+/* Título del mensaje */
+.archive-item-title {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Status badge */
+.archive-status-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.archive-status-generated { background: var(--gray-500); color: white; }
+.archive-status-saved { background: var(--primary); color: white; }
+.archive-status-deleted { background: #dc2626; color: white; }
+
+/* Categoría badge */
+.archive-category-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.archive-badge-ofertas { background: #10b981; color: white; }
+.archive-badge-eventos { background: #8b5cf6; color: white; }
+.archive-badge-informacion { background: #0891b2; color: white; }
+.archive-badge-servicios { background: #f59e0b; color: white; }
+.archive-badge-horarios { background: #6366f1; color: white; }
+.archive-badge-emergencias { background: #dc2626; color: white; }
+.archive-badge-sin-categoria { background: var(--gray-500); color: white; }
+
+/* Voz */
+.archive-item-voice {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* Fecha */
+.archive-item-date {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* ============================================
+ * PAGINACIÓN
+ * ============================================ */
+.archive-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+    padding: var(--space-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.archive-pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.archive-pagination-controls {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.archive-page-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.archive-page-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.archive-page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.archive-page-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ============================================
+ * ESTADOS ESPECIALES
+ * ============================================ */
+.archive-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-xl);
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.archive-empty {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-secondary);
+}
+
+.archive-empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+}
+
+/* ============================================
+ * RESPONSIVE
+ * ============================================ */
+@media (max-width: 1024px) {
+    .archive-list-header,
+    .archive-list-item {
+        grid-template-columns: 50px 1fr 80px;
+    }
+    
+    .archive-list-header > *:not(:first-child):not(:nth-child(2)):not(:last-child),
+    .archive-list-item > *:not(:first-child):not(:nth-child(2)):not(:last-child) {
+        display: none;
+    }
+    
+    .archive-filter-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .archive-search-input {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .archive-page-header {
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+    
+    .audio-archive-module {
+        padding: var(--space-md);
+    }
+    
+    .archive-list-header,
+    .archive-list-item {
+        grid-template-columns: 50px 1fr;
+        gap: var(--space-sm);
+    }
+    
+    .archive-list-header > *:not(:first-child):not(:nth-child(2)),
+    .archive-list-item > *:not(:first-child):not(:nth-child(2)) {
+        display: none;
+    }
+}
+
+/* ============================================
+ * PLAYER FLOTANTE (reutilizado)
+ * ============================================ */
+.archive-floating-player {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    min-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.archive-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.archive-current-playing {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.archive-player-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 4px;
+}
+
+.archive-player-close:hover {
+    color: var(--text-primary);
+}
+
+.archive-audio-player {
+    width: 100%;
+}

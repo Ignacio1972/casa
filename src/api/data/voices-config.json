@@ -1,0 +1,58 @@
+{
+    "voices": {
+        "juan_carlos": {
+            "id": "G4IAP30yc6c1gK0csDfu",
+            "label": "Juan Carlos",
+            "gender": "M",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-08-23 17:06:14",
+            "is_default": true
+        },
+        "test_voice": {
+            "id": "test123",
+            "label": "Test Voice",
+            "gender": "F",
+            "active": false,
+            "category": "custom",
+            "added_date": "2025-08-24 03:28:44"
+        },
+        "alejandro": {
+            "id": "6nZRiu6mJ5DiYZA30eh5",
+            "label": "alejandro",
+            "gender": "M",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-08-24 04:32:55"
+        },
+        "jefry": {
+            "id": "pXOYlNbO024q13bfqrw0",
+            "label": "jefry",
+            "gender": "M",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-08-24 04:57:42"
+        },
+        "cristi": {
+            "id": "9bDwPIakVNJ6w1nZOeRD",
+            "label": "cristi",
+            "gender": "F",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-08-26 04:15:43"
+        },
+        "veronica": {
+            "id": "Obg6KIFo8Md4PUo1m2mR",
+            "label": "Veronica",
+            "gender": "F",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-09-01 18:18:33"
+        }
+    },
+    "settings": {
+        "default_voice": "juan_carlos",
+        "last_updated": "2025-09-02T14:35:49-03:00",
+        "version": "2.0"
+    }
+}

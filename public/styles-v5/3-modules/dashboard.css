@@ -1,0 +1,466 @@
+/* ========================================
+   DASHBOARD MODULE - MBI-v4
+   Estilos específicos del módulo Dashboard
+   ======================================== */
+
+/* ========================================
+   LAYOUT PRINCIPAL - GRID
+   ======================================== */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1.4fr;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+/* Posicionamiento de cards en el grid */
+.create-message {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.controls-section {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.recent-messages {
+  grid-column: 2;
+  grid-row: 1 / 3; /* Ocupa ambas filas */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Card de mensajes recientes con menos padding para más espacio */
+.recent-messages.card {
+  padding: var(--spacing-md);
+}
+
+/* ========================================
+   GENERADOR DE MENSAJES
+   ======================================== */
+
+.create-message .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.create-message .card-title {
+  margin: 0;
+  flex: 1;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-icon {
+  margin-right: var(--spacing-sm);
+}
+
+/* Textarea del mensaje */
+#messageText {
+  height: 200px;
+  resize: vertical;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  padding: var(--spacing-md);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Acciones del formulario */
+.form-actions-inline {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-md);
+}
+
+.voice-selector {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.voice-selector .form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.voice-selector .form-select {
+  height: 44px;
+  padding: 0 var(--spacing-md);
+  font-size: 1rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-gray-700);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.form-actions-inline .btn {
+  height: 44px;
+  padding: 0 var(--spacing-lg);
+  font-size: 1rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   CONTROLES DE VOZ
+   ======================================== */
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.control-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.control-value {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* Sliders de control */
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+}
+
+/* ========================================
+   QUOTA CHART
+   ======================================== */
+
+.quota-chart {
+  padding: var(--spacing-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-lg);
+  text-align: center;
+}
+
+.chart-circle {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto var(--spacing-md);
+}
+
+.quota-percentage {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.quota-details {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-gray-700);
+}
+
+.quota-used {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   MENSAJES RECIENTES
+   ======================================== */
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  overflow-y: auto;
+  max-height: calc(100vh - 250px);
+  padding: 0;
+}
+
+.message-item {
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-gray-700);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.message-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 122, 222, 0.15);
+  border-color: rgba(56, 122, 222, 0.5);
+  background: rgba(56, 122, 222, 0.05);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  gap: var(--spacing-sm);
+}
+
+.message-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+.message-preview {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: var(--spacing-sm);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.message-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* Botón de icono cuadrado con hover sólido */
+.btn-icon {
+  padding: 0;
+  width: var(--btn-icon-size-md);
+  height: var(--btn-icon-size-md);
+  min-height: auto;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--bg-elevated);
+  border-color: var(--color-gray-600);
+  color: var(--text-primary);
+}
+
+/* Hover con color sólido para guardar */
+.btn-save:hover {
+  background: #10b981 !important;
+  color: white !important;
+  border-color: #10b981 !important;
+}
+
+/* Hover con color sólido para eliminar */
+.btn-delete:hover {
+  background: #dc2626 !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+}
+
+/* Hover con color azul para reproducir */
+.btn-play:hover {
+  background: var(--color-primary) !important;
+  color: white !important;
+  border-color: var(--color-primary) !important;
+}
+
+.btn-icon--small {
+  width: var(--btn-icon-size-sm);
+  height: var(--btn-icon-size-sm);
+  font-size: 0.875rem;
+}
+
+.btn-icon--large {
+  width: var(--btn-icon-size-lg);
+  height: var(--btn-icon-size-lg);
+  font-size: 1.125rem;
+}
+
+/* ========================================
+   BADGES DE CATEGORÍAS
+   ======================================== */
+
+/* Los estilos de badges están ahora en 2-components/badges.css para reutilización */
+
+/* ========================================
+   BOTONES DE ACCIÓN ESPECÍFICOS
+   ======================================== */
+
+.btn-save {
+  transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.btn-delete {
+  transition: all 0.2s ease;
+}
+
+.btn-delete:hover {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+/* ========================================
+   AUDIO PLAYER
+   ======================================== */
+
+.audio-player-container {
+  margin-top: var(--spacing-md);
+}
+
+.audio-player {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+}
+
+.player-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  
+  .create-message,
+  .controls-section,
+  .quota-section,
+  .recent-messages {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  
+  .recent-messages {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    gap: var(--spacing-md);
+  }
+  
+  #messageText {
+    font-size: 1.2rem;
+    height: 200px;
+  }
+  
+  .form-actions-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .voice-selector {
+    width: 100%;
+  }
+  
+  .message-list {
+    max-height: 300px;
+  }
+}
+
+/* ========================================
+   CARD BASE (reutilizable)
+   ======================================== */
+
+.card {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(77, 83, 89, 0.3);
+}
+
+/* Card del generador con más padding */
+.create-message.card {
+  padding: var(--spacing-lg);
+}
+
+.card-header {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-body {
+  color: var(--text-primary);
+}

@@ -1,0 +1,788 @@
+/* ========================================
+   CALENDAR MODULE - MBI-v4
+   Estilos específicos del módulo Calendar
+   Con modal mejorado estilo Campaign Library
+   ======================================== */
+
+/* ========================================
+   CONTENEDOR PRINCIPAL
+   ======================================== */
+
+.calendar-module {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+/* ========================================
+   HEADER DEL CALENDARIO
+   ======================================== */
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-gray-700);
+}
+
+.calendar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* ========================================
+   CONTROLES DE VISTA
+   ======================================== */
+
+.view-selector {
+  display: flex;
+  background-color: var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 4px;
+  gap: 2px;
+}
+
+.view-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.view-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.view-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* ========================================
+   FILTROS DE CATEGORÍAS - Minimalista
+   ======================================== */
+
+.category-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.filter-label {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 0.813rem;
+  margin-right: var(--spacing-sm);
+}
+
+.category-filter-item {
+  position: relative;
+  cursor: pointer;
+}
+
+.category-filter {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.filter-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-block;
+  transition: all 0.2s ease;
+  opacity: 0.4;
+  position: relative;
+}
+
+.category-filter:checked + .filter-dot {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.category-filter:checked + .filter-dot::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.filter-dot:hover {
+  opacity: 0.7;
+  transform: scale(1.1);
+}
+
+.category-filter:checked + .filter-dot:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Colores de categorías */
+.filter-color[data-category="ofertas"] { background: #10b981; }
+.filter-color[data-category="eventos"] { background: #8b5cf6; }
+.filter-color[data-category="informacion"] { background: #0891b2; }
+.filter-color[data-category="servicios"] { background: #f59e0b; }
+.filter-color[data-category="horarios"] { background: #6366f1; }
+.filter-color[data-category="emergencias"] { background: #dc2626; }
+
+/* ========================================
+   VISTA DEL CALENDARIO
+   ======================================== */
+
+.calendar-view {
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+  min-height: 600px;
+}
+
+/* ========================================
+   FULLCALENDAR CUSTOMIZACIÓN
+   ======================================== */
+
+.fc {
+  height: 100%;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--color-gray-700);
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border-color: var(--color-gray-700);
+}
+
+/* Header del calendario */
+.fc-header-toolbar {
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Botones de navegación */
+.fc-button {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--color-gray-700);
+  color: var(--text-primary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  transition: all 0.2s ease;
+}
+
+.fc-button:hover {
+  background-color: var(--bg-elevated);
+  border-color: var(--color-primary);
+}
+
+.fc-button-active {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  border-color: var(--color-primary) !important;
+}
+
+/* Días de la semana */
+.fc-col-header-cell {
+  background-color: var(--bg-tertiary);
+  padding: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+/* Celdas del calendario */
+.fc-daygrid-day {
+  border-color: var(--color-gray-700);
+  transition: background 0.2s ease;
+}
+
+.fc-daygrid-day:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.fc-daygrid-day-number {
+  color: var(--text-primary);
+  font-weight: 500;
+  padding: var(--spacing-sm);
+}
+
+.fc-day-today {
+  background-color: rgba(56, 122, 222, 0.1) !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Eventos en el calendario */
+.fc-event {
+  border: none;
+  padding: 2px 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Colores de eventos por categoría */
+.fc-event[data-category="ofertas"] { background: #10b981; }
+.fc-event[data-category="eventos"] { background: #8b5cf6; }
+.fc-event[data-category="informacion"] { background: #0891b2; }
+.fc-event[data-category="servicios"] { background: #f59e0b; }
+.fc-event[data-category="horarios"] { background: #6366f1; }
+.fc-event[data-category="emergencias"] { background: #dc2626; }
+
+/* ========================================
+   TOOLTIPS DE EVENTOS
+   ======================================== */
+
+.event-tooltip {
+  position: absolute;
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-xl);
+  padding: 0;
+  max-width: 320px;
+  min-width: 250px;
+  z-index: var(--z-tooltip);
+  pointer-events: none;
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+.event-tooltip .tooltip-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  padding: var(--spacing-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+}
+
+.event-tooltip .tooltip-body {
+  padding: var(--spacing-md);
+  background: var(--bg-tertiary);
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+}
+
+.event-tooltip .tooltip-body p {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.813rem;
+}
+
+.event-tooltip .tooltip-body p:last-child {
+  margin-bottom: 0;
+}
+
+.event-tooltip .tooltip-body strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  min-width: 80px;
+  display: inline-block;
+}
+
+/* Colores específicos por categoría */
+.event-tooltip[data-category="ofertas"] .tooltip-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.event-tooltip[data-category="eventos"] .tooltip-header {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.event-tooltip[data-category="emergencias"] .tooltip-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* ========================================
+   MODAL DE EVENTO (Estilo mejorado)
+   ======================================== */
+
+.event-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: var(--z-modal);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.event-modal-overlay.show {
+  display: flex;
+}
+
+.event-modal {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-xl);
+  padding: 0;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+.event-modal-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.event-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.event-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.event-modal-content {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  max-height: calc(85vh - 140px);
+}
+
+.event-detail {
+  margin-bottom: var(--spacing-lg);
+}
+
+.event-detail-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: var(--spacing-xs);
+}
+
+.event-detail-value {
+  font-size: 1rem;
+  color: var(--text-primary);
+  padding: var(--spacing-sm);
+  background: var(--bg-elevated);
+  border-radius: var(--border-radius-sm);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.event-detail-message {
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+}
+
+.event-modal-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-gray-700);
+}
+
+/* ========================================
+   LISTA DE PROGRAMACIONES ACTIVAS
+   ======================================== */
+
+.schedules-section {
+  margin-top: var(--spacing-xl);
+}
+
+.schedules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-gray-700);
+}
+
+.schedules-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.schedules-count {
+  background: var(--color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.schedules-list {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.schedule-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--spacing-lg);
+  align-items: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.schedule-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 122, 222, 0.15);
+}
+
+.schedule-time-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  min-width: 80px;
+}
+
+.schedule-time {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.schedule-frequency {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: var(--spacing-xs);
+}
+
+.schedule-content {
+  flex: 1;
+}
+
+.schedule-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.schedule-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+  margin: 0;
+}
+
+/* Puntos de categoría */
+.category-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.category-dot-ofertas {
+  background-color: #10b981;
+}
+
+.category-dot-eventos {
+  background-color: #3b82f6;
+}
+
+.category-dot-informacion {
+  background-color: #06b6d4;
+}
+
+.category-dot-servicios {
+  background-color: #8b5cf6;
+}
+
+.category-dot-horarios {
+  background-color: #f59e0b;
+}
+
+.category-dot-emergencias {
+  background-color: #ef4444;
+}
+
+.category-dot-sin_categoria {
+  background-color: #6b7280;
+}
+
+.schedule-message {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: var(--spacing-sm);
+}
+
+.schedule-meta {
+  display: flex;
+  gap: var(--spacing-lg);
+  font-size: 0.813rem;
+  color: var(--text-muted);
+}
+
+.schedule-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.schedule-days {
+  display: flex;
+  gap: 2px;
+}
+
+.schedule-day {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-size: 0.625rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.schedule-day.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.schedule-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.schedule-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.schedule-status.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.schedule-status.paused {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.schedule-btn-group {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* Vista de lista alternativa (más compacta) */
+.list-view {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.event-list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-gray-700);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.event-list-item:hover {
+  background: var(--bg-tertiary);
+  padding-left: var(--spacing-lg);
+}
+
+.event-list-item:last-child {
+  border-bottom: none;
+}
+
+.event-list-time {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 100px;
+}
+
+.event-list-title {
+  flex: 1;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.event-list-category {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  color: white;
+  font-weight: 600;
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .calendar-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .view-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .category-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .fc-toolbar {
+    flex-direction: column;
+  }
+  
+  .fc-toolbar-title {
+    font-size: 1.2rem;
+  }
+  
+  .event-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .event-tooltip {
+    max-width: 90vw;
+    min-width: 200px;
+  }
+}

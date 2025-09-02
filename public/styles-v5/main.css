@@ -1,0 +1,22 @@
+/* ========================================
+   MAIN CSS - MBI-v4 Sistema Optimizado
+   ======================================== */
+
+/* 1. Core - Variables y base */
+@import url('./1-core/variables.css');
+@import url('./1-core/reset.css');
+@import url('./1-core/layout.css');
+@import url('./1-core/utilities.css');
+
+/* 2. Componentes reutilizables */
+@import url('./2-components/buttons.css');
+@import url('./2-components/forms.css');
+@import url('./2-components/badges.css');
+
+/* 3. Módulos específicos */
+/* NOTA: Los módulos se cargan dinámicamente según necesidad */
+/* Los CSS de módulos NO deben cargarse todos juntos para evitar conflictos */
+/* @import url('./3-modules/dashboard.css'); */
+@import url('./3-modules/campaign-library.css');
+@import url('./3-modules/calendar.css');
+@import url('./3-modules/audio-archive.css');

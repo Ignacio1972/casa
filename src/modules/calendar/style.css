@@ -1,0 +1,585 @@
+/* ==========================================================================
+   Calendar Module - Estilos
+   Sistema de programación de anuncios TTS
+   ========================================================================== */
+
+/* Variables CSS para el módulo Calendar - Solo estilos específicos no conflictivos */
+:root {
+  /* COMENTADOS - Usar variables globales del tema oscuro */
+  /* --bg-input: #f8fafc; */
+  /* --bg-card: #ffffff; */
+  /* --bg-tertiary: #f1f5f9; */
+  /* --text-primary: #1e293b; */
+  /* --text-secondary: #64748b; */
+  
+  /* Variables específicas del Calendar - No conflictivas */
+  --border-radius: 12px;
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-color: #e2e8f0;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --gray-500: #94a3b8;
+  --gray-600: #64748b;
+  --gray-700: #475569;
+  --transition-fast: 0.2s ease;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* ==========================================================================
+   View Selector (botones Mes/Semana/Día/Lista)
+   ========================================================================== */
+.view-selector {
+    display: flex;
+    background-color: var(--bg-input, #f8fafc);
+    border-radius: var(--border-radius-sm);
+    padding: 4px;
+}
+
+.view-btn {
+    padding: var(--space-sm) var(--space-lg);
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+    font-weight: 500;
+}
+
+.view-btn:hover {
+    color: var(--text-primary);
+}
+
+.view-btn.active {
+    background-color: var(--gray-600, #64748b);
+    color: white;
+}
+
+/* ==========================================================================
+   Category Filters (checkboxes de categorías)
+   ========================================================================== */
+.category-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.category-filter-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.category-filter-item:hover {
+    background-color: var(--bg-input);
+}
+
+.filter-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid var(--border-color);
+}
+
+.category-filter:checked + .filter-color {
+    border-color: currentColor;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   Calendar View Container
+   ========================================================================== */
+.calendar-view {
+    background-color: var(--bg-secondary, var(--bg-card, #ffffff));
+    border-radius: var(--border-radius);
+    padding: var(--space-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+/* ==========================================================================
+   FullCalendar Customization
+   ========================================================================== */
+/* Reset FullCalendar styles */
+.fc {
+    height: 100%;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.fc-theme-standard .fc-scrollgrid {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Header Toolbar (navegación del calendario) */
+.fc-header-toolbar {
+    margin-bottom: var(--space-lg);
+    gap: var(--space-md);
+}
+
+.fc-toolbar-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Botones de navegación del calendario */
+.fc-button {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: var(--space-sm) var(--space-md);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.fc-button:hover {
+    background-color: var(--gray-700);
+    color: white;
+}
+
+.fc-button-active,
+.fc-button:active {
+    background-color: var(--gray-600, #64748b) !important;
+    border-color: var(--gray-600, #64748b) !important;
+    color: white !important;
+}
+
+.fc-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Header de días de la semana - CORREGIDO */
+.fc-col-header-cell {
+    background-color: #3a3f4b !important;  /* Gris más oscuro para mejor contraste */
+    padding: var(--space-sm);
+    font-weight: 600;
+    color: #ffffff !important;  /* Texto blanco para máximo contraste */
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.fc-col-header-cell-cushion {
+    color: #ffffff !important;  /* Texto blanco */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    opacity: 1;  /* Opacidad completa para mejor legibilidad */
+}
+
+.fc .fc-col-header {
+    background-color: #3a3f4b !important;  /* Mismo gris oscuro */
+}
+
+/* Celdas del calendario */
+.fc-daygrid-day {
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.fc-daygrid-day:hover {
+    background-color: rgba(100, 116, 139, 0.1);
+}
+
+.fc-day-today {
+    background-color: rgba(100, 116, 139, 0.15) !important;
+}
+
+.fc-daygrid-day-number {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Eventos */
+.fc-event {
+    border: none;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.fc-event-title {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Loading State
+   ========================================================================== */
+.calendar-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: var(--border-radius);
+}
+
+.loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--gray-500, #94a3b8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-lg);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 768px) {
+    .category-filters {
+        justify-content: center;
+    }
+    
+    .fc-header-toolbar {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   HEADER OVERRIDE - Estilos críticos para header de días
+   (Movido desde JavaScript inline para mejor organización)
+   ========================================================================== */
+.fc .fc-col-header-cell,
+.fc-theme-standard .fc-col-header-cell,
+.fc th.fc-col-header-cell,
+.fc-col-header th,
+.fc-scrollgrid-sync-table th,
+.fc-col-header .fc-col-header-cell,
+.fc-col-header-cell.fc-day {
+    background-color: #4a5568 !important;
+    background: #4a5568 !important;
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc-theme-standard .fc-col-header-cell-cushion,
+.fc-col-header-cell a,
+.fc-col-header-cell span {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+}
+
+.fc .fc-col-header,
+.fc-theme-standard .fc-col-header,
+.fc-scrollgrid-sync-table thead,
+.fc-scrollgrid-sync-table tbody tr:first-child {
+    background-color: #4a5568 !important;
+    background: #4a5568 !important;
+}
+
+/* Asegurar que toda la tabla del header tenga fondo */
+.fc-scrollgrid-sync-table {
+    background-color: #4a5568 !important;
+}
+
+.fc-daygrid-header {
+    background-color: #4a5568 !important;
+}
+
+/* Header más oscuro y visible */
+.fc-col-header-cell {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   Schedule Info Modal - Modal de información de schedules
+   ESTILOS AISLADOS - Solo afectan el modal, no el resto del sistema
+   ========================================================================== */
+.schedule-info-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.schedule-info-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.schedule-info-modal .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.schedule-info-modal .modal-content {
+    position: relative;
+    background: var(--bg-secondary, #1e293b);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.schedule-info-modal.active .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+/* Modal Header */
+.schedule-info-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-tertiary, #f8fafc);
+    border-radius: 12px 12px 0 0;
+}
+
+.schedule-info-modal .modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+}
+
+.schedule-info-modal .close-modal {
+    background: none;
+    border: none;
+    color: var(--text-secondary, #64748b);
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-weight: 300;
+    line-height: 1;
+}
+
+.schedule-info-modal .close-modal:hover {
+    background: var(--bg-input, #f1f5f9);
+    color: var(--text-primary, #1e293b);
+}
+
+/* Modal Body */
+.schedule-info-modal .modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(80vh - 140px);
+    background: var(--bg-secondary, #ffffff);
+}
+
+.schedule-info-modal .schedule-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.schedule-info-modal .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.schedule-info-modal .detail-item strong {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-info-modal .schedule-timing {
+    color: var(--text-primary, #1e293b);
+    font-size: 1rem;
+    padding: 12px 16px;
+    background: var(--bg-tertiary, #f8fafc);
+    border-radius: 8px;
+    border-left: 4px solid var(--gray-600, #64748b);
+    margin-top: 0.5rem;
+}
+
+/* Status Badge */
+.schedule-info-modal .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    width: fit-content;
+}
+
+.schedule-info-modal .status-badge.active {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.schedule-info-modal .status-badge.inactive {
+    background: rgba(255, 152, 0, 0.2);
+    color: #FF9800;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+/* Audio Preview */
+.schedule-info-modal .audio-section {
+    margin-top: 8px;
+}
+
+.schedule-info-modal .audio-preview {
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.schedule-info-modal audio {
+    width: 100%;
+    height: 40px;
+}
+
+.schedule-info-modal .audio-error {
+    color: #FF9800;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+}
+
+/* Modal Footer */
+.schedule-info-modal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-tertiary, #f8fafc);
+    border-radius: 0 0 12px 12px;
+}
+
+/* Buttons */
+.schedule-info-modal .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.schedule-info-modal .btn-secondary {
+    background: var(--bg-input, #f1f5f9);
+    border: 1px solid var(--border-color, #e2e8f0);
+    color: var(--text-secondary, #64748b);
+}
+
+.schedule-info-modal .btn-secondary:hover {
+    background: var(--bg-secondary, #e2e8f0);
+    color: var(--text-primary, #1e293b);
+}
+
+.schedule-info-modal .btn-primary {
+    background: var(--gray-600, #64748b);
+    color: white;
+}
+
+.schedule-info-modal .btn-primary:hover {
+    background: var(--gray-700, #475569);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+}
+
+.schedule-info-modal .btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.schedule-info-modal .btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .schedule-info-modal .modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .schedule-info-modal .modal-footer {
+        flex-direction: column;
+    }
+    
+    .schedule-info-modal .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,116 @@
+<!-- MIGRADO: Los estilos ahora se cargan globalmente desde /styles-v5/main.css -->
+<!-- No es necesario importar CSS específicos del módulo -->
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    
+    <!-- FILA 1: Generador de Texto -->
+    <div class="card create-message">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">🎙️</span>
+                Generador de Mensajes Buenos
+            </h2>
+            <div class="category-badge-container">
+                <span class="message-badge badge-sin-categoria" id="categoryBadge" data-category="sin_categoria" onclick="window.dashboardV2.toggleCategoryDropdown(event)">
+                    Sin Cat.
+                </span>
+                <div class="category-dropdown" id="categoryDropdown">
+                    <div class="category-option" data-category="ofertas" onclick="window.dashboardV2.updateCategory('ofertas')">🛒 Ofertas</div>
+                    <div class="category-option" data-category="eventos" onclick="window.dashboardV2.updateCategory('eventos')">🎉 Eventos</div>
+                    <div class="category-option" data-category="informacion" onclick="window.dashboardV2.updateCategory('informacion')">ℹ️ Información</div>
+                    <div class="category-option" data-category="servicios" onclick="window.dashboardV2.updateCategory('servicios')">🛠️ Servicios</div>
+                    <div class="category-option" data-category="horarios" onclick="window.dashboardV2.updateCategory('horarios')">🕐 Horarios</div>
+                    <div class="category-option" data-category="emergencias" onclick="window.dashboardV2.updateCategory('emergencias')">🚨 Emergencias</div>
+                    <div class="category-option" data-category="sin_categoria" onclick="window.dashboardV2.updateCategory('sin_categoria')">📋 Sin Categoría</div>
+                </div>
+            </div>
+        </div>
+        <form class="message-form" id="messageForm">
+            <div class="form-group">
+                <textarea 
+                    id="messageText"
+                    class="form-textarea" 
+                    placeholder="Escriba aquí el mensaje que será convertido a voz..."
+                    rows="6"></textarea>
+            </div>
+            <div class="form-actions-inline">
+                <div class="voice-selector">
+                    <select id="voiceSelect" class="form-select">
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                <button type="button" id="generateBtn" class="btn btn-primary">
+                    <span>🎙️</span>
+                    Generar Audio
+                </button>
+            </div>
+        </form>
+        
+    </div>
+    
+    <!-- FILA 2: DOS CARDS LADO A LADO - CONTROLES Y QUOTA -->
+    <div class="card controls-section" id="controlsSection">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">🎛️</span>
+                Controles de Voz
+            </h2>
+        </div>
+        
+        <!-- CONTROLES DE VOZ REALES -->
+        <div class="controls-content">
+            <div class="control-item">
+                <label class="control-label">
+                    Estilo
+                    <span class="control-value" id="styleValue">50%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="50" id="styleSlider">
+                    <div class="slider-track" id="styleTrack" style="width: 50%"></div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label class="control-label">
+                    Estabilidad
+                    <span class="control-value" id="stabilityValue">75%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="75" id="stabilitySlider">
+                    <div class="slider-track" id="stabilityTrack" style="width: 75%"></div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label class="control-label">
+                    Claridad
+                    <span class="control-value" id="clarityValue">80%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="80" id="claritySlider">
+                    <div class="slider-track" id="clarityTrack" style="width: 80%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- FILA 3: Mensajes Recientes -->
+    <div class="card recent-messages">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">📝</span>
+                Mensajes Recientes
+            </h2>
+            <button class="btn-icon" id="refreshMessages">🔄</button>
+        </div>
+        <div class="message-list" id="messageList">
+            <!-- Los mensajes se cargarán dinámicamente aquí -->
+            <div class="loading-messages" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                Cargando mensajes...
+            </div>
+        </div>
+    </div>
+
+</div>

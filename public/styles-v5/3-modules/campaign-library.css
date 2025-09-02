@@ -1,0 +1,541 @@
+/* ========================================
+   CAMPAIGN LIBRARY MODULE - MBI-v4
+   Estilos específicos del módulo Campaign Library
+   ======================================== */
+
+/* ========================================
+   CONTAINER Y LAYOUT
+   ======================================== */
+
+.campaign-library-module {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+/* ========================================
+   HEADER DE PÁGINA
+   ======================================== */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-gray-700);
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.page-title-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+}
+
+/* ========================================
+   BARRA DE FILTROS
+   ======================================== */
+
+.filter-bar {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.filter-select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 122, 222, 0.1);
+}
+
+/* ========================================
+   BÚSQUEDA ESTILO APPLE
+   ======================================== */
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+.search-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-gray-700);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  z-index: 2;
+}
+
+.search-toggle-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+  color: var(--text-primary);
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.search-input.collapsed {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+  border: none;
+  margin: 0;
+  transition: all 0.3s ease;
+}
+
+.search-input.expanded {
+  width: 200px;
+  opacity: 1;
+  padding: var(--spacing-sm) 32px var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-gray-700);
+  border-left: none;
+  border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  margin-left: -1px;
+}
+
+.search-input.expanded:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(56, 122, 222, 0.1);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.search-clear-btn.visible {
+  opacity: 1;
+}
+
+/* ========================================
+   GRID DE MENSAJES
+   ======================================== */
+
+.messages-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* ========================================
+   TARJETA DE MENSAJE
+   ======================================== */
+
+.message-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.message-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(56, 122, 222, 0.15);
+  transform: translateY(-2px);
+  background: rgba(56, 122, 222, 0.05);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.message-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin: 0;
+  flex: 1;
+  margin-right: var(--spacing-md);
+}
+
+.message-content {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-gray-700);
+}
+
+.message-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* ========================================
+   BOTONES DE ACCIÓN (Reutiliza de dashboard)
+   ======================================== */
+
+.btn-schedule:hover {
+  background: #6366f1 !important;
+  border-color: #6366f1 !important;
+  color: white !important;
+}
+
+.btn-radio:hover {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+  color: white !important;
+}
+
+/* ========================================
+   MODAL DE PROGRAMACIÓN
+   ======================================== */
+
+#scheduleModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: var(--z-modal);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+#scheduleModal[style*="block"] {
+  display: flex !important;
+}
+
+/* Overlay del modal dinámico */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.schedule-modal {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-xl);
+  padding: 0;
+  max-width: 550px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-content {
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  max-height: calc(85vh - 140px);
+}
+
+.schedule-info {
+  background: rgba(56, 122, 222, 0.1);
+  border: 1px solid rgba(56, 122, 222, 0.3);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.schedule-info strong {
+  color: var(--color-primary);
+}
+
+/* Tabs de tipo de programación */
+.schedule-tabs {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-gray-700);
+}
+
+.schedule-tab {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.schedule-tab:hover {
+  color: var(--text-primary);
+}
+
+.schedule-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* Días de la semana */
+.weekday-selector {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-sm);
+}
+
+.weekday-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-gray-700);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.weekday-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+}
+
+.weekday-btn.selected {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+/* ========================================
+   ESTADO VACÍO
+   ======================================== */
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-secondary);
+}
+
+.empty-state-description {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .messages-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+  
+  .filter-bar {
+    justify-content: space-between;
+  }
+}
+
+/* Responsive para tablets */
+@media (max-width: 1024px) {
+  .messages-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .campaign-library-module {
+    padding: var(--spacing-md);
+  }
+  
+  .messages-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .message-card {
+    /* max-height: none; */ /* COMENTADO: Rompe el truncado de cards */
+  }
+  
+  .message-title {
+    font-size: 1rem;
+  }
+  
+  .message-content {
+    -webkit-line-clamp: 3;
+  }
+  
+  .schedule-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+  
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+}

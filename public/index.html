@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Costanera - Sistema de Radio Automatizada</title>
+    
+    <!-- ÚNICO SISTEMA DE ESTILOS: styles-v5 -->
+    <link rel="stylesheet" href="/styles-v5/main.css">
+    
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/>
+                        <path d="M16 8L21 12V20C21 20.5523 20.5523 21 20 21H12C11.4477 21 11 20.5523 11 20V12L16 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 21V16H18V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-title">Casa Costanera</div>
+                    <div class="logo-subtitle">Sistema de Radio Automatizada</div>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="#dashboard" class="nav-link active" data-view="dashboard">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="#campaigns" class="nav-link" data-view="campaigns">
+                    <span class="nav-icon">📚</span> Campañas
+                </a>
+                <a href="#calendar" class="nav-link" data-view="calendar">
+                    <span class="nav-icon">📅</span> Calendario
+                </a>
+                <a href="#audio-archive" class="nav-link" data-view="audio-archive">
+                    <span class="nav-icon">🗄️</span> Archivo
+                </a>
+            </nav>
+            <div class="header-actions">
+                <button class="btn-icon" id="theme-toggle" title="Cambiar tema">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 3V1M10 19V17M17 10H19M1 10H3M15.657 15.657L17.071 17.071M2.929 2.929L4.343 4.343M15.657 4.343L17.071 2.929M2.929 17.071L4.343 15.657M13 10C13 11.657 11.657 13 10 13C8.343 13 7 11.657 7 10C7 8.343 8.343 7 10 7C11.657 7 13 8.343 13 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <span class="header-time" id="current-time">--:--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <div class="container" id="main-container">
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <p>Cargando Casa Costanera...</p>
+        </div>
+    </div>
+    
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module">
+        // Configuración global
+        window.APP_CONFIG = {
+            name: 'Casa Costanera',
+            version: '1.0.0',
+            apiUrl: '/api',
+            port: 4000,
+            theme: localStorage.getItem('theme') || 'dark'
+        };
+
+        // Event Bus Global
+        window.eventBus = {
+            events: {},
+            on(event, callback) {
+                if (!this.events[event]) this.events[event] = [];
+                this.events[event].push(callback);
+            },
+            off(event, callback) {
+                if (!this.events[event]) return;
+                if (!callback) {
+                    delete this.events[event];
+                } else {
+                    this.events[event] = this.events[event].filter(cb => cb !== callback);
+                }
+            },
+            emit(event, data) {
+                if (this.events[event]) {
+                    this.events[event].forEach(cb => cb(data));
+                }
+            }
+        };
+
+        // API Client Global
+        window.apiClient = {
+            async post(url, data) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return { success: false, error: error.message };
+                }
+            },
+            async get(url) {
+                try {
+                    const response = await fetch(url);
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+        };
+
+        // Sistema de navegación
+        class Router {
+            constructor() {
+                this.routes = new Map();
+                this.currentView = null;
+                this.init();
+            }
+
+            init() {
+                // Escuchar cambios de hash
+                window.addEventListener('hashchange', () => this.handleRoute());
+                
+                // Escuchar clicks en links de navegación
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const view = link.dataset.view;
+                        this.navigate(view);
+                    });
+                });
+
+                // Cargar ruta inicial
+                this.handleRoute();
+            }
+
+            register(route, handler) {
+                this.routes.set(route, handler);
+            }
+
+            navigate(view) {
+                window.location.hash = view;
+            }
+
+            async handleRoute() {
+                const hash = window.location.hash.slice(1) || 'dashboard';
+                const container = document.getElementById('main-container');
+                
+                // Actualizar navegación activa
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.toggle('active', link.dataset.view === hash);
+                });
+
+                // Mostrar loading
+                container.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
+
+                try {
+                    // Mapeo de rutas para compatibilidad
+                    const moduleMap = {
+                        'dashboard': 'dashboard',
+                        'campaigns': 'campaigns', 
+                        'calendar': 'calendar',
+                        'audio-archive': 'audio-archive'
+                    };
+                    
+                    const moduleName = moduleMap[hash] || hash;
+                    // Cargar módulo dinámicamente
+                    const module = await import(`/modules/${moduleName}/index.js`);
+                    if (module.default) {
+                        // Crear instancia del módulo y cargar
+                        console.log(`Cargando módulo: ${moduleName}`);
+                        const moduleInstance = new module.default();
+                        if (typeof moduleInstance.load === 'function') {
+                            await moduleInstance.load(container);
+                            this.currentView = hash;
+                            window.eventBus.emit('view-changed', { view: hash });
+                            console.log(`Módulo ${moduleName} cargado exitosamente`);
+                        } else {
+                            console.error(`Módulo ${moduleName} no tiene método load()`);
+                        }
+                    } else {
+                        console.error(`Módulo ${moduleName} no tiene export default`);
+                    }
+                } catch (error) {
+                    console.error(`Error loading module ${hash}:`, error);
+                    container.innerHTML = `
+                        <div class="error-container">
+                            <h2>Error al cargar módulo</h2>
+                            <p>No se pudo cargar: ${hash}</p>
+                            <button class="btn btn-primary" onclick="location.hash='dashboard'">
+                                Volver al Dashboard
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Utilidades globales
+        window.utils = {
+            formatDate(date) {
+                return new Intl.DateTimeFormat('es-CL', {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                }).format(new Date(date));
+            },
+            
+            formatFileSize(bytes) {
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                if (bytes === 0) return '0 B';
+                const i = Math.floor(Math.log(bytes) / Math.log(1024));
+                return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+            },
+            
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                toast.textContent = message;
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('toast-show');
+                }, 10);
+                
+                setTimeout(() => {
+                    toast.classList.remove('toast-show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // Actualizar reloj
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('es-CL', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const dateStr = now.toLocaleDateString('es-CL', { 
+                weekday: 'short', 
+                day: 'numeric', 
+                month: 'short' 
+            });
+            document.getElementById('current-time').textContent = `${dateStr} ${timeStr}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Cambio de tema
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            window.eventBus.emit('theme-changed', { theme: newTheme });
+        });
+
+        // Aplicar tema guardado
+        document.documentElement.setAttribute('data-theme', window.APP_CONFIG.theme);
+
+        // Inicializar router
+        const router = new Router();
+        window.router = router;
+
+        // Log de inicio
+        console.log(`%c🏢 Casa Costanera v${window.APP_CONFIG.version}`, 'color: #3b82f6; font-size: 16px; font-weight: bold;');
+        console.log('%cSistema de Radio Automatizada', 'color: #6b7280; font-size: 12px;');
+        console.log(`%cPuerto: ${window.APP_CONFIG.port}`, 'color: #6b7280; font-size: 12px;');
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<style>
+    @import url('/new-design/css/mbi-corporate-dark.css');
+    @import url('/new-design/css/palette-custom.css');
+    @import url('/modules/dashboard-v2/styles/dashboard.css');
+    @import url('/modules/campaign-library/styles/library.css');
+</style>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    
+    <!-- FILA 1: Generador de Texto -->
+    <div class="card create-message">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">🎙️</span>
+                Generador de Mensajes Buenos
+            </h2>
+            <div class="category-badge-container">
+                <span class="message-badge badge-sin-categoria" id="categoryBadge" data-category="sin_categoria" onclick="window.dashboardV2.toggleCategoryDropdown(event)">
+                    Sin Cat.
+                </span>
+                <div class="category-dropdown" id="categoryDropdown">
+                    <div class="category-option" data-category="ofertas" onclick="window.dashboardV2.updateCategory('ofertas')">🛒 Ofertas</div>
+                    <div class="category-option" data-category="eventos" onclick="window.dashboardV2.updateCategory('eventos')">🎉 Eventos</div>
+                    <div class="category-option" data-category="informacion" onclick="window.dashboardV2.updateCategory('informacion')">ℹ️ Información</div>
+                    <div class="category-option" data-category="servicios" onclick="window.dashboardV2.updateCategory('servicios')">🛠️ Servicios</div>
+                    <div class="category-option" data-category="horarios" onclick="window.dashboardV2.updateCategory('horarios')">🕐 Horarios</div>
+                    <div class="category-option" data-category="emergencias" onclick="window.dashboardV2.updateCategory('emergencias')">🚨 Emergencias</div>
+                    <div class="category-option" data-category="sin_categoria" onclick="window.dashboardV2.updateCategory('sin_categoria')">📋 Sin Categoría</div>
+                </div>
+            </div>
+        </div>
+        <form class="message-form" id="messageForm">
+            <div class="form-group">
+                <textarea 
+                    id="messageText"
+                    class="form-textarea" 
+                    placeholder="Escriba aquí el mensaje que será convertido a voz..."
+                    rows="6"></textarea>
+            </div>
+            <div class="form-actions-container">
+                <button type="button" id="generateBtn" class="btn btn-primary">
+                    <span>🎙️</span>
+                    Generar Audio
+                </button>
+                <select id="voiceSelect" class="form-select voice-select-compact">
+                    <!-- Se llenará dinámicamente -->
+                </select>
+            </div>
+        </form>
+        
+    </div>
+    
+    <!-- FILA 2: DOS CARDS LADO A LADO - CONTROLES Y QUOTA -->
+    <div class="card controls-section" id="controlsSection">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">🎛️</span>
+                Controles de Voz
+            </h2>
+        </div>
+        
+        <!-- CONTROLES DE VOZ REALES -->
+        <div class="controls-content">
+            <div class="control-item">
+                <label class="control-label">
+                    Estilo
+                    <span class="control-value" id="styleValue">50%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="50" id="styleSlider">
+                    <div class="slider-track" id="styleTrack" style="width: 50%"></div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label class="control-label">
+                    Estabilidad
+                    <span class="control-value" id="stabilityValue">75%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="75" id="stabilitySlider">
+                    <div class="slider-track" id="stabilityTrack" style="width: 75%"></div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label class="control-label">
+                    Claridad
+                    <span class="control-value" id="clarityValue">80%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="80" id="claritySlider">
+                    <div class="slider-track" id="clarityTrack" style="width: 80%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILA 2: SEGUNDO CARD PARA QUOTA Y TOKENS -->
+    <div class="card quota-section" id="quotaSection">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">📊</span>
+                Consumo de Tokens
+            </h2>
+        </div>
+        
+        <!-- PIE CHART Y CONTADOR DE TOKENS REALES -->
+        <div class="quota-content">
+            <!-- Chart SVG -->
+            <div style="position: relative; width: 120px; height: 120px; margin: 0 auto 1rem auto;">
+                <svg width="120" height="120" viewBox="0 0 42 42">
+                    <circle cx="21" cy="21" r="15.915" 
+                            fill="transparent" 
+                            stroke="#e5e7eb" 
+                            stroke-width="3"></circle>
+                    <circle cx="21" cy="21" r="15.915" 
+                            fill="transparent" 
+                            stroke="#6366f1" 
+                            stroke-width="3" 
+                            stroke-dasharray="45 100"
+                            stroke-linecap="round"
+                            id="quotaProgressCircle"
+                            style="transform: rotate(-90deg); transform-origin: center;"></circle>
+                </svg>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                    <div id="quotaPercentage" style="font-size: 1.5rem; font-weight: bold; color: var(--text-primary);">0%</div>
+                    <div style="font-size: 0.75rem; opacity: 0.7; color: var(--text-secondary);">usado</div>
+                </div>
+            </div>
+            
+            <!-- Stats debajo del chart -->
+            <div style="font-size: 0.75rem; color: var(--text-secondary); text-align: center;">
+                <div style="margin-bottom: 0.25rem;">✓ Usado: <span id="quotaUsed" style="color: var(--text-primary); font-weight: 600;">0</span> tokens</div>
+                <div style="margin-bottom: 0.5rem;">○ Libre: <span id="quotaRemaining" style="color: var(--text-primary); font-weight: 600;">0</span> tokens</div>
+                <div id="quotaResetDate" style="opacity: 0.7; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILA 3: Mensajes Recientes -->
+    <div class="card recent-messages">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">📝</span>
+                Mensajes Recientes
+            </h2>
+            <button class="btn-icon" id="refreshMessages">🔄</button>
+        </div>
+        <div class="message-list" id="messageList">
+            <!-- Los mensajes se cargarán dinámicamente aquí -->
+            <div class="loading-messages" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                Cargando mensajes...
+            </div>
+        </div>
+    </div>
+
+</div>

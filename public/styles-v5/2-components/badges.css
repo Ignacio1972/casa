@@ -1,0 +1,73 @@
+/* ========================================
+   BADGES - MBI-v4
+   Badges de categorías reutilizables
+   ======================================== */
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Badges específicos por categoría */
+.badge-ofertas,
+.message-badge.badge-ofertas { 
+  background: #10b981; 
+  color: white; 
+}
+
+.badge-eventos,
+.message-badge.badge-eventos { 
+  background: #8b5cf6; 
+  color: white; 
+}
+
+.badge-informacion,
+.message-badge.badge-informacion { 
+  background: #0891b2; 
+  color: white; 
+}
+
+.badge-servicios,
+.message-badge.badge-servicios { 
+  background: #f59e0b; 
+  color: white; 
+}
+
+.badge-horarios,
+.message-badge.badge-horarios { 
+  background: #6366f1; 
+  color: white; 
+}
+
+.badge-emergencias,
+.message-badge.badge-emergencias { 
+  background: #dc2626; 
+  color: white; 
+}
+
+.badge-sin-categoria,
+.message-badge.badge-sin-categoria { 
+  background: var(--color-gray-500); 
+  color: white; 
+}
+
+/* Message badge específico (para compatibilidad) */
+.message-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+}

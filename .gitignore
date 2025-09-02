@@ -1,0 +1,42 @@
+# Logs
+*.log
+logs/
+src/api/logs/
+
+# Archivos temporales
+src/api/temp/*.mp3
+src/api/temp/*.wav
+src/api/temp/*.copy
+src/api/temp/silence_*
+src/api/temp/concat_*
+src/api/temp/*_with_silence.mp3
+
+# Base de datos (contiene datos sensibles)
+database/*.db
+database/*.db-journal
+database/*.db-wal
+
+# Archivos de configuración con claves API
+src/api/config.php
+
+# Node modules (si se usan en el futuro)
+node_modules/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Backups
+*.backup
+*.bak
+*~
+
+# Archivos de sesión PHP
+sess_*
+
+# Archivos subidos
+uploads/
