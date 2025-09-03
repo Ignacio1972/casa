@@ -1009,6 +1009,42 @@ render() {
         }
     }
     
+    /**
+     * Sincroniza cambios de categoría con las programaciones del calendario
+     * @param {string} filename - Nombre del archivo de audio
+     * @param {string} newCategory - Nueva categoría a aplicar
+     */
+    async syncCategoryToSchedules(filename, newCategory) {
+        if (!filename) return;
+        
+        try {
+            console.log('[CampaignLibrary] Sincronizando categoría:', filename, '→', newCategory);
+            
+            const response = await apiClient.post('api/audio-scheduler.php', {
+                action: 'update_category_by_filename',
+                filename: filename,
+                category: newCategory
+            });
+            
+            if (response.success) {
+                console.log(`[CampaignLibrary] Sincronizada categoría en ${response.updated_schedules} schedule(s)`);
+                
+                // Emitir evento para que calendario se refresque
+                eventBus.emit('schedule:category:updated', {
+                    filename: filename,
+                    category: newCategory,
+                    schedules_updated: response.updated_schedules
+                });
+            } else {
+                console.warn('[CampaignLibrary] Error sincronizando categoría:', response.error);
+            }
+            
+        } catch (error) {
+            console.error('[CampaignLibrary] Error en syncCategoryToSchedules:', error);
+            // No mostrar error al usuario, es una función auxiliar
+        }
+    }
+    
     showSuccess(message) {
         this.showNotification(message, 'success');
     }

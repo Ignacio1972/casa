@@ -605,7 +605,7 @@ function uploadExternalFile() {
             $safeFilename,
             pathinfo($originalFilename, PATHINFO_FILENAME), // Título sin extensión
             'Archivo subido externamente',
-            'archivos_subidos', // Categoría fija como acordamos
+            'sin_categoria', // Categoría compatible con Campaign Library
             $uploadedFile['size'],
             'uploaded,external' // Tags para identificarlo
         ]);
