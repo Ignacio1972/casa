@@ -78,6 +78,13 @@ export default class CampaignLibraryModule {
         // MIGRADO: Los estilos ahora se cargan globalmente desde /styles-v5/main.css
         // No es necesario cargar estilos específicos del módulo
         console.log('[CampaignLibrary] Styles loaded from global styles-v5');
+        
+        // SEGURIDAD: Remover cualquier CSS del dashboard que pueda interferir
+        const dashboardStyles = document.getElementById('dashboard-module-styles');
+        if (dashboardStyles) {
+            dashboardStyles.remove();
+            console.log('[CampaignLibrary] Removed dashboard CSS to prevent conflicts');
+        }
     }
     
   // En /v2/modules/campaigns/index.js
@@ -496,10 +503,14 @@ render() {
                 
                 <div class="message-meta">
                     <div class="message-actions">
-                        <button class="btn-icon" onclick="window.campaignLibrary.playMessage('${message.id}')" title="Preview">▶</button>
+                        <button class="btn-icon btn-play" onclick="window.campaignLibrary.playMessage('${message.id}')" title="Preview">▶</button>
                         <button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Cambiar Título">✏️</button>
                         ${isAudio ? `<button class="btn-icon btn-schedule" onclick="window.campaignLibrary.scheduleMessage('${message.id}', '${(message.title || '').replace(/'/g, "\\'").replace(/"/g, '\\"')}')" title="Programar">📅</button>` : ''}
-                        <button class="btn-icon btn-radio" onclick="window.campaignLibrary.sendToRadio('${message.id}')" title="Enviar a Radio">📡</button>
+                        <button class="btn-icon btn-radio" onclick="window.campaignLibrary.sendToRadio('${message.id}')" title="Enviar a Radio">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="currentColor">
+                                <path d="M480-120q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM254-346l-84-86q59-59 138.5-93.5T480-560q92 0 171.5 35T790-430l-84 84q-44-44-102-69t-124-25q-66 0-124 25t-102 69ZM84-516 0-600q92-94 215-147t265-53q142 0 265 53t215 147l-84 84q-77-77-178.5-120.5T480-680q-116 0-217.5 43.5T84-516Z"/>
+                            </svg>
+                        </button>
                         <button class="btn-icon btn-delete" onclick="window.campaignLibrary.deleteMessage('${message.id}')" title="Eliminar">🗑️</button>
                     </div>
                 </div>
@@ -739,7 +750,7 @@ render() {
             return;
         }
         
-      //  if (!confirm(`¿Enviar "${message.title}" a la radio ahora?`)) return;
+        if (!confirm(`¿Quiere que este mensaje suene ahora mismo en la radio?`)) return;
         
         try {
             // Usar diferentes endpoints según el tipo

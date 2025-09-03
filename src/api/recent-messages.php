@@ -22,7 +22,7 @@ try {
     $db = new PDO("sqlite:$dbPath");
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // Obtener los últimos 10 mensajes recientes (no guardados)
+    // Obtener los últimos 40 mensajes recientes (no guardados)
     $stmt = $db->prepare("
         SELECT 
             filename,
@@ -35,7 +35,7 @@ try {
         WHERE is_saved = 0 
             AND is_active = 1
         ORDER BY created_at DESC
-        LIMIT 10
+        LIMIT 40
     ");
     
     $stmt->execute();

@@ -464,51 +464,47 @@ export default class DashboardV2Module {
 
     // Método para guardar en favoritos
     async saveToFavorites(id, filename, title) {
-        if (confirm(`¿Guardar "${title}" en mensajes guardados?`)) {
-            try {
-                // Llamar API para marcar como guardado CON CATEGORÍA
-                const response = await this.apiClient.post('/api/saved-messages.php', {
-                    action: 'mark_as_saved',
-                    id: id,
-                    filename: filename,
-                    category: this.state.selectedCategory, // AGREGAR ESTA LÍNEA
-                    title: title // AGREGAR TAMBIÉN EL TÍTULO
+        const messageCard = this.container.querySelector(`[data-id="${id}"]`);
+        
+        // 1. Animar slide hacia la derecha
+        if (messageCard) {
+            messageCard.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+            messageCard.style.transform = 'translateX(100%)';
+            messageCard.style.opacity = '0';
+        }
+        
+        try {
+            // 2. Guardar en background
+            const response = await this.apiClient.post('/api/saved-messages.php', {
+                action: 'mark_as_saved',
+                id: id,
+                filename: filename,
+                category: this.state.selectedCategory,
+                title: title
+            });
+            
+            if (response.success) {
+                // Emitir evento para Campaign Library
+                this.eventBus.emit('message:saved:library', {
+                    id: response.data.id,
+                    filename: response.data.filename,
+                    title: response.data.display_name || title,
+                    category: response.data.category,
+                    type: 'audio',
+                    savedAt: response.data.saved_at
                 });
                 
-                if (response.success) {
-                    // Emitir evento para Campaign Library
-                    this.eventBus.emit('message:saved:library', {
-                        id: response.data.id,
-                        filename: response.data.filename,
-                        title: response.data.display_name || title,
-                        category: response.data.category,
-                        type: 'audio',
-                        savedAt: response.data.saved_at
-                    });
-                    
-                    // NO usar event.target, buscar el botón por ID
-                    const messageCard = this.container.querySelector(`[data-id="${id}"]`);
-                    if (messageCard) {
-                        const btn = messageCard.querySelector('.btn-save');
-                        if (btn) {
-                            btn.style.color = '#10b981';
-                            btn.style.background = 'rgba(16, 185, 129, 0.1)';
-                            btn.disabled = true;
-                            btn.textContent = '✓';
-                        }
-                    }
-                    
-                    // Recargar lista después de un momento
-                    setTimeout(() => {
-                        this.loadRecentMessages();
-                    }, 500);
-                    
-                    this.showSuccess('Guardado en mensajes favoritos');
-                }
-            } catch (error) {
-                console.error('Error guardando mensaje:', error);
-                this.showError('Error al guardar el mensaje');
+                // Mostrar toast de éxito
+                this.showToast('✓ Mensaje guardado exitosamente', 'success');
             }
+        } catch (error) {
+            console.error('Error guardando mensaje:', error);
+            this.showToast('Error al guardar el mensaje', 'error');
+        }
+        
+        // 3. Remover card después de la animación
+        if (messageCard) {
+            setTimeout(() => messageCard.remove(), 400);
         }
     }
 
@@ -659,6 +655,44 @@ export default class DashboardV2Module {
         // Aquí podrías implementar un toast notification
         console.error('[Dashboard v2] Error:', message);
         alert(message); // Temporal
+    }
+    
+    showToast(message, type = 'success') {
+        // Crear toast notification
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.className = `toast toast-${type}`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Animar salida y remover
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
     }
     
     /**
