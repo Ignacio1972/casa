@@ -1,110 +1,59 @@
 /**
- * Calendar Module - Sistema de Programación de Anuncios
+ * Calendar Module - Sistema de Programación de Anuncios (Refactorizado)
  * @module CalendarModule
- * Version: 2.1 - Added schedules list table
+ * Version: 3.0 - Arquitectura modular con componentes separados
  */
 
-console.log('[CalendarModule] Loading version 2.1 with schedules list');
+console.log('[CalendarModule] Loading version 3.0 - Refactorizado con componentes modulares');
 
 import { eventBus } from '../../core/event-bus.js';
 import { apiClient } from '../../core/api-client.js';
 import { CalendarView } from './components/calendar-view.js';
 import { CalendarFilters } from './components/calendar-filters.js';
 
+// Nuevos servicios y componentes
+import { ScheduleService } from './services/schedule-service.js';
+import { CalendarStateManager } from './services/calendar-state.js';
+import { SchedulesList } from './components/schedules-list.js';
+import { CalendarLoader } from './components/calendar-loader.js';
+import { ScheduleActions } from './components/schedule-actions.js';
+
 export default class CalendarModule {
     constructor() {
+        // Propiedades públicas (MANTENER para compatibilidad)
         this.name = 'calendar';
         this.container = null;
+        
+        // Servicios (Fase 1 - YA EXISTEN)
+        this.scheduleService = new ScheduleService();
+        this.stateManager = new CalendarStateManager();
+        
+        // Componentes UI (Fase 2 - NUEVOS)
+        this.schedulesList = null;
+        this.calendarLoader = null;
+        this.scheduleActions = null;
+        
+        // Componentes existentes
         this.calendarView = null;
         this.calendarFilters = null;
         
-        // Cache de archivos disponibles
+        // Cache de archivos disponibles (para compatibilidad)
         this.availableFiles = [];
+        
+        // Referencias a métodos antiguos para compatibilidad temporal
+        this._legacyMethods = {};
     }
     
+    /**
+     * Obtiene el nombre del módulo
+     */
     getName() {
         return this.name;
     }
     
     /**
-     * Carga estilos adicionales del tooltip
-     * @private
+     * Carga el módulo en el contenedor especificado
      */
-    loadTooltipStyles() {
-        // Verificar si ya existe
-        // DESACTIVADO: CSS ya está en styles-v5
-        // if (!document.getElementById('calendar-tooltip-styles')) {
-        //     const link = document.createElement('link');
-        //     link.id = 'calendar-tooltip-styles';
-        //     link.rel = 'stylesheet';
-        //     link.href = '/modules/calendar/styles/calendar-tooltips.css';
-        //     document.head.appendChild(link);
-        //     console.log('[Calendar] Tooltip styles loaded');
-        // }
-    }
-    
-    /**
-     * Carga los estilos principales del módulo Calendar
-     * @private
-     */
-    async loadMainStyles() {
-        // DESACTIVADO: CSS ya está en styles-v5
-        // if (!document.querySelector('#calendar-main-styles')) {
-        //     const link = document.createElement('link');
-        //     link.id = 'calendar-main-styles';
-        //     link.rel = 'stylesheet';
-        //     link.href = '/modules/calendar/style.css';
-        //     document.head.appendChild(link);
-        //     
-        //     await new Promise((resolve) => {
-        //         link.onload = resolve;
-        //         link.onerror = () => {
-        //             console.error('[Calendar] Failed to load main styles');
-        //             resolve();
-        //         };
-        //     });
-        //     console.log('[Calendar] Main styles loaded');
-        // }
-        
-        // DESACTIVADO: CSS ya está en styles-v5
-        // // Cargar también los estilos de Audio Archive para la lista de archivos
-        // if (!document.querySelector('#calendar-audio-archive-styles')) {
-        //     const link = document.createElement('link');
-        //     link.id = 'calendar-audio-archive-styles';
-        //     link.rel = 'stylesheet';
-        //     link.href = '/modules/audio-archive/styles.css';
-        //     document.head.appendChild(link);
-        //     
-        //     await new Promise((resolve) => {
-        //         link.onload = resolve;
-        //         link.onerror = () => {
-        //             console.error('[Calendar] Failed to load Audio Archive styles');
-        //             resolve();
-        //         };
-        //     });
-        //     console.log('[Calendar] Audio Archive styles loaded for file list');
-        // }
-    }
-    
-    /**
-     * Aplica estilos críticos para el header del calendario
-     * @private
-     */
-    applyHeaderStyles() {
-        // DESACTIVADO: Los estilos ya están en styles-v5
-        return;
-    }
-    
-    /**
-     * Aplica estilos agresivos para las celdas del calendario
-     * @private
-     */
-    applyCellStyles() {
-        // DESACTIVADO: Los estilos ya están en styles-v5
-        return;
-    }
-
-    
     async load(container) {
         console.log('[Calendar] Loading module...');
         this.container = container;
@@ -112,1080 +61,602 @@ export default class CalendarModule {
         try {
             // Cargar template HTML
             await this.loadTemplate();
-
-            // Cargar estilos principales (incluyendo modal)
-            await this.loadMainStyles();
-
-            // Cargar estilos del tooltip
-            this.loadTooltipStyles();
-            
-            // Aplicar estilos del header
-            this.applyHeaderStyles();
-            
-            // Cargar archivos disponibles de la biblioteca
-            await this.loadAvailableFiles();
             
             // Inicializar componentes
             await this.initializeComponents();
             
-            // Cargar eventos del calendario
-            await this.loadCalendarEvents();
-            
-            // Cargar lista de schedules
-            await this.loadSchedulesList();
-            
-            // Adjuntar event listeners
+            // Configurar event listeners
             this.attachEventListeners();
             
-            // Re-aplicar estilos después de que FullCalendar se renderice
-            setTimeout(() => {
-                this.applyHeaderStyles();
-                this.applyCellStyles();
-            }, 100);
+            // Configurar funciones globales para compatibilidad
+            this.setupGlobalFunctions();
             
-            // Re-aplicar estilos periódicamente para asegurar que se mantengan
-            setTimeout(() => {
-                this.applyHeaderStyles();
-                this.applyCellStyles();
-            }, 500);
+            // Cargar datos iniciales
+            await this.loadInitialData();
             
-            setTimeout(() => {
-                this.applyHeaderStyles();
-                this.applyCellStyles();
-            }, 1000);
-            
+            // Emitir evento de carga completa
             eventBus.emit('calendar:loaded');
+            
             console.log('[Calendar] Module loaded successfully');
+            return true;
             
         } catch (error) {
-            console.error('[Calendar] Load failed:', error);
-            this.showError('Error al cargar el calendario: ' + error.message);
+            console.error('[Calendar] Failed to load module:', error);
+            this.showError('Error al cargar el módulo de calendario');
+            return false;
         }
     }
     
-    async unload() {
-        console.log('[Calendar] Unloading module...');
-        
-        // Limpiar componentes
-        if (this.calendarView) {
-            this.calendarView.destroy();
-        }
-        
-        // Limpiar filtros
-        if (this.calendarFilters) {
-            this.calendarFilters.destroy();
-            this.calendarFilters = null;
-        }
-        
-        // Limpiar event listeners
-        eventBus.clear('calendar:*');
-        
-        this.container = null;
-    }
-    
+    /**
+     * Carga el template HTML del calendario
+     */
     async loadTemplate() {
-        const response = await fetch('/modules/calendar/templates/calendar.html');
-        const html = await response.text();
-        this.container.innerHTML = html;
+        try {
+            const response = await fetch('/modules/calendar/templates/calendar.html');
+            const html = await response.text();
+            this.container.innerHTML = html;
+            console.log('[Calendar] Template loaded');
+        } catch (error) {
+            console.error('[Calendar] Error loading template:', error);
+            throw new Error('Failed to load calendar template');
+        }
     }
     
+    /**
+     * Inicializa todos los componentes
+     */
+    async initializeComponents() {
+        console.log('[Calendar] Initializing components...');
+        
+        try {
+            // Inicializar loader primero
+            this.calendarLoader = new CalendarLoader(this.container, eventBus);
+            this.calendarLoader.init();
+            
+            // Inicializar servicios de acciones
+            this.scheduleActions = new ScheduleActions(
+                this.scheduleService,
+                this.calendarLoader,
+                eventBus
+            );
+            this.scheduleActions.init();
+            
+            // Inicializar lista de schedules
+            this.schedulesList = new SchedulesList(
+                this.container,
+                this.scheduleService,
+                eventBus
+            );
+            await this.schedulesList.init();
+        } catch (error) {
+            console.error('[Calendar] Error initializing core components:', error);
+            throw error; // Re-throw porque estos son componentes críticos
+        }
+        
+        // Inicializar vista de calendario
+        const calendarContainer = document.getElementById('calendar-container');
+        if (calendarContainer) {
+            try {
+                // CalendarView maneja la inicialización internamente en su constructor
+                this.calendarView = new CalendarView(calendarContainer);
+                console.log('[Calendar] CalendarView created successfully');
+            } catch (error) {
+                console.error('[Calendar] Error creating CalendarView:', error);
+                // Continuar sin calendario visual, pero con la tabla de schedules
+            }
+        }
+        
+        // Inicializar filtros
+        const filtersContainer = document.getElementById('calendar-filters');
+        if (filtersContainer) {
+            try {
+                // CalendarFilters llama a init() internamente en su constructor
+                this.calendarFilters = new CalendarFilters(filtersContainer, this.calendarView);
+                console.log('[Calendar] CalendarFilters created successfully');
+            } catch (error) {
+                console.error('[Calendar] Error creating CalendarFilters:', error);
+                // Continuar sin filtros
+            }
+        }
+        
+        // Configurar callbacks entre componentes
+        this.setupComponentCallbacks();
+        
+        console.log('[Calendar] Components initialized');
+    }
+    
+    /**
+     * Configura callbacks entre componentes
+     */
+    setupComponentCallbacks() {
+        // Callbacks para actualización de lista después de acciones
+        this.scheduleActions.onScheduleUpdated = async () => {
+            await this.loadSchedulesList();
+            await this.loadCalendarEvents();
+        };
+        
+        this.scheduleActions.onScheduleDeleted = async () => {
+            await this.loadSchedulesList();
+            await this.loadCalendarEvents();
+        };
+        
+        // Callbacks de la lista de schedules
+        this.schedulesList.onToggleStatus = (id, activate) => {
+            return this.scheduleActions.toggleScheduleStatus(id, activate);
+        };
+        
+        this.schedulesList.onDelete = (id) => {
+            return this.scheduleActions.deleteSchedule(id);
+        };
+        
+        this.schedulesList.onEdit = (id) => {
+            return this.scheduleActions.editSchedule(id);
+        };
+        
+        this.schedulesList.onPreviewAudio = (filename, button) => {
+            return this.scheduleActions.previewAudio(filename, button);
+        };
+    }
+    
+    /**
+     * Carga datos iniciales
+     */
+    async loadInitialData() {
+        console.log('[Calendar] Loading initial data...');
+        
+        // Mostrar loading
+        this.calendarLoader.showLoading('Cargando calendario...');
+        
+        try {
+            // Cargar en paralelo para mejor performance
+            const promises = [
+                this.loadAvailableFiles(),
+                this.loadSchedulesList(),
+                this.loadCalendarEvents()
+            ];
+            
+            await Promise.all(promises);
+            
+            console.log('[Calendar] Initial data loaded');
+        } catch (error) {
+            console.error('[Calendar] Error loading initial data:', error);
+            // No fallar completamente, continuar con lo que se pudo cargar
+        } finally {
+            this.calendarLoader.hideLoading();
+        }
+    }
+    
+    /**
+     * Carga la lista de archivos disponibles
+     */
     async loadAvailableFiles() {
         try {
-            // Usar la API existente de biblioteca
-            const response = await apiClient.post('/biblioteca.php', {
-                action: 'list_library'
-            });
-            
-            if (response.success) {
-                this.availableFiles = response.files.map(file => ({
-                    value: file.filename,
-                    label: file.filename,
-                    duration: file.duration || 0,
-                    size: file.size,
-                    date: file.date
-                }));
-                
-                console.log(`[Calendar] Loaded ${this.availableFiles.length} audio files`);
-            }
+            this.availableFiles = await this.stateManager.loadAvailableFiles();
+            console.log(`[Calendar] Loaded ${this.availableFiles.length} available files`);
+            return this.availableFiles;
         } catch (error) {
-            console.error('[Calendar] Error loading files:', error);
-            this.availableFiles = [];
-        }
-    }
-    
-    async initializeComponents() {
-        // Inicializar vista de calendario
-        const calendarContainer = this.container.querySelector('#calendar-container');
-        this.calendarView = new CalendarView(calendarContainer, {
-            onEventClick: (event) => this.handleEventClick(event),
-            onDateClick: (date) => this.handleDateClick(date)
-        });
-        
-        // Inicializar filtros si existe el contenedor
-        const filtersContainer = this.container.querySelector('#calendar-filters');
-        if (filtersContainer) {
-            this.calendarFilters = new CalendarFilters(filtersContainer, this.calendarView, {
-                // Ya no pasamos categories, el componente usa scheduleTypes internamente
-            });
-        }
-    }
-    
-    async loadCalendarEvents() {
-        try {
-            this.showLoading(true);
-            
-            // Cargar schedules de audio desde el sistema funcional
-            const audioSchedules = await this.calendarView.loadAudioSchedules();
-            
-            // Establecer eventos en el calendario
-            this.calendarView.setEvents(audioSchedules);
-            
-            // Actualizar contador de resultados
-            this.updateCalendarResultsCount(audioSchedules.length);
-            
-            console.log(`[Calendar] Loaded ${audioSchedules.length} audio schedules`);
-            
-        } catch (error) {
-            console.error('[Calendar] Error loading events:', error);
-            this.showError('Error al cargar eventos');
-        } finally {
-            this.showLoading(false);
+            console.error('[Calendar] Error loading available files:', error);
+            return [];
         }
     }
     
     /**
-     * Actualiza el contador de eventos en el calendario
-     */
-    updateCalendarResultsCount(eventsCount) {
-        const counter = document.getElementById('resultsCount');
-        if (counter) {
-            if (eventsCount === 0) {
-                counter.innerHTML = `
-                    <div class="archive-empty">
-                        <span>📅</span>
-                        <span>No hay eventos programados en el calendario</span>
-                    </div>
-                `;
-            } else {
-                counter.innerHTML = `
-                    Mostrando <span class="archive-count-number">${eventsCount}</span> 
-                    evento${eventsCount !== 1 ? 's' : ''} programado${eventsCount !== 1 ? 's' : ''}
-                `;
-            }
-        }
-    }
-    
-    /**
-     * Carga y muestra la lista de todos los schedules
+     * Carga la lista de schedules
      */
     async loadSchedulesList() {
         try {
-            const container = document.getElementById('schedules-table-container');
-            if (!container) return;
-            
-            // Mostrar loading
-            container.innerHTML = '<div class="loading-state"><div class="loading-spinner"></div><p>Cargando programaciones...</p></div>';
-            
-            const response = await fetch('/api/audio-scheduler.php'
-, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'list', active_only: true })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.displaySchedulesTable(data.schedules || []);
-            } else {
-                container.innerHTML = '<p class="error-message">Error al cargar programaciones</p>';
-            }
+            const schedules = await this.schedulesList.load();
+            console.log(`[Calendar] Loaded ${schedules.length} schedules`);
+            return schedules;
         } catch (error) {
             console.error('[Calendar] Error loading schedules list:', error);
-            const container = document.getElementById('schedules-table-container');
-            if (container) {
-                container.innerHTML = '<p class="error-message">Error al cargar programaciones</p>';
-            }
+            return [];
         }
     }
     
     /**
-     * Muestra la tabla de schedules
+     * Carga eventos del calendario
      */
-    displaySchedulesTable(schedules) {
-        const container = document.getElementById('schedules-table-container');
-        if (!container) return;
-        
-        // Actualizar contador
-        const countElement = document.getElementById('schedulesCount');
-        if (countElement) {
-            countElement.textContent = schedules ? schedules.length : 0;
+    async loadCalendarEvents() {
+        if (!this.calendarView) {
+            console.log('[Calendar] CalendarView not available, skipping calendar events');
+            return [];
         }
         
-        if (!schedules || schedules.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <div class="empty-state-title">
-                        No hay programaciones activas configuradas
-                    </div>
-                    <div class="empty-state-description">
-                        Las programaciones aparecerán aquí cuando se creen desde Campaign Library
-                    </div>
-                </div>
-            `;
-            return;
+        try {
+            // Obtener schedules del servicio
+            const schedules = await this.scheduleService.loadSchedulesList();
+            
+            // Convertir a eventos para FullCalendar
+            const events = this.convertSchedulesToEvents(schedules);
+            
+            // CalendarView ahora maneja eventos pendientes internamente
+            this.calendarView.setEvents(events);
+            console.log(`[Calendar] Loaded ${events.length} calendar events`);
+            
+            return events;
+        } catch (error) {
+            console.error('[Calendar] Error loading calendar events:', error);
+            return [];
         }
-        
-        // Crear cards de programaciones según test-calendar-styles.html
-        let schedulesHTML = '';
+    }
+    
+    /**
+     * Convierte schedules a formato de eventos para FullCalendar
+     */
+    convertSchedulesToEvents(schedules) {
+        console.log('[Calendar] Converting schedules to events:', schedules);
+        const events = [];
         
         schedules.forEach(schedule => {
-            const type = this.getScheduleTypeLabel(schedule);
-            const timing = this.getScheduleTimingForTable(schedule);
-            const displayName = schedule.title || schedule.filename || 'Sin archivo';
-            const category = schedule.category || 'sin_categoria';
-            const categoryBadge = this.getCategoryBadge(category);
-            
-            // Crear card de programación según diseño de test-calendar-styles.html
-            schedulesHTML += `
-                <div class="schedule-card">
-                    <div class="schedule-time-block">
-                        <div class="schedule-time">${this.getScheduleTime(schedule)}</div>
-                        <div class="schedule-frequency">${this.getScheduleFrequency(schedule)}</div>
-                    </div>
-                    
-                    <div class="schedule-content">
-                        <div class="schedule-header">
-                            <span class="category-dot category-dot-${category}"></span>
-                            <h3 class="schedule-title">${this.truncateText(displayName, 35)}</h3>
-                        </div>
-                        <p class="schedule-message">
-                            ${this.getScheduleDescription(schedule)}
-                        </p>
-                        <div class="schedule-meta">
-                            <div class="schedule-meta-item">
-                                <span>📅</span>
-                                <span>${timing}</span>
-                            </div>
-                            <div class="schedule-meta-item">
-                                <span>🔄</span>
-                                <span>${type}</span>
-                            </div>
-                            ${this.getScheduleDays(schedule)}
-                        </div>
-                    </div>
-                    
-                    <div class="schedule-actions">
-                        <div class="schedule-status ${schedule.is_active ? 'active' : ''}">
-                            <span>●</span>
-                            <span>${schedule.is_active ? 'Activo' : 'Inactivo'}</span>
-                        </div>
-                        <div class="schedule-btn-group">
-                            ${schedule.is_active ? `
-                            <button class="btn-icon btn-icon--small" 
-                                    onclick="window.calendarModule.toggleScheduleStatus(${schedule.id}, false)"
-                                    title="Pausar">⏸️</button>
-                            ` : `
-                            <button class="btn-icon btn-icon--small" 
-                                    onclick="window.calendarModule.toggleScheduleStatus(${schedule.id}, true)"
-                                    title="Activar">▶️</button>
-                            `}
-                            <button class="btn-icon btn-icon--small" 
-                                    onclick="window.calendarModule.editSchedule(${schedule.id})"
-                                    title="Editar">✏️</button>
-                            <button class="btn-icon btn-icon--small btn-delete" 
-                                    onclick="window.calendarModule.deleteScheduleFromList(${schedule.id})"
-                                    title="Eliminar">🗑️</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        container.innerHTML = schedulesHTML;
-        
-        // Hacer disponibles las funciones globalmente para onclick
-        window.calendarModule = {
-            viewScheduleFromList: (id) => this.viewScheduleFromList(id),
-            deleteScheduleFromList: (id) => this.deleteScheduleFromList(id),
-            previewAudio: (filename, buttonElement) => this.previewAudio(filename, buttonElement),
-            toggleScheduleStatus: (id, activate) => this.toggleScheduleStatus(id, activate),
-            editSchedule: (id) => this.editSchedule(id)
-        };
-    }
-    
-    /**
-     * Obtiene el badge de categoría
-     */
-    getCategoryBadge(category) {
-        const categories = {
-            'ofertas': 'OFERTAS',
-            'eventos': 'EVENTOS', 
-            'informacion': 'INFO',
-            'emergencias': 'EMERGENCIA',
-            'servicios': 'SERVICIOS',
-            'horarios': 'HORARIOS',
-            'sin_categoria': 'GENERAL'
-        };
-        const label = categories[category] || 'GENERAL';
-        return `<span class="badge badge-${category}">${label}</span>`;
-    }
-    
-    /**
-     * Obtiene el tiempo de la programación
-     */
-    getScheduleTime(schedule) {
-        if (schedule.schedule_time) {
-            if (typeof schedule.schedule_time === 'string' && schedule.schedule_time.startsWith('[')) {
-                try {
-                    const times = JSON.parse(schedule.schedule_time);
-                    return Array.isArray(times) ? times[0] : schedule.schedule_time;
-                } catch(e) {
-                    return schedule.schedule_time;
-                }
-            }
-            return schedule.schedule_time;
-        }
-        return '00:00';
-    }
-    
-    /**
-     * Obtiene la descripción de la programación
-     */
-    getScheduleDescription(schedule) {
-        // Si notes es un JSON string, intentar parsearlo
-        if (schedule.notes && typeof schedule.notes === 'string') {
-            try {
-                const parsed = JSON.parse(schedule.notes);
-                // Si hay un campo notes dentro del JSON, usarlo
-                if (parsed.notes && parsed.notes.trim() !== '') {
-                    return parsed.notes;
-                }
-            } catch (e) {
-                // Si no es JSON, usar el valor directamente si no está vacío
-                if (schedule.notes.trim() !== '' && !schedule.notes.startsWith('{')) {
-                    return schedule.notes;
-                }
-            }
-        }
-        
-        // Si no hay descripción, mostrar tipo de programación
-        const type = this.getScheduleTypeLabel(schedule);
-        return `Programación ${type.toLowerCase()}`;
-    }
-    
-    /**
-     * Obtiene la frecuencia de la programación
-     */
-    getScheduleFrequency(schedule) {
-        if (schedule.schedule_type === 'interval') {
-            const h = parseInt(schedule.interval_hours) || 0;
-            const m = parseInt(schedule.interval_minutes) || 0;
-            if (h > 0 && m > 0) {
-                return `Cada ${h}h ${m}m`;
-            } else if (h > 0) {
-                return `Cada ${h}h`;
-            } else if (m > 0) {
-                return `Cada ${m}m`;
-            }
-        }
-        return schedule.schedule_type === 'once' ? 'Una vez' : 'Diario';
-    }
-    
-    /**
-     * Obtiene los días de la semana formateados
-     */
-    getScheduleDays(schedule) {
-        if (schedule.schedule_type !== 'specific' && schedule.schedule_type !== 'interval') {
-            return '';
-        }
-        
-        const dayMap = {
-            'monday': 'Lu', 'tuesday': 'Ma', 'wednesday': 'Mi',
-            'thursday': 'Ju', 'friday': 'Vi', 'saturday': 'Sa', 'sunday': 'Do'
-        };
-        
-        let days = [];
-        if (Array.isArray(schedule.schedule_days)) {
-            days = schedule.schedule_days;
-        } else if (schedule.schedule_days) {
-            try {
-                const parsed = JSON.parse(schedule.schedule_days);
-                if (Array.isArray(parsed)) {
-                    days = parsed;
-                }
-            } catch(e) {
-                // Ignorar error
-            }
-        }
-        
-        if (days.length === 0) return '';
-        
-        return `
-            <div class="schedule-days">
-                ${Object.keys(dayMap).map(key => `
-                    <div class="schedule-day ${days.includes(key) ? 'active' : ''}">${dayMap[key]}</div>
-                `).join('')}
-            </div>
-        `;
-    }
-    
-    /**
-     * Obtiene el label del tipo de schedule
-     */
-    getScheduleTypeLabel(schedule) {
-        const types = {
-            'interval': '⏱️ Intervalo',
-            'specific': '📅 Días específicos',
-            'once': '1️⃣ Una vez'
-        };
-        return types[schedule.schedule_type] || '❓ Desconocido';
-    }
-    
-    /**
-     * Formatea el timing del schedule para la tabla
-     */
-    getScheduleTimingForTable(schedule) {
-        try {
-            switch(schedule.schedule_type) {
-                case 'interval':
-                    const h = parseInt(schedule.interval_hours) || 0;
-                    const m = parseInt(schedule.interval_minutes) || 0;
-                    if (h > 0 && m > 0) {
-                        return `Cada ${h}h ${m}min`;
-                    } else if (h > 0) {
-                        return `Cada ${h} hora${h > 1 ? 's' : ''}`;
-                    } else if (m > 0) {
-                        return `Cada ${m} minuto${m > 1 ? 's' : ''}`;
-                    }
-                    return 'No configurado';
-                    
-                case 'specific':
-                    // Mapeo de días en inglés a español
-                    const dayMap = {
-                        'monday': 'Lun', 'tuesday': 'Mar', 'wednesday': 'Mié',
-                        'thursday': 'Jue', 'friday': 'Vie', 'saturday': 'Sáb', 'sunday': 'Dom'
-                    };
-                    
-                    let days = [];
-                    if (Array.isArray(schedule.schedule_days)) {
-                        days = schedule.schedule_days.map(d => dayMap[d.toLowerCase()] || d);
-                    } else if (schedule.schedule_days) {
-                        // Intentar parsear si es string
-                        try {
-                            const parsed = JSON.parse(schedule.schedule_days);
-                            if (Array.isArray(parsed)) {
-                                days = parsed.map(d => dayMap[d.toLowerCase()] || d);
-                            }
-                        } catch(e) {
-                            days = [schedule.schedule_days];
-                        }
-                    }
-                    
-                    const daysStr = days.length > 0 ? days.join(', ') : 'Sin días';
-                    
-                    // Obtener hora
-                    let time = '00:00';
-                    if (schedule.schedule_time) {
-                        if (typeof schedule.schedule_time === 'string' && schedule.schedule_time.startsWith('[')) {
-                            try {
-                                const parsed = JSON.parse(schedule.schedule_time);
-                                time = Array.isArray(parsed) ? parsed[0] : parsed;
-                            } catch(e) {
-                                time = schedule.schedule_time;
-                            }
-                        } else {
-                            time = schedule.schedule_time;
-                        }
-                    }
-                    
-                    return `${daysStr} a las ${time}`;
-                    
-                case 'once':
-                    const date = schedule.start_date ? 
-                        new Date(schedule.start_date).toLocaleDateString('es-CL') : 
-                        'Fecha no definida';
-                    return date;
-                    
-                default:
-                    return 'No configurado';
-            }
-        } catch (error) {
-            console.error('[Calendar] Error formatting schedule timing:', error);
-            return 'Error en formato';
-        }
-    }
-    
-    /**
-     * Trunca texto largo
-     */
-    truncateText(text, maxLength) {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength) + '...';
-    }
-    
-    /**
-     * Ver detalles de un schedule desde la lista
-     */
-    viewScheduleFromList(scheduleId) {
-        // Buscar el schedule en los datos
-        fetch('/api/audio-scheduler.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'list' })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const schedule = data.schedules.find(s => s.id === scheduleId);
-            if (schedule) {
-                // Convertir a formato esperado por el modal
-                const eventData = {
-                    id: `audio_schedule_${schedule.id}`,
-                    type: 'audio_schedule',
-                    scheduleId: schedule.id,
-                    filename: schedule.filename,
-                    title: schedule.title,
-                    scheduleType: schedule.schedule_type,
-                    intervalMinutes: schedule.interval_minutes,
-                    intervalHours: schedule.interval_hours,
-                    scheduleDays: schedule.schedule_days,
-                    scheduleTime: schedule.schedule_time,
-                    startDate: schedule.start_date,
-                    endDate: schedule.end_date,
-                    isActive: schedule.is_active,
-                    createdAt: schedule.created_at
-                };
-                this.showScheduleInfoModal(eventData);
-            }
-        })
-        .catch(error => {
-            console.error('[Calendar] Error loading schedule details:', error);
-            this.showError('Error al cargar detalles del schedule');
-        });
-    }
-    
-    /**
-     * Eliminar schedule desde la lista
-     */
-    /**
-     * Alterna el estado activo/inactivo de una programación
-     */
-    async toggleScheduleStatus(scheduleId, activate) {
-        try {
-            const action = activate ? 'activate' : 'deactivate';
-            const response = await fetch('/api/audio-scheduler.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    action: action,
-                    schedule_id: scheduleId 
-                })
+            console.log('[Calendar] Processing schedule:', {
+                id: schedule.id,
+                type: schedule.schedule_type,
+                title: schedule.title,
+                filename: schedule.filename,
+                is_active: schedule.is_active,
+                schedule_time: schedule.schedule_time,
+                schedule_days: schedule.schedule_days,
+                start_date: schedule.start_date
             });
             
-            const result = await response.json();
-            if (result.success) {
-                this.showNotification(
-                    activate ? '✅ Programación activada' : '⏸️ Programación pausada',
-                    'success'
-                );
-                await this.loadSchedulesList();
-            } else {
-                this.showNotification('Error al cambiar estado', 'error');
-            }
-        } catch (error) {
-            console.error('[Calendar] Error toggling schedule:', error);
-            this.showNotification('Error al cambiar estado', 'error');
-        }
-    }
-    
-    /**
-     * Editar una programación
-     */
-    editSchedule(scheduleId) {
-        // Por ahora, mostrar mensaje informativo
-        this.showNotification('La edición de programaciones estará disponible próximamente', 'info');
-    }
-    
-    async deleteScheduleFromList(scheduleId) {
-        await this.confirmDeleteSchedule(scheduleId, () => {
-            // Refrescar tanto la lista como el calendario
-            this.loadSchedulesList();
-            this.loadCalendarEvents();
-        });
-    }
-    
-    /**
-     * Preview de audio inline en la tabla
-     */
-    previewAudio(filename, buttonElement) {
-        if (!filename) {
-            this.showError('Archivo no disponible');
-            return;
-        }
-        
-        // Buscar si ya existe un player activo y pausarlo
-        const existingPlayer = document.querySelector('.inline-audio-player');
-        if (existingPlayer) {
-            const audio = existingPlayer.querySelector('audio');
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
-            }
-            existingPlayer.remove();
-        }
-        
-        // Crear player inline
-        const audioUrl = `/api/biblioteca.php?filename=${filename}`;
-        const playerHTML = `
-            <div class="inline-audio-player" style="
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--bg-primary, #1e293b);
-                border: 1px solid var(--border-color, rgba(255,255,255,0.1));
-                border-radius: 8px;
-                padding: 1rem;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                z-index: 1000;
-                max-width: 350px;
-                color: var(--text-primary, #ffffff);
-            ">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <strong style="font-size: 0.9rem;">🎵 ${filename}</strong>
-                    <button onclick="this.parentElement.parentElement.remove()" style="
-                        background: none;
-                        border: none;
-                        color: var(--text-secondary, #94a3b8);
-                        cursor: pointer;
-                        font-size: 1.2rem;
-                        padding: 0;
-                    ">&times;</button>
-                </div>
-                <audio controls autoplay style="width: 100%; height: 32px;">
-                    <source src="${audioUrl}" type="audio/mpeg">
-                    Tu navegador no soporta reproducción de audio.
-                </audio>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', playerHTML);
-        
-        // Auto-cerrar después de 30 segundos si no se usa
-        setTimeout(() => {
-            const player = document.querySelector('.inline-audio-player');
-            if (player) {
-                const audio = player.querySelector('audio');
-                if (audio && (audio.paused || audio.ended)) {
-                    player.remove();
+            // Lógica de conversión según el tipo de schedule
+            const baseEvent = {
+                id: `schedule_${schedule.id}`,
+                title: schedule.title || schedule.filename || 'Sin título',
+                extendedProps: {
+                    scheduleId: schedule.id,
+                    filename: schedule.filename,
+                    category: schedule.category || 'sin_categoria',
+                    isActive: schedule.is_active
                 }
+            };
+            
+            // Agregar eventos según el tipo
+            switch(schedule.schedule_type) {
+                case 'daily':
+                    // Eventos diarios
+                    baseEvent.rrule = {
+                        freq: 'daily',
+                        dtstart: schedule.start_date || new Date().toISOString()
+                    };
+                    console.log('[Calendar] Created daily event:', baseEvent);
+                    events.push(baseEvent);
+                    break;
+                    
+                case 'weekly':
+                    // Eventos semanales
+                    try {
+                        const days = JSON.parse(schedule.schedule_days || '[]');
+                        if (days.length > 0) {
+                            baseEvent.daysOfWeek = days.map(day => this.getDayNumber(day));
+                            baseEvent.startTime = schedule.schedule_time || '00:00';
+                            console.log('[Calendar] Created weekly event:', baseEvent);
+                            events.push(baseEvent);
+                        }
+                    } catch(e) {
+                        console.error('[Calendar] Error parsing weekly days:', e);
+                    }
+                    break;
+                    
+                case 'once':
+                    // Evento único
+                    baseEvent.start = schedule.start_date;
+                    baseEvent.allDay = false;
+                    console.log('[Calendar] Created once event:', baseEvent);
+                    events.push(baseEvent);
+                    break;
+                    
+                case 'interval':
+                    // Para intervalos, crear un evento simple con fecha de inicio
+                    // FullCalendar no maneja bien intervalos personalizados con rrule
+                    const now = new Date();
+                    baseEvent.start = schedule.start_date || now.toISOString();
+                    baseEvent.title += ` (Cada ${schedule.interval_hours || 0}h ${schedule.interval_minutes || 0}m)`;
+                    baseEvent.backgroundColor = '#f59e0b'; // Amarillo para intervalos
+                    baseEvent.borderColor = '#d97706';
+                    console.log('[Calendar] Created interval event:', baseEvent);
+                    events.push(baseEvent);
+                    break;
+                    
+                case 'specific':
+                    // Tipo específico con días y hora
+                    try {
+                        const days = typeof schedule.schedule_days === 'string' ? 
+                                    JSON.parse(schedule.schedule_days) : 
+                                    schedule.schedule_days || [];
+                        const time = schedule.schedule_time || '00:00';
+                        
+                        if (days.length > 0) {
+                            // Crear evento recurrente semanal
+                            baseEvent.daysOfWeek = days.map(day => this.getDayNumber(day));
+                            baseEvent.startTime = time;
+                            baseEvent.backgroundColor = '#3b82f6'; // Azul para específicos
+                            baseEvent.borderColor = '#2563eb';
+                            console.log('[Calendar] Created specific event:', baseEvent);
+                            events.push(baseEvent);
+                        } else {
+                            // Si no hay días, crear evento único
+                            baseEvent.start = schedule.start_date || new Date().toISOString();
+                            baseEvent.backgroundColor = '#3b82f6';
+                            baseEvent.borderColor = '#2563eb';
+                            console.log('[Calendar] Created specific event (no days):', baseEvent);
+                            events.push(baseEvent);
+                        }
+                    } catch(e) {
+                        console.error('[Calendar] Error parsing specific schedule:', e);
+                    }
+                    break;
+                    
+                default:
+                    console.warn('[Calendar] Unknown schedule type:', schedule.schedule_type);
+                    // Crear evento por defecto
+                    baseEvent.start = schedule.start_date || new Date().toISOString();
+                    baseEvent.backgroundColor = '#6b7280'; // Gris para desconocidos
+                    baseEvent.borderColor = '#4b5563';
+                    events.push(baseEvent);
+                    break;
             }
-        }, 30000);
+        });
+        
+        console.log('[Calendar] Total events created:', events.length, events);
+        return events;
     }
     
+    /**
+     * Convierte nombre de día a número
+     */
+    getDayNumber(dayName) {
+        const days = {
+            'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+            'thursday': 4, 'friday': 5, 'saturday': 6
+        };
+        return days[dayName.toLowerCase()] || 0;
+    }
+    
+    /**
+     * Configura los event listeners
+     */
     attachEventListeners() {
-        // Event listeners removidos: create-event-btn y refresh-calendar-btn (ya no existen en el HTML)
-        
         // Botón actualizar lista de schedules
         const refreshSchedulesBtn = this.container.querySelector('#refresh-schedules-btn');
         refreshSchedulesBtn?.addEventListener('click', () => {
             this.loadSchedulesList();
         });
         
-        // Filtros de categoría removidos (ya no existen en el HTML)
-        
-        // Escuchar eventos del sistema de scheduling
+        // Escuchar eventos del sistema
         eventBus.on('library:file:added', () => {
             this.loadAvailableFiles();
         });
         
-        // Escuchar cuando se crean/modifican schedules
         eventBus.on('schedule:created', () => {
-            console.log('[Calendar] Schedule created, refreshing calendar...');
-            this.loadCalendarEvents();
             this.loadSchedulesList();
+            this.loadCalendarEvents();
         });
         
         eventBus.on('schedule:updated', () => {
-            console.log('[Calendar] Schedule updated, refreshing calendar...');
-            this.loadCalendarEvents();
             this.loadSchedulesList();
+            this.loadCalendarEvents();
         });
         
         eventBus.on('schedule:deleted', () => {
-            console.log('[Calendar] Schedule deleted, refreshing calendar...');
-            this.loadCalendarEvents();
             this.loadSchedulesList();
+            this.loadCalendarEvents();
         });
         
-        // NUEVO: Escuchar cambios de categoría desde Campaign Library
-        eventBus.on('schedule:category:updated', (data) => {
-            console.log('[Calendar] Category updated for:', data.filename, '→', data.category);
-            console.log('[Calendar] Refreshing calendar and schedules list...');
-            this.loadCalendarEvents();
-            this.loadSchedulesList();
+        // Escuchar cambios de categoría desde Campaign
+        eventBus.on('schedule:category:updated', async (data) => {
+            console.log('[Calendar] Category updated event received:', data);
+            await this.loadSchedulesList();
+            await this.loadCalendarEvents();
         });
-    }
-    
-    handleEventClick(event) {
-        console.log('[Calendar] Event clicked:', event);
-        console.log('[Calendar] Event full object:', JSON.stringify(event, null, 2));
         
-        // Verificar múltiples formas de detectar un audio schedule
-        const isAudioSchedule = 
-            (event && event.type === 'audio_schedule') ||
-            (event && event.id && String(event.id).includes('audio_schedule')) ||
-            (event && event.scheduleId !== undefined) ||
-            (event && event.filename); // También verificar si tiene filename
-        
-        console.log('[Calendar] Is audio schedule?', isAudioSchedule);
-        console.log('[Calendar] Event type:', event.type);
-        console.log('[Calendar] Event id:', event.id);
-        console.log('[Calendar] Has scheduleId?', event.scheduleId !== undefined);
-        console.log('[Calendar] Has filename?', event.filename !== undefined);
-        
-        if (isAudioSchedule) {
-            console.log('[Calendar] Audio schedule detected, opening modal');
-            
-            // Asegurarnos de que el modal se abra
-            try {
-                this.showScheduleInfoModal(event);
-            } catch (error) {
-                console.error('[Calendar] Error showing modal:', error);
-                this.showError('Error al mostrar información del schedule: ' + error.message);
-            }
-        } else {
-            console.log('[Calendar] Not an audio schedule - ignoring click');
+        // Configurar listener de filtros si existe
+        if (this.calendarFilters && this.calendarView) {
+            this.calendarFilters.onFilterChange = (filters) => {
+                this.applyFilters(filters);
+            };
         }
     }
     
     /**
-     * Muestra modal con información del schedule y opciones de gestión
+     * Configura funciones globales para compatibilidad
      */
-    showScheduleInfoModal(scheduleData) {
-        console.log('[Calendar] Showing schedule info modal:', scheduleData);
-        
-        // Formatear información del schedule
-        const scheduleInfo = this.formatScheduleInfo(scheduleData);
-        
-        // Crear HTML del modal
-        const modalHTML = this.createScheduleModalHTML(scheduleData, scheduleInfo);
-        
-        // Insertar modal en el DOM
-        const existingModal = document.getElementById('schedule-info-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-        
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        // Obtener referencias a elementos del modal
-        const modal = document.getElementById('schedule-info-modal');
-        const overlay = modal.querySelector('.modal-overlay');
-        const closeBtn = modal.querySelector('.close-modal');
-        const deleteBtn = modal.querySelector('.delete-schedule-btn');
-        const editBtn = modal.querySelector('.edit-schedule-btn');
-        const audioElement = modal.querySelector('audio');
-        
-        // Event listeners
-        const closeModal = () => {
-            modal.classList.remove('active');
-            setTimeout(() => modal.remove(), 300);
+    setupGlobalFunctions() {
+        // Mantener compatibilidad con window.calendarModule
+        window.calendarModule = {
+            // Funciones usadas por onclick handlers en la tabla
+            toggleScheduleStatus: (id, activate) => {
+                return this.toggleScheduleStatus(id, activate);
+            },
+            deleteScheduleFromList: (id) => {
+                return this.deleteScheduleFromList(id);
+            },
+            editSchedule: (id) => {
+                return this.editSchedule(id);
+            },
+            previewAudio: (filename, button) => {
+                return this.previewAudio(filename, button);
+            },
+            viewScheduleFromList: (id) => {
+                return this.viewScheduleFromList(id);
+            },
+            // Funciones de debug
+            testAddEvent: () => {
+                console.log('[TEST] Adding test event to calendar');
+                if (this.calendarView && this.calendarView.calendar) {
+                    const testEvent = {
+                        id: 'test_' + Date.now(),
+                        title: 'Evento de Prueba',
+                        start: new Date().toISOString(),
+                        backgroundColor: '#10b981',
+                        borderColor: '#059669'
+                    };
+                    console.log('[TEST] Test event:', testEvent);
+                    const result = this.calendarView.calendar.addEvent(testEvent);
+                    console.log('[TEST] Add result:', result);
+                    console.log('[TEST] All events:', this.calendarView.calendar.getEvents());
+                } else {
+                    console.error('[TEST] Calendar not available');
+                }
+            },
+            getCalendarState: () => {
+                return {
+                    calendarView: !!this.calendarView,
+                    calendar: !!(this.calendarView && this.calendarView.calendar),
+                    events: this.calendarView && this.calendarView.calendar ? 
+                            this.calendarView.calendar.getEvents().length : 0
+                };
+            },
+            reloadEvents: () => {
+                console.log('[TEST] Manually reloading events');
+                return this.loadCalendarEvents();
+            }
         };
         
-        overlay.addEventListener('click', closeModal);
-        closeBtn.addEventListener('click', closeModal);
-        
-        // Botón eliminar
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => {
-                this.confirmDeleteSchedule(scheduleData.scheduleId, closeModal);
-            });
-        }
-        
-        // Botón editar
-        if (editBtn) {
-            editBtn.addEventListener('click', () => {
-                closeModal();
-                this.editSchedule(scheduleData);
-            });
-        }
-        
-        // Manejar error de carga de audio
-        if (audioElement) {
-            audioElement.addEventListener('error', () => {
-                const audioContainer = modal.querySelector('.audio-preview');
-                audioContainer.innerHTML = '<p class="audio-error">⚠️ No se puede cargar el audio</p>';
-            });
-        }
-        
-        // Mostrar modal con animación
-        console.log('[Calendar] Modal element:', modal);
-        console.log('[Calendar] Adding active class...');
-        
-        requestAnimationFrame(() => {
-            modal.classList.add('active');
-            console.log('[Calendar] Active class added, modal should be visible now');
+        console.log('[Calendar] Global functions configured');
+    }
+    
+    // ========================================
+    // MÉTODOS PUENTE PARA COMPATIBILIDAD
+    // ========================================
+    
+    /**
+     * Toggle estado de schedule (compatibilidad)
+     */
+    async toggleScheduleStatus(scheduleId, activate) {
+        return this.scheduleActions.toggleScheduleStatus(scheduleId, activate);
+    }
+    
+    /**
+     * Eliminar schedule (compatibilidad)
+     */
+    async deleteScheduleFromList(scheduleId) {
+        await this.confirmDeleteSchedule(scheduleId, () => {
+            this.loadSchedulesList();
+            this.loadCalendarEvents();
         });
     }
     
     /**
-     * Formatea la información del schedule para mostrar
-     */
-    formatScheduleInfo(scheduleData) {
-        const { scheduleType, intervalMinutes, intervalHours, scheduleDays, scheduleTime, startDate, endDate } = scheduleData;
-        
-        let info = '';
-        
-        switch(scheduleType) {
-            case 'interval':
-                const hours = intervalHours || 0;
-                const minutes = intervalMinutes || 0;
-                if (hours > 0 && minutes > 0) {
-                    info = `Cada ${hours} hora${hours > 1 ? 's' : ''} y ${minutes} minuto${minutes > 1 ? 's' : ''}`;
-                } else if (hours > 0) {
-                    info = `Cada ${hours} hora${hours > 1 ? 's' : ''}`;
-                } else {
-                    info = `Cada ${minutes} minuto${minutes > 1 ? 's' : ''}`;
-                }
-                break;
-                
-            case 'specific':
-                const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-                // Asegurar que scheduleDays sea string
-                const daysString = scheduleDays ? String(scheduleDays) : '';
-                const dayNames = daysString ? daysString.split(',')
-                    .map(d => days[parseInt(d.trim())])
-                    .filter(Boolean)
-                    .join(', ') : 'Días no especificados';
-                info = `${dayNames} a las ${scheduleTime || '00:00'}`;
-                break;
-                
-            case 'once':
-                const dateStr = startDate ? new Date(startDate).toLocaleDateString('es-CL') : 'Fecha no especificada';
-                info = `Una vez el ${dateStr} a las ${scheduleTime || '00:00'}`;
-                break;
-                
-            default:
-                info = 'Programación desconocida';
-        }
-        
-        // Agregar periodo si existe
-        if (startDate || endDate) {
-            info += '<br><small>📅 Periodo: ';
-            if (startDate) info += `Desde ${new Date(startDate).toLocaleDateString('es-CL')}`;
-            if (endDate) info += ` hasta ${new Date(endDate).toLocaleDateString('es-CL')}`;
-            info += '</small>';
-        }
-        
-        return info;
-    }
-    
-    /**
-     * Crea el HTML del modal de información
-     */
-    createScheduleModalHTML(scheduleData, scheduleInfo) {
-        const { filename, scheduleId, isActive, createdAt } = scheduleData;
-        const title = scheduleData.title || filename || 'Sin título';
-        
-        // URL del audio
-        const audioUrl = `/api/biblioteca.php?filename=${filename}`;
-        
-        // Formatear fecha de creación
-        const createdDate = createdAt ? new Date(createdAt).toLocaleString('es-CL') : 'Fecha desconocida';
-        
-        return `
-            <div id="schedule-info-modal" class="schedule-info-modal">
-                <div class="modal-overlay"></div>
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>🎵 ${title}</h3>
-                        <button class="close-modal">&times;</button>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <div class="schedule-details">
-                            <div class="detail-item">
-                                <strong>📁 Archivo:</strong> ${filename || 'No especificado'}
-                            </div>
-                            
-                            <div class="detail-item">
-                                <strong>📅 Programación:</strong>
-                                <div class="schedule-timing">${scheduleInfo}</div>
-                            </div>
-                            
-                            <div class="detail-item">
-                                <strong>📊 Estado:</strong>
-                                <span class="status-badge ${isActive ? 'active' : 'inactive'}">
-                                    ${isActive ? '✅ Activo' : '⏸️ Inactivo'}
-                                </span>
-                            </div>
-                            
-                            <div class="detail-item">
-                                <strong>🕐 Creado:</strong> ${createdDate}
-                            </div>
-                            
-                            ${filename ? `
-                            <div class="detail-item audio-section">
-                                <strong>🎧 Preview:</strong>
-                                <div class="audio-preview">
-                                    <audio controls preload="metadata">
-                                        <source src="${audioUrl}" type="audio/mpeg">
-                                        Tu navegador no soporta reproducción de audio.
-                                    </audio>
-                                </div>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary close-modal">Cerrar</button>
-                        <button class="btn btn-primary edit-schedule-btn">
-                            ✏️ Editar
-                        </button>
-                        <button class="btn btn-danger delete-schedule-btn">
-                            🗑️ Eliminar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    /**
-     * Confirma y elimina un schedule
+     * Confirmar eliminación (compatibilidad)
      */
     async confirmDeleteSchedule(scheduleId, onSuccess) {
-        const confirmed = confirm('¿Estás seguro de que quieres eliminar este schedule?\n\nEsta acción no se puede deshacer.');
-        
-        if (!confirmed) return;
-        
-        try {
-            console.log('[Calendar] Deleting schedule:', scheduleId);
-            
-            const response = await fetch('/api/audio-scheduler.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'delete',
-                    id: scheduleId
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showSuccess('Schedule eliminado correctamente');
-                
-                // Cerrar modal
-                if (onSuccess) onSuccess();
-                
-                // Refrescar calendario
-                this.loadCalendarEvents();
-                
-                // Emitir evento
-                eventBus.emit('schedule:deleted', { scheduleId });
-            } else {
-                throw new Error(result.error || 'Error al eliminar');
-            }
-            
-        } catch (error) {
-            console.error('[Calendar] Error deleting schedule:', error);
-            this.showError('Error al eliminar el schedule: ' + error.message);
+        const deleted = await this.scheduleActions.deleteSchedule(scheduleId);
+        if (deleted && onSuccess) {
+            onSuccess();
         }
     }
     
     /**
-     * Abre el modal de edición para un schedule existente
+     * Editar schedule (compatibilidad)
      */
-    async editSchedule(scheduleData) {
-        try {
-            console.log('[Calendar] Opening schedule for editing:', scheduleData);
-            
-            // Por ahora, mostrar mensaje informativo
-            // TODO: Implementar edición completa cuando schedule-modal.js soporte modo edición
-            this.showError('La edición de schedules se implementará próximamente. Por ahora, puedes eliminar y crear uno nuevo.');
-            
-        } catch (error) {
-            console.error('[Calendar] Error opening edit modal:', error);
-            this.showError('Error al abrir el editor');
-        }
-    }
-    
-    handleDateClick(date) {
-        console.log('[Calendar] Date clicked:', date);
-        // Por ahora, redirigir a mensajes guardados para crear schedules
-        this.showSuccess('Ve a "Mensajes Guardados" para programar un nuevo audio');
-        
-        // Opcional: navegar automáticamente
-        setTimeout(() => {
-            eventBus.emit('navigate', { module: 'campaigns' });
-        }, 1500);
+    editSchedule(scheduleId) {
+        this.scheduleActions.editSchedule(scheduleId);
     }
     
     /**
-     * Abre el modal de scheduling para editar un schedule existente
-     * @param {string} filename - Nombre del archivo de audio
-     * @param {string} title - Título del schedule
-     * @param {number} scheduleId - ID del schedule (opcional, para edición)
+     * Preview audio (compatibilidad)
      */
-    async openScheduleModal(filename, title, scheduleId = null) {
-        try {
-            console.log('[Calendar] Opening schedule modal:', { filename, title, scheduleId });
-            
-            // Cargar el modal dinámicamente desde campaigns
-            if (!window.ScheduleModal) {
-                const module = await import('../campaigns/schedule-modal.js');
-                window.ScheduleModal = module.ScheduleModal || module.default;
-            }
-            
-            // Crear instancia del modal
-            const modal = new window.ScheduleModal();
-            
-            if (scheduleId) {
-                // TODO: Para edición, cargar datos existentes del schedule
-                console.log('[Calendar] TODO: Load existing schedule data for editing');
-                // Por ahora, mostrar modal vacío con aviso
-                modal.show(filename, title);
-                this.showError('Edición desde calendario próximamente. Usa "Mensajes Guardados" para editar.');
-            } else {
-                // Para nuevo schedule
-                modal.show(filename, title);
-            }
-            
-            // Escuchar cuando se guarde para refrescar calendario
-            window.scheduleModal = modal;
-            
-        } catch (error) {
-            console.error('[Calendar] Error loading schedule modal:', error);
-            this.showError('Error al abrir editor. Usa "Mensajes Guardados" para programar.');
-        }
+    previewAudio(filename, button) {
+        this.scheduleActions.previewAudio(filename, button);
     }
     
-    // Función updateCategoryFilters removida (filtros ya no existen)
-    
-    // Método getCategoryColor removido - ya no se usan categorías
-    
-    // UI Helpers
-    showLoading(show) {
-        const loader = this.container.querySelector('.calendar-loading');
-        if (loader) {
-            loader.style.display = show ? 'flex' : 'none';
-        }
+    /**
+     * Ver detalles de schedule (compatibilidad)
+     */
+    viewScheduleFromList(scheduleId) {
+        this.scheduleActions.viewScheduleDetails(scheduleId);
     }
     
+    /**
+     * Aplica filtros al calendario
+     */
+    applyFilters(filters) {
+        if (!this.calendarView) return;
+        
+        // Aplicar filtros a la vista del calendario
+        const events = this.calendarView.getEvents();
+        events.forEach(event => {
+            const category = event.extendedProps?.category || 'sin_categoria';
+            const isVisible = !filters || filters[category] !== false;
+            event.setProp('display', isVisible ? 'auto' : 'none');
+        });
+    }
+    
+    /**
+     * Muestra notificación de éxito
+     */
     showSuccess(message) {
-        eventBus.emit('ui:notification', { 
-            message, 
-            type: 'success' 
-        });
+        this.calendarLoader.showSuccess(message);
     }
     
+    /**
+     * Muestra notificación de error
+     */
     showError(message) {
-        eventBus.emit('ui:notification', { 
-            message, 
-            type: 'error' 
-        });
+        this.calendarLoader.showError(message);
+    }
+    
+    /**
+     * Muestra notificación informativa
+     */
+    showNotification(message, type = 'info') {
+        this.calendarLoader.showNotification(message, type);
+    }
+    
+    /**
+     * Descarga el módulo
+     */
+    async unload() {
+        console.log('[Calendar] Unloading module...');
+        
+        // Limpiar event listeners
+        eventBus.off('library:file:added');
+        eventBus.off('schedule:created');
+        eventBus.off('schedule:updated');
+        eventBus.off('schedule:deleted');
+        eventBus.off('schedule:category:updated');
+        
+        // Destruir componentes
+        if (this.calendarView) {
+            this.calendarView.destroy();
+            this.calendarView = null;
+        }
+        
+        if (this.calendarFilters) {
+            this.calendarFilters.destroy();
+            this.calendarFilters = null;
+        }
+        
+        if (this.schedulesList) {
+            this.schedulesList.destroy();
+            this.schedulesList = null;
+        }
+        
+        if (this.scheduleActions) {
+            this.scheduleActions.destroy();
+            this.scheduleActions = null;
+        }
+        
+        if (this.calendarLoader) {
+            this.calendarLoader.destroy();
+            this.calendarLoader = null;
+        }
+        
+        // Limpiar funciones globales
+        if (window.calendarModule) {
+            delete window.calendarModule;
+        }
+        
+        // Limpiar contenedor
+        if (this.container) {
+            this.container.innerHTML = '';
+            this.container = null;
+        }
+        
+        console.log('[Calendar] Module unloaded');
     }
 }
+
+console.log('[CalendarModule] Module definition complete - Ready for use');

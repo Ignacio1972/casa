@@ -87,6 +87,7 @@ export class CalendarView {
         this.calendar = null;
         this.currentView = 'dayGridMonth';
         this.activeCategories = ['ofertas', 'horarios', 'eventos', 'emergencias', 'servicios', 'seguridad'];
+        this.pendingEvents = null; // Para guardar eventos si llegan antes de que esté listo
         
         if (typeof FullCalendar === 'undefined') {
             this.loadFullCalendar().then(() => this.initialize());
@@ -160,6 +161,13 @@ export class CalendarView {
         
         // Aplicar estilos del header después del render
         this.applyHeaderStyles();
+        
+        // Si hay eventos pendientes, aplicarlos ahora
+        if (this.pendingEvents) {
+            console.log('[CalendarView] Applying pending events:', this.pendingEvents.length);
+            this.setEvents(this.pendingEvents);
+            this.pendingEvents = null;
+        }
     }
     
     /**
@@ -351,11 +359,24 @@ export class CalendarView {
     }
     
     setEvents(events) {
+        console.log('[CalendarView] setEvents called with', events.length, 'events');
+        
+        // Si el calendario no está listo aún, guardar los eventos para después
+        if (!this.calendar) {
+            console.log('[CalendarView] Calendar not ready yet, storing events for later');
+            this.pendingEvents = events;
+            return;
+        }
+        
+        console.log('[CalendarView] Adding events to calendar');
         this.calendar.removeAllEvents();
         
         events.forEach(event => {
             this.calendar.addEvent(event);
         });
+        
+        const totalEvents = this.calendar.getEvents().length;
+        console.log('[CalendarView] Total events in calendar:', totalEvents);
     }
     
     async loadAudioSchedules() {
