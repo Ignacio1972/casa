@@ -368,6 +368,22 @@ export class ScheduleModal {
         
         console.log('[ScheduleModal] Guardando con categoría:', data.category);
         
+        // Detectar el tipo real basado en qué configuración está visible
+        const intervalConfig = document.getElementById('intervalConfig');
+        const specificConfig = document.getElementById('specificConfig');
+        const onceConfig = document.getElementById('onceConfig');
+        
+        if (intervalConfig && intervalConfig.style.display !== 'none') {
+            this.scheduleType = 'interval';
+        } else if (specificConfig && specificConfig.style.display !== 'none') {
+            this.scheduleType = 'specific';
+        } else if (onceConfig && onceConfig.style.display !== 'none') {
+            this.scheduleType = 'once';
+        }
+        
+        console.log('[ScheduleModal] Tipo detectado automáticamente:', this.scheduleType);
+        data.schedule_type = this.scheduleType;
+        
         // Agregar configuración según el tipo
         if (this.scheduleType === 'interval') {
             // Obtener el valor del select en minutos y convertir a horas/minutos

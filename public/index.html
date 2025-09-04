@@ -12,19 +12,15 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-content">
+    <header class="header" style="padding: 0.1rem 0;">
+        <div class="header-content" style="padding: 0 2rem; align-items: center;">
             <div class="logo">
-                <div class="logo-icon">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="32" height="32" rx="8" fill="currentColor" opacity="0.1"/>
-                        <path d="M16 8L21 12V20C21 20.5523 20.5523 21 20 21H12C11.4477 21 11 20.5523 11 20V12L16 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M14 21V16H18V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                <div class="logo-icon" style="background: none; width: 150px; height: 150px; border-radius: 0; margin-right: 10px; margin-top: -20px; margin-bottom: -20px;">
+                    <img src="/styles-v5/icons/casa2.svg" alt="Casa Costanera" style="width: 100%; height: 100%; filter: brightness(0) invert(1); object-fit: contain;">
                 </div>
                 <div class="logo-text">
-                    <div class="logo-title">Casa Costanera</div>
-                    <div class="logo-subtitle">Sistema de Radio Automatizada</div>
+                    <div class="logo-title" style="font-size: 2rem; font-weight: 700;">Casa Costanera</div>
+                    <div class="logo-subtitle" style="font-size: 1.1rem;">Sistema de Radio Automatizada</div>
                 </div>
             </div>
             <nav class="header-nav">
@@ -37,18 +33,7 @@
                 <a href="#calendar" class="nav-link" data-view="calendar">
                     <span class="nav-icon">📅</span> Calendario
                 </a>
-                <a href="#audio-archive" class="nav-link" data-view="audio-archive">
-                    <span class="nav-icon">🗄️</span> Archivo
-                </a>
             </nav>
-            <div class="header-actions">
-                <button class="btn-icon" id="theme-toggle" title="Cambiar tema">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M10 3V1M10 19V17M17 10H19M1 10H3M15.657 15.657L17.071 17.071M2.929 2.929L4.343 4.343M15.657 4.343L17.071 2.929M2.929 17.071L4.343 15.657M13 10C13 11.657 11.657 13 10 13C8.343 13 7 11.657 7 10C7 8.343 8.343 7 10 7C11.657 7 13 8.343 13 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
-                <span class="header-time" id="current-time">--:--</span>
-            </div>
         </div>
     </header>
 
@@ -257,12 +242,13 @@
                 day: 'numeric', 
                 month: 'short' 
             });
-            document.getElementById('current-time').textContent = `${dateStr} ${timeStr}`;
+            // document.getElementById('current-time').textContent = `${dateStr} ${timeStr}`; // Removido del header
         }
-        setInterval(updateTime, 1000);
-        updateTime();
+        // setInterval(updateTime, 1000); // Deshabilitado
+        // updateTime(); // Deshabilitado
 
-        // Cambio de tema
+        // Cambio de tema - DESHABILITADO (botón removido)
+        /*
         document.getElementById('theme-toggle').addEventListener('click', () => {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
@@ -271,6 +257,7 @@
             localStorage.setItem('theme', newTheme);
             window.eventBus.emit('theme-changed', { theme: newTheme });
         });
+        */
 
         // Aplicar tema guardado
         document.documentElement.setAttribute('data-theme', window.APP_CONFIG.theme);

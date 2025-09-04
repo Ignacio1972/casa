@@ -10,13 +10,13 @@ export class CalendarFilters {
         this.calendarView = calendarView;
         // 7 categorías según el sistema
         this.categories = options.categories || [
-            { id: 'ofertas', name: 'Ofertas', color: '#10b981' },          // Verde
-            { id: 'eventos', name: 'Eventos', color: '#8b5cf6' },          // Púrpura (como badges)
-            { id: 'informacion', name: 'Información', color: '#0891b2' },  // Cyan
-            { id: 'servicios', name: 'Servicios', color: '#f59e0b' },      // Naranja (como badges)
-            { id: 'horarios', name: 'Horarios', color: '#6366f1' },        // Azul índigo (como badges)
-            { id: 'emergencias', name: 'Emergencias', color: '#dc2626' },  // Rojo
-            { id: 'sin_categoria', name: 'Sin categoría', color: '#6b7280' } // Gris
+            { id: 'ofertas', name: 'Ofertas', color: '#10b981' },
+            { id: 'eventos', name: 'Eventos', color: '#3b82f6' },
+            { id: 'informacion', name: 'Información', color: '#06b6d4' },
+            { id: 'servicios', name: 'Servicios', color: '#8b5cf6' },
+            { id: 'horarios', name: 'Horarios', color: '#f59e0b' },
+            { id: 'emergencias', name: 'Emergencias', color: '#ef4444' },
+            { id: 'sin_categoria', name: 'Sin categoría', color: '#6b7280' }
         ];
         this.activeCategories = this.categories.map(c => c.id);
         this.collapsed = false;

@@ -10,43 +10,43 @@ const DAY_NAME_TO_NUMBER = {
     'thursday': 4, 'friday': 5, 'saturday': 6
 };
 
-// NUEVO: Definición de colores por categoría (7 categorías según test)
+// NUEVO: Definición de colores por categoría
 const CATEGORY_COLORS = {
     'ofertas': { 
-        bg: '#10b981',  // Verde (OK - matches badges)
-        border: '#059669',
+        bg: '#22c55e', 
+        border: '#16a34a',
         text: '#ffffff',
         emoji: '🛒'
     },
     'eventos': { 
-        bg: '#8b5cf6',  // Púrpura (como en badges)
-        border: '#7c3aed',
+        bg: '#3b82f6', 
+        border: '#2563eb',
         text: '#ffffff',
         emoji: '🎉'
     },
     'informacion': { 
-        bg: '#0891b2',  // Cyan (como en badges)
-        border: '#06b6d4',
+        bg: '#06b6d4', 
+        border: '#0891b2',
         text: '#ffffff',
         emoji: 'ℹ️'
     },
+    'emergencias': { 
+        bg: '#ef4444', 
+        border: '#dc2626',
+        text: '#ffffff',
+        emoji: '🚨'
+    },
     'servicios': { 
-        bg: '#f59e0b',  // Naranja (como en badges)
-        border: '#d97706',
+        bg: '#a855f7', 
+        border: '#9333ea',
         text: '#ffffff',
         emoji: '🛎️'
     },
     'horarios': { 
-        bg: '#6366f1',  // Azul índigo (como en badges)
-        border: '#4f46e5',
+        bg: '#f59e0b', 
+        border: '#d97706',
         text: '#ffffff',
         emoji: '🕐'
-    },
-    'emergencias': { 
-        bg: '#dc2626',  // Rojo (como en badges)
-        border: '#b91c1c',
-        text: '#ffffff',
-        emoji: '🚨'
     },
     'sin_categoria': { 
         bg: '#6b7280', 
@@ -87,7 +87,6 @@ export class CalendarView {
         this.calendar = null;
         this.currentView = 'dayGridMonth';
         this.activeCategories = ['ofertas', 'horarios', 'eventos', 'emergencias', 'servicios', 'seguridad'];
-        this.pendingEvents = null; // Para guardar eventos si llegan antes de que esté listo
         
         if (typeof FullCalendar === 'undefined') {
             this.loadFullCalendar().then(() => this.initialize());
@@ -115,7 +114,6 @@ export class CalendarView {
         this.calendar = new FullCalendar.Calendar(this.container, {
             initialView: this.currentView,
             locale: 'es',
-            firstDay: 1, // Empezar la semana en lunes (1 = lunes, 0 = domingo)
             timeZone: 'America/Santiago',
             height: 'auto',
             headerToolbar: {
@@ -159,49 +157,6 @@ export class CalendarView {
         
         this.calendar.render();
         this.attachViewButtons();
-        
-        // Aplicar estilos del header después del render
-        this.applyHeaderStyles();
-        
-        // Si hay eventos pendientes, aplicarlos ahora
-        if (this.pendingEvents) {
-            console.log('[CalendarView] Applying pending events:', this.pendingEvents.length);
-            this.setEvents(this.pendingEvents);
-            this.pendingEvents = null;
-        }
-    }
-    
-    /**
-     * Aplica estilos críticos para el header del calendario
-     * @private
-     */
-    applyHeaderStyles() {
-        // Aplicar estilos directamente a los elementos del DOM
-        setTimeout(() => {
-            // Buscar todos los elementos del header
-            const headerCells = document.querySelectorAll('.fc-col-header-cell, .fc th, .fc-scrollgrid-sync-table th');
-            headerCells.forEach(cell => {
-                cell.style.backgroundColor = '#4a5568';
-                cell.style.background = '#4a5568';
-            });
-            
-            // Buscar el texto dentro de los headers
-            const headerText = document.querySelectorAll('.fc-col-header-cell-cushion, .fc-col-header-cell a, .fc-col-header-cell span');
-            headerText.forEach(text => {
-                text.style.color = '#ffffff';
-                text.style.fontWeight = '700';
-                text.style.opacity = '1';
-            });
-            
-            // Aplicar al contenedor del header
-            const headerContainers = document.querySelectorAll('.fc-col-header, .fc-scrollgrid-sync-table thead');
-            headerContainers.forEach(container => {
-                container.style.backgroundColor = '#4a5568';
-                container.style.background = '#4a5568';
-            });
-            
-            console.log('[CalendarView] Header styles applied directly to DOM');
-        }, 200);
     }
     
     attachViewButtons() {
@@ -226,9 +181,6 @@ export class CalendarView {
         const fcView = viewMap[viewName] || viewName;
         this.calendar.changeView(fcView);
         this.currentView = fcView;
-        
-        // Re-aplicar estilos después del cambio de vista
-        this.applyHeaderStyles();
     }
     
     handleEventClick(info) {
@@ -278,7 +230,7 @@ export class CalendarView {
         // Actualizar el título con el emoji de la categoría
         const titleEl = element.querySelector('.fc-event-title');
         if (titleEl) {
-            titleEl.innerHTML = event.title.replace(/^🎵\s*/, '');
+            titleEl.innerHTML = categoryInfo.emoji + ' ' + event.title.replace(/^🎵\s*/, '');
         }
         
         this.addEventTooltip(element, event);
@@ -304,7 +256,7 @@ export class CalendarView {
         tooltipContent += '<div class="tooltip-body">';
         
         // Mostrar categoría
-        tooltipContent += '<p><strong>Categoría:</strong> ' + this.getCategoryName(category) + '</p>';
+        tooltipContent += '<p><strong>Categoría:</strong> ' + categoryInfo.emoji + ' ' + this.getCategoryName(category) + '</p>';
         
         const filename = (event.extendedProps && event.extendedProps.filename) || 
                         (event.extendedProps && event.extendedProps.file_path) || 
@@ -328,27 +280,14 @@ export class CalendarView {
             document.body.appendChild(tooltip);
             
             const rect = element.getBoundingClientRect();
-            
-            // Posicionamiento mejorado considerando scroll
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-            
             tooltip.style.position = 'absolute';
-            tooltip.style.left = (rect.left + scrollLeft) + 'px';
-            tooltip.style.top = (rect.bottom + scrollTop + 5) + 'px';
+            tooltip.style.left = rect.left + 'px';
+            tooltip.style.top = (rect.bottom + 5) + 'px';
             tooltip.style.zIndex = '9999';
             
             const tooltipRect = tooltip.getBoundingClientRect();
-            
-            // Ajustar si se sale por la derecha
             if (tooltipRect.right > window.innerWidth) {
-                tooltip.style.left = (window.innerWidth - tooltipRect.width - 10 + scrollLeft) + 'px';
-            }
-            
-            // Ajustar si se sale por abajo (mostrar arriba del elemento)
-            if (tooltipRect.bottom > window.innerHeight) {
-                tooltip.style.top = (rect.top + scrollTop - tooltipRect.height - 5) + 'px';
-                tooltip.classList.add('tooltip-above');
+                tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
             }
         });
         
@@ -360,24 +299,11 @@ export class CalendarView {
     }
     
     setEvents(events) {
-        console.log('[CalendarView] setEvents called with', events.length, 'events');
-        
-        // Si el calendario no está listo aún, guardar los eventos para después
-        if (!this.calendar) {
-            console.log('[CalendarView] Calendar not ready yet, storing events for later');
-            this.pendingEvents = events;
-            return;
-        }
-        
-        console.log('[CalendarView] Adding events to calendar');
         this.calendar.removeAllEvents();
         
         events.forEach(event => {
             this.calendar.addEvent(event);
         });
-        
-        const totalEvents = this.calendar.getEvents().length;
-        console.log('[CalendarView] Total events in calendar:', totalEvents);
     }
     
     async loadAudioSchedules() {
@@ -435,82 +361,10 @@ export class CalendarView {
             });
             
             try {
-                // Detectar si es tipo 'once' (una sola vez)
-                if (schedule.schedule_type === 'once' && schedule.schedule_time) {
-                    // Parsear las horas (pueden venir como JSON string)
-                    let scheduleTimes = [];
-                    if (typeof schedule.schedule_time === 'string' && schedule.schedule_time.startsWith('[')) {
-                        try {
-                            scheduleTimes = JSON.parse(schedule.schedule_time);
-                        } catch(e) {
-                            scheduleTimes = [schedule.schedule_time];
-                        }
-                    } else if (Array.isArray(schedule.schedule_time)) {
-                        scheduleTimes = schedule.schedule_time;
-                    } else {
-                        scheduleTimes = [schedule.schedule_time];
-                    }
-                    
-                    // Para eventos 'once', usar la fecha start_date o hoy
-                    // Importante: Crear la fecha en hora local, no UTC
-                    let eventDate;
-                    if (schedule.start_date) {
-                        // Parsear la fecha como local (agregando hora para evitar UTC)
-                        const [year, month, day] = schedule.start_date.split('-');
-                        eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                    } else {
-                        eventDate = new Date();
-                    }
-                    
-                    scheduleTimes.forEach(time => {
-                        const [hours, minutes] = time.split(':');
-                        const eventDateTime = new Date(eventDate);
-                        eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                        
-                        // Comparar con el momento actual para eventos futuros
-                        const now = new Date();
-                        
-                        // Mostrar si:
-                        // 1. El evento es en el futuro (después de ahora)
-                        // 2. O es hoy pero aún no ha pasado la hora
-                        if (eventDateTime > now) {
-                            const event = {
-                                id: 'audio_schedule_once_' + schedule.id + '_' + time,
-                                title: schedule.title || schedule.filename,
-                                start: eventDateTime,
-                                backgroundColor: categoryColors.bg,
-                                borderColor: categoryColors.border,
-                                textColor: categoryColors.text,
-                                extendedProps: {
-                                    type: 'audio_schedule',
-                                    scheduleId: schedule.id,
-                                    filename: schedule.filename,
-                                    scheduleType: 'once',
-                                    scheduleTime: time,
-                                    startDate: schedule.start_date,
-                                    isActive: schedule.is_active,
-                                    createdAt: schedule.created_at,
-                                    category: category
-                                }
-                            };
-                            events.push(event);
-                        }
-                    });
-                    
-                    continue; // Saltar el procesamiento normal
-                    
-                } else if (schedule.schedule_type === 'specific' && 
+                // Detectar si es tipo specific con múltiples configuraciones
+                if (schedule.schedule_type === 'specific' && 
                     schedule.schedule_days && 
                     schedule.schedule_time) {
-                    
-                    // Debug para ver qué datos llegan
-                    console.log('[CalendarView] Procesando schedule específico:', {
-                        id: schedule.id,
-                        title: schedule.title,
-                        schedule_days: schedule.schedule_days,
-                        schedule_time: schedule.schedule_time,
-                        type_of_days: typeof schedule.schedule_days
-                    });
                     
                     // Parsear los días (ya vienen como array)
                     const scheduleDays = schedule.schedule_days;
@@ -547,28 +401,8 @@ export class CalendarView {
                             isDayScheduled = scheduleDays.includes(dayName) || 
                                            scheduleDays.includes(String(dayOfWeek));
                         } else if (typeof scheduleDays === 'string') {
-                            // Si es string, intentar parsearlo como JSON
-                            try {
-                                const parsedDays = JSON.parse(scheduleDays);
-                                if (Array.isArray(parsedDays)) {
-                                    isDayScheduled = parsedDays.includes(dayName) || 
-                                                   parsedDays.includes(String(dayOfWeek));
-                                } else {
-                                    isDayScheduled = scheduleDays.includes(dayName) || 
-                                                   scheduleDays.includes(String(dayOfWeek));
-                                }
-                            } catch(e) {
-                                isDayScheduled = scheduleDays.includes(dayName) || 
-                                               scheduleDays.includes(String(dayOfWeek));
-                            }
-                        }
-                        
-                        // Debug de días
-                        if (dayOffset === 0) { // Solo logear una vez
-                            console.log(`[CalendarView] Día ${dayOfWeek} (${dayName}): ${isDayScheduled ? '✅' : '❌'}`, {
-                                checkDate: checkDate.toLocaleDateString(),
-                                scheduleDays: scheduleDays
-                            });
+                            isDayScheduled = scheduleDays.includes(dayName) || 
+                                           scheduleDays.includes(String(dayOfWeek));
                         }
                         
                         if (!isDayScheduled) {
@@ -608,7 +442,7 @@ export class CalendarView {
                             // Crear el evento con colores de categoría
                             const event = {
                                 id: `audio_schedule_${schedule.id}_${dayOffset}_${timeIndex}`,
-                                title: schedule.title || schedule.filename,
+                                title: categoryColors.emoji + ' ' + (schedule.title || schedule.filename),
                                 start: eventDate,
                                 backgroundColor: categoryColors.bg,
                                 borderColor: categoryColors.border,
@@ -646,7 +480,7 @@ export class CalendarView {
                     
                     const event = {
                         id: 'audio_schedule_' + schedule.id,
-                        title: schedule.title || schedule.filename,
+                        title: categoryColors.emoji + ' ' + (schedule.title || schedule.filename),
                         start: nextExecution,
                         backgroundColor: categoryColors.bg,
                         borderColor: categoryColors.border,
@@ -835,37 +669,27 @@ export class CalendarView {
         return null;
     }
     
-    filterByCategory(activeCategories) {
+    filterByScheduleType(activeTypes) {
         const allEvents = this.calendar.getEvents();
         let visibleCount = 0;
         let totalCount = 0;
         
-        console.log('[CalendarView] Filtering by categories:', activeCategories);
-        
         allEvents.forEach(event => {
-            // Filtrar eventos que tengan categoría (audio_schedule o cualquier evento con categoría)
-            if (event.extendedProps && 
-                (event.extendedProps.type === 'audio_schedule' || event.extendedProps.category)) {
+            // Solo contar eventos de audio schedule
+            if (event.extendedProps && event.extendedProps.type === 'audio_schedule') {
                 totalCount++;
                 
-                const category = event.extendedProps.category || 'sin_categoria';
-                const isVisible = activeCategories.includes(category);
+                const scheduleType = event.extendedProps.scheduleType;
+                const isVisible = activeTypes.includes(scheduleType);
                 
-                // Usar display para ocultar/mostrar eventos
                 event.setProp('display', isVisible ? 'auto' : 'none');
                 
                 if (isVisible) {
                     visibleCount++;
                 }
-                
-                // Debug
-                if (totalCount <= 5) { // Solo los primeros 5 para no llenar la consola
-                    console.log(`[CalendarView] Event ${event.id}: category=${category}, visible=${isVisible}`);
-                }
             }
         });
         
-        console.log(`[CalendarView] Filter result: ${visibleCount}/${totalCount} events visible`);
         return { visible: visibleCount, total: totalCount };
     }
     

@@ -444,7 +444,7 @@ export default class DashboardV2Module {
                 <div class="message-footer">
                     <div class="message-actions">
                         ${msg.filename ? `<button class="btn-icon" title="Reproducir" onclick="window.dashboardV2.playMessageAudio('${msg.filename}')">▶</button>` : ''}
-                        <button class="btn-icon btn-save" title="Guardar" onclick="window.dashboardV2.saveToFavorites('${msg.id}', '${msg.filename || ''}', '${(msg.title || '').replace(/'/g, "\\'")}')">✓</button>
+                        <button class="btn-icon btn-save" title="Guardar" onclick="window.dashboardV2.saveToFavorites('${msg.id}', '${msg.filename || ''}', '${(msg.title || '').replace(/'/g, "\\'")}', '${msg.category || 'sin_categoria'}')">✓</button>
                         <button class="btn-icon btn-delete" title="Eliminar" onclick="window.dashboardV2.removeMessage('${msg.id}')">🗑️</button>
                     </div>
                 </div>
@@ -463,7 +463,7 @@ export default class DashboardV2Module {
     }
 
     // Método para guardar en favoritos
-    async saveToFavorites(id, filename, title) {
+    async saveToFavorites(id, filename, title, originalCategory = null) {
         const messageCard = this.container.querySelector(`[data-id="${id}"]`);
         
         // 1. Animar slide hacia la derecha
@@ -475,11 +475,12 @@ export default class DashboardV2Module {
         
         try {
             // 2. Guardar en background
+            // Usar la categoría original del mensaje si existe, sino usar la seleccionada (para mensajes nuevos generados)
             const response = await this.apiClient.post('/api/saved-messages.php', {
                 action: 'mark_as_saved',
                 id: id,
                 filename: filename,
-                category: this.state.selectedCategory,
+                category: originalCategory || this.state.selectedCategory,
                 title: title
             });
             

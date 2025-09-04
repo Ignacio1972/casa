@@ -1,0 +1,54 @@
+<!-- Calendar Template con estructura propia -->
+<div class="calendar-module">
+    <!-- Header del calendario -->
+    <div class="calendar-header">
+        <div class="calendar-title">
+            <span style="font-size: 2rem;">📅</span>
+            <span>Calendario de Programaciones</span>
+        </div>
+        
+        <div class="view-selector">
+            <button class="view-btn active">Mes</button>
+            <button class="view-btn">Semana</button>
+            <button class="view-btn">Día</button>
+            <button class="view-btn">Lista</button>
+        </div>
+    </div>
+    
+    <!-- Filtros de categorías - Minimalista -->
+    <div id="calendar-filters"></div>
+    
+    <!-- Calendar View Section -->
+    <div class="calendar-container">
+        <!-- Calendar Container -->
+        <div id="calendar-container" class="calendar-view"></div>
+    </div>
+    
+    <!-- Lista de Programaciones Activas -->
+    <div class="schedules-section">
+        <div class="schedules-header">
+            <div class="schedules-title">
+                <span>⏰</span>
+                <span>Programaciones Activas</span>
+                <span class="schedules-count" id="schedulesCount">0</span>
+            </div>
+            <button id="refresh-schedules-btn" class="btn btn-secondary btn-sm">
+                <span>🔄</span>
+                Actualizar Lista
+            </button>
+        </div>
+        
+        <div id="schedules-table-container" class="schedules-list">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Cargando programaciones...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="calendar-loading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Cargando calendario...</p>
+    </div>
+</div>

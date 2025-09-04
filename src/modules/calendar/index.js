@@ -282,6 +282,22 @@ export default class CalendarModule {
     }
     
     /**
+     * Obtiene los colores para una categoría
+     */
+    getCategoryColors(category) {
+        const colors = {
+            'ofertas': { bg: '#10b981', border: '#059669' },        // Verde (OK)
+            'eventos': { bg: '#8b5cf6', border: '#7c3aed' },        // Púrpura (como en badges)
+            'informacion': { bg: '#0891b2', border: '#06b6d4' },    // Cyan (OK)
+            'servicios': { bg: '#f59e0b', border: '#d97706' },      // Naranja (como en badges)
+            'horarios': { bg: '#6366f1', border: '#4f46e5' },       // Azul índigo (como en badges)
+            'emergencias': { bg: '#dc2626', border: '#b91c1c' },    // Rojo (OK)
+            'sin_categoria': { bg: '#6b7280', border: '#4b5563' }   // Gris (OK)
+        };
+        return colors[category] || colors['sin_categoria'];
+    }
+    
+    /**
      * Convierte schedules a formato de eventos para FullCalendar
      */
     convertSchedulesToEvents(schedules) {
@@ -297,14 +313,19 @@ export default class CalendarModule {
                 is_active: schedule.is_active,
                 schedule_time: schedule.schedule_time,
                 schedule_days: schedule.schedule_days,
-                start_date: schedule.start_date
+                start_date: schedule.start_date,
+                category: schedule.category
             });
+            
+            // Obtener colores según categoría
+            const categoryColors = this.getCategoryColors(schedule.category || 'sin_categoria');
             
             // Lógica de conversión según el tipo de schedule
             const baseEvent = {
                 id: `schedule_${schedule.id}`,
                 title: schedule.title || schedule.filename || 'Sin título',
                 extendedProps: {
+                    type: 'audio_schedule', // Necesario para los filtros
                     scheduleId: schedule.id,
                     filename: schedule.filename,
                     category: schedule.category || 'sin_categoria',
@@ -353,8 +374,8 @@ export default class CalendarModule {
                     const now = new Date();
                     baseEvent.start = schedule.start_date || now.toISOString();
                     baseEvent.title += ` (Cada ${schedule.interval_hours || 0}h ${schedule.interval_minutes || 0}m)`;
-                    baseEvent.backgroundColor = '#f59e0b'; // Amarillo para intervalos
-                    baseEvent.borderColor = '#d97706';
+                    baseEvent.backgroundColor = categoryColors.bg;
+                    baseEvent.borderColor = categoryColors.border;
                     console.log('[Calendar] Created interval event:', baseEvent);
                     events.push(baseEvent);
                     break;
@@ -371,8 +392,8 @@ export default class CalendarModule {
                             // Crear evento recurrente semanal
                             baseEvent.daysOfWeek = days.map(day => this.getDayNumber(day));
                             baseEvent.startTime = time;
-                            baseEvent.backgroundColor = '#3b82f6'; // Azul para específicos
-                            baseEvent.borderColor = '#2563eb';
+                            baseEvent.backgroundColor = categoryColors.bg;
+                            baseEvent.borderColor = categoryColors.border;
                             console.log('[Calendar] Created specific event:', baseEvent);
                             events.push(baseEvent);
                         } else {

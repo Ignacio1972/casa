@@ -1,0 +1,76 @@
+<!-- Calendar Template (sin header ni tabs) -->
+<div class="calendar-module">
+    <!-- Calendar View Section -->
+    <div class="message-section">
+        <!-- Calendar Container -->
+        <div id="calendar-container" class="calendar-view"></div>
+    </div>
+    
+    <!-- Controls Section -->
+    <div class="controls-section">
+        <div class="controls-header">
+            <h3>⚙️ Controles</h3>
+        </div>
+        
+        <!-- Action Buttons Row -->
+        <div class="form-row-inline" style="margin-bottom: 1.5rem;">
+            <button id="create-event-btn" class="btn btn-primary">
+                <span>➕</span> Programar Anuncio
+            </button>
+            <button id="refresh-calendar-btn" class="btn btn-secondary">
+                <span>🔄</span> Actualizar
+            </button>
+        </div>
+        
+        <!-- View Selector -->
+        <div class="view-selector" style="margin-bottom: 1.5rem;">
+            <button class="view-btn active" data-view="month">Mes</button>
+            <button class="view-btn" data-view="week">Semana</button>
+            <button class="view-btn" data-view="day">Día</button>
+            <button class="view-btn" data-view="list">Lista</button>
+        </div>
+        
+        <!-- Category Filters -->
+        <div class="controls-row">
+            <div class="category-filters">
+                <span class="filter-label">Mostrar:</span>
+                <label class="category-filter-item">
+                    <input type="checkbox" class="category-filter" value="ofertas" checked>
+                    <span class="filter-color" style="background-color: #FF6B6B"></span>
+                    <span>Ofertas</span>
+                </label>
+                <label class="category-filter-item">
+                    <input type="checkbox" class="category-filter" value="horarios" checked>
+                    <span class="filter-color" style="background-color: #4DABF7"></span>
+                    <span>Horarios</span>
+                </label>
+                <label class="category-filter-item">
+                    <input type="checkbox" class="category-filter" value="eventos" checked>
+                    <span class="filter-color" style="background-color: #51CF66"></span>
+                    <span>Eventos</span>
+                </label>
+                <label class="category-filter-item">
+                    <input type="checkbox" class="category-filter" value="emergencias" checked>
+                    <span class="filter-color" style="background-color: #FF0000"></span>
+                    <span>Emergencias</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Próximos eventos -->
+    <div class="audio-section" style="margin-top: 2rem;">
+        <div class="result-header">
+            <h3>📋 Próximos Anuncios</h3>
+        </div>
+        <div id="upcoming-events" class="upcoming-events-list">
+            <div class="processed-text">No hay anuncios programados para las próximas 24 horas</div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="calendar-loading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Cargando calendario...</p>
+    </div>
+</div>
