@@ -1,0 +1,389 @@
+<?php
+/**
+ * Servicio de Jingles - Mezcla música con mensajes TTS
+ * Sistema para crear jingles combinando música de fondo con voces generadas
+ */
+
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/services/tts-service.php';
+
+// Función de logging
+if (!function_exists('logMessage')) {
+    function logMessage($message) {
+        error_log("[JingleService] " . $message);
+    }
+}
+
+/**
+ * Genera un jingle mezclando música con mensaje TTS
+ * @param string $text Texto del mensaje
+ * @param string $voice Voz a usar
+ * @param array $options Opciones de generación
+ * @return array Resultado con el archivo generado
+ */
+function generateJingle($text, $voice, $options = []) {
+    try {
+        // Opciones por defecto
+        $defaults = [
+            'music_file' => null,           // Archivo de música de fondo
+            'music_volume' => 0.3,           // Volumen de música (0.0 - 1.0)
+            'voice_volume' => 1.0,           // Volumen de voz (0.0 - 1.0)
+            'fade_in' => 2,                  // Segundos de fade in
+            'fade_out' => 2,                 // Segundos de fade out
+            'music_duck' => true,            // Reducir música cuando habla
+            'duck_level' => 0.2,             // Nivel de ducking (0.0 - 1.0)
+            'intro_silence' => 1,            // Silencio antes del mensaje
+            'outro_silence' => 1,            // Silencio después del mensaje
+            'output_format' => 'mp3',        // Formato de salida
+            'voice_settings' => []           // Settings para TTS
+        ];
+        
+        $config = array_merge($defaults, $options);
+        
+        logMessage("[JingleService] Iniciando generación de jingle");
+        logMessage("[JingleService] Config: " . json_encode($config));
+        
+        // 1. Generar el audio TTS
+        $ttsAudio = generateEnhancedTTS($text, $voice, $config['voice_settings']);
+        
+        // Crear directorio temporal
+        $tempDir = sys_get_temp_dir() . '/jingles_' . uniqid();
+        if (!mkdir($tempDir, 0777, true)) {
+            throw new Exception("No se pudo crear directorio temporal");
+        }
+        
+        // Guardar audio TTS temporalmente
+        $ttsFile = $tempDir . '/voice.mp3';
+        file_put_contents($ttsFile, $ttsAudio);
+        
+        logMessage("[JingleService] TTS generado: " . filesize($ttsFile) . " bytes");
+        
+        // 2. Si no hay música, devolver solo el TTS con silencios
+        if (empty($config['music_file'])) {
+            $outputFile = $tempDir . '/jingle.' . $config['output_format'];
+            
+            // Agregar silencios al inicio y final
+            if ($config['intro_silence'] > 0 || $config['outro_silence'] > 0) {
+                // Usar adelay para agregar silencios de forma más simple
+                $intro_ms = intval($config['intro_silence'] * 1000);
+                $outro_pad_sec = floatval($config['outro_silence']);
+                
+                // Obtener duración del TTS
+                $tts_duration = getDuration($ttsFile);
+                $total_duration = $config['intro_silence'] + $tts_duration + $config['outro_silence'];
+                
+                $ffmpegCmd = sprintf(
+                    'ffmpeg -i "%s" -af "adelay=%d|%d,apad=pad_dur=%.1f" ' .
+                    '-t %.1f -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+                    $ttsFile,
+                    $intro_ms,
+                    $intro_ms,
+                    $outro_pad_sec,
+                    $total_duration,
+                    $outputFile
+                );
+            } else {
+                // Sin silencios, solo copiar el audio TTS
+                $ffmpegCmd = sprintf(
+                    'ffmpeg -i "%s" -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+                    $ttsFile,
+                    $outputFile
+                );
+            }
+            
+            logMessage("[JingleService] Comando ffmpeg: " . $ffmpegCmd);
+            
+            exec($ffmpegCmd, $output, $returnVar);
+            
+            if ($returnVar !== 0) {
+                throw new Exception("Error procesando audio: " . implode("\n", $output));
+            }
+            
+            // Obtener duración antes de leer el archivo
+            $duration = getDuration($outputFile);
+            $result = file_get_contents($outputFile);
+            
+            // Limpiar archivos temporales
+            unlink($ttsFile);
+            unlink($outputFile);
+            rmdir($tempDir);
+            
+            return [
+                'success' => true,
+                'audio' => $result,
+                'format' => $config['output_format'],
+                'duration' => $duration
+            ];
+        }
+        
+        // 3. Procesar con música de fondo
+        $musicFile = validateMusicFile($config['music_file']);
+        $outputFile = $tempDir . '/jingle.' . $config['output_format'];
+        
+        // Obtener duración del mensaje
+        $voiceDuration = getDuration($ttsFile);
+        
+        // Calcular duración total considerando el outro completo
+        $voiceEndTime = $config['intro_silence'] + $voiceDuration;
+        $totalDuration = $voiceEndTime + $config['outro_silence'];
+        
+        // Asegurar que el fade out ocurra al final, no cuando termina la voz
+        $fadeOutStart = max($voiceEndTime, $totalDuration - $config['fade_out']);
+        
+        logMessage("[JingleService] Duración voz: {$voiceDuration}s");
+        logMessage("[JingleService] Voz termina en: {$voiceEndTime}s");
+        logMessage("[JingleService] Duración total: {$totalDuration}s");
+        logMessage("[JingleService] Fade out empieza en: {$fadeOutStart}s");
+        logMessage("[JingleService] Intro: {$config['intro_silence']}s, Outro: {$config['outro_silence']}s");
+        
+        // 4. Construir comando ffmpeg para mezcla
+        if ($config['music_duck']) {
+            // Con ducking automático
+            $ffmpegCmd = buildDuckingCommand(
+                $musicFile,
+                $ttsFile,
+                $outputFile,
+                $config,
+                $voiceDuration,
+                $totalDuration,
+                $fadeOutStart
+            );
+        } else {
+            // Mezcla simple sin ducking
+            $ffmpegCmd = buildSimpleMixCommand(
+                $musicFile,
+                $ttsFile,
+                $outputFile,
+                $config,
+                $totalDuration,
+                $fadeOutStart
+            );
+        }
+        
+        logMessage("[JingleService] Ejecutando ffmpeg...");
+        logMessage("[JingleService] Comando: " . $ffmpegCmd);
+        exec($ffmpegCmd, $output, $returnVar);
+        
+        if ($returnVar !== 0) {
+            throw new Exception("Error mezclando audio: " . implode("\n", $output));
+        }
+        
+        // Obtener duración real del archivo generado
+        $actualDuration = getDuration($outputFile);
+        
+        // Leer resultado
+        $result = file_get_contents($outputFile);
+        
+        // Limpiar archivos temporales
+        unlink($ttsFile);
+        unlink($outputFile);
+        rmdir($tempDir);
+        
+        logMessage("[JingleService] Jingle generado exitosamente");
+        
+        return [
+            'success' => true,
+            'audio' => $result,
+            'format' => $config['output_format'],
+            'duration' => $actualDuration,
+            'size' => strlen($result)
+        ];
+        
+    } catch (Exception $e) {
+        logMessage("[JingleService] Error: " . $e->getMessage());
+        
+        // Limpiar en caso de error
+        if (isset($tempDir) && is_dir($tempDir)) {
+            array_map('unlink', glob("$tempDir/*"));
+            rmdir($tempDir);
+        }
+        
+        return [
+            'success' => false,
+            'error' => $e->getMessage()
+        ];
+    }
+}
+
+/**
+ * Construir comando ffmpeg con ducking
+ */
+function buildDuckingCommand($musicFile, $voiceFile, $outputFile, $config, $voiceDuration, $totalDuration, $fadeOutStart) {
+    // Ducking: reducir música cuando hay voz (pero no completamente)
+    $musicVolume = $config['music_volume'];
+    $voiceVolume = $config['voice_volume'];
+    $introMs = intval($config['intro_silence'] * 1000);
+    
+    // Comando simplificado que garantiza que la música continúe después de la voz
+    $cmd = sprintf(
+        'ffmpeg -i "%s" -i "%s" -filter_complex ' .
+        '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f[music_loop];' .
+        '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice_pad];' .
+        '[voice_pad]asplit=2[vo][vd];' .
+        '[music_loop][vd]sidechaincompress=threshold=0.02:ratio=6:attack=5:release=200:makeup=1[music_ducked];' .
+        '[music_ducked]afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music_final];' .
+        '[music_final][vo]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
+        '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+        $musicFile,
+        $voiceFile,
+        $totalDuration,
+        $musicVolume * 0.6,
+        $introMs,
+        $introMs,
+        $voiceVolume,
+        $totalDuration,
+        $config['fade_in'],
+        $fadeOutStart,
+        $config['fade_out'],
+        $totalDuration,
+        $outputFile
+    );
+    
+    return $cmd;
+}
+
+/**
+ * Construir comando ffmpeg para mezcla simple
+ */
+function buildSimpleMixCommand($musicFile, $voiceFile, $outputFile, $config, $totalDuration, $fadeOutStart) {
+    $musicVolume = $config['music_volume'];
+    $voiceVolume = $config['voice_volume'];
+    $introMs = intval($config['intro_silence'] * 1000);
+    
+    // Sin ducking - usar aloop para asegurar que la música continúe
+    $cmd = sprintf(
+        'ffmpeg -i "%s" -i "%s" -filter_complex ' .
+        '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f,afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music];' .
+        '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice];' .
+        '[music][voice]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
+        '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+        $musicFile,
+        $voiceFile,
+        $totalDuration,
+        $musicVolume,
+        $config['fade_in'],
+        $fadeOutStart,
+        $config['fade_out'],
+        $introMs,
+        $introMs,
+        $voiceVolume,
+        $totalDuration,
+        $totalDuration,
+        $outputFile
+    );
+    
+    return $cmd;
+}
+
+/**
+ * Obtener duración de archivo de audio
+ */
+function getDuration($file) {
+    $cmd = sprintf('ffprobe -v error -show_entries format=duration -of csv=p=0 "%s" 2>&1', $file);
+    $duration = trim(shell_exec($cmd));
+    return floatval($duration);
+}
+
+/**
+ * Validar archivo de música
+ */
+function validateMusicFile($musicPath) {
+    // Si es una ruta relativa, buscar en directorio de música
+    if (!file_exists($musicPath)) {
+        $musicDir = dirname(dirname(__DIR__)) . '/public/audio/music/';
+        $fullPath = $musicDir . $musicPath;
+        
+        if (file_exists($fullPath)) {
+            return $fullPath;
+        }
+        
+        throw new Exception("Archivo de música no encontrado: $musicPath");
+    }
+    
+    return $musicPath;
+}
+
+/**
+ * Obtener lista de música disponible
+ */
+function getAvailableMusic() {
+    $musicDir = dirname(dirname(__DIR__)) . '/public/audio/music/';
+    $music = [];
+    
+    if (is_dir($musicDir)) {
+        $files = glob($musicDir . '*.{mp3,wav,ogg}', GLOB_BRACE);
+        foreach ($files as $file) {
+            $name = basename($file);
+            $music[] = [
+                'file' => $name,
+                'name' => pathinfo($name, PATHINFO_FILENAME),
+                'duration' => getDuration($file),
+                'size' => filesize($file)
+            ];
+        }
+    }
+    
+    return $music;
+}
+
+// Procesar requests si se llama directamente
+if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
+    header('Content-Type: application/json');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
+    
+    try {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $action = $input['action'] ?? $_GET['action'] ?? '';
+        
+        switch ($action) {
+            case 'generate':
+                $text = $input['text'] ?? '';
+                $voice = $input['voice'] ?? 'mateo';
+                $options = $input['options'] ?? [];
+                
+                if (empty($text)) {
+                    throw new Exception('Texto requerido');
+                }
+                
+                $result = generateJingle($text, $voice, $options);
+                
+                if ($result['success']) {
+                    // Devolver audio como base64
+                    echo json_encode([
+                        'success' => true,
+                        'audio' => base64_encode($result['audio']),
+                        'format' => $result['format'],
+                        'duration' => $result['duration']
+                    ]);
+                } else {
+                    throw new Exception($result['error']);
+                }
+                break;
+                
+            case 'list_music':
+                echo json_encode([
+                    'success' => true,
+                    'music' => getAvailableMusic()
+                ]);
+                break;
+                
+            default:
+                throw new Exception('Acción no válida');
+        }
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+?>

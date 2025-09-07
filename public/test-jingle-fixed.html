@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Jingle Corregido</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .range-value {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        audio {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .timeline {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .timeline-bar {
+            height: 40px;
+            position: relative;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .timeline-intro {
+            position: absolute;
+            background: #28a745;
+            height: 100%;
+            opacity: 0.5;
+        }
+        .timeline-voice {
+            position: absolute;
+            background: #007bff;
+            height: 100%;
+            opacity: 0.7;
+        }
+        .timeline-outro {
+            position: absolute;
+            background: #ffc107;
+            height: 100%;
+            opacity: 0.5;
+        }
+        .timeline-legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Prueba de Jingles - Versión Corregida</h1>
+        
+        <div class="control-group">
+            <label for="text">Texto del mensaje:</label>
+            <textarea id="text" rows="3">¡Bienvenidos a nuestra tienda! Hoy tenemos ofertas especiales en todos los productos.</textarea>
+        </div>
+
+        <div class="control-group">
+            <label for="intro">Silencio Inicial: <span class="range-value" id="introValue">2s</span></label>
+            <input type="range" id="intro" min="0" max="10" value="2" step="0.5">
+        </div>
+
+        <div class="control-group">
+            <label for="outro">Silencio Final (música después de la voz): <span class="range-value" id="outroValue">5s</span></label>
+            <input type="range" id="outro" min="0" max="15" value="5" step="0.5">
+        </div>
+
+        <div class="control-group">
+            <label for="musicVolume">Volumen Música: <span class="range-value" id="musicVolumeValue">40%</span></label>
+            <input type="range" id="musicVolume" min="0" max="100" value="40" step="5">
+        </div>
+
+        <div class="control-group">
+            <label for="voiceVolume">Volumen Voz: <span class="range-value" id="voiceVolumeValue">100%</span></label>
+            <input type="range" id="voiceVolume" min="0" max="200" value="100" step="10">
+        </div>
+
+        <div class="control-group">
+            <label for="fadeIn">Fade In: <span class="range-value" id="fadeInValue">2s</span></label>
+            <input type="range" id="fadeIn" min="0" max="5" value="2" step="0.5">
+        </div>
+
+        <div class="control-group">
+            <label for="fadeOut">Fade Out: <span class="range-value" id="fadeOutValue">3s</span></label>
+            <input type="range" id="fadeOut" min="0" max="10" value="3" step="0.5">
+        </div>
+
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="ducking"> Auto-ducking (reducir música cuando habla)
+            </label>
+        </div>
+
+        <div class="timeline" id="timeline" style="display:none;">
+            <h3>Timeline del Jingle:</h3>
+            <div class="timeline-bar">
+                <div class="timeline-intro" id="timelineIntro"></div>
+                <div class="timeline-voice" id="timelineVoice"></div>
+                <div class="timeline-outro" id="timelineOutro"></div>
+            </div>
+            <div class="timeline-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #28a745;"></div>
+                    <span>Intro (solo música)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #007bff;"></div>
+                    <span>Voz + Música</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffc107;"></div>
+                    <span>Outro (solo música)</span>
+                </div>
+            </div>
+            <p id="durationInfo" style="text-align: center; margin-top: 10px;"></p>
+        </div>
+
+        <button onclick="generateJingle()">Generar Jingle</button>
+        <button onclick="testWithSynthetic()">Probar con Voz Sintética</button>
+
+        <div id="status"></div>
+        <audio id="player" controls style="display:none;"></audio>
+    </div>
+
+    <script>
+        // Actualizar valores de los sliders
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const valueSpan = document.getElementById(e.target.id + 'Value');
+                if (valueSpan) {
+                    const value = e.target.value;
+                    if (e.target.id.includes('Volume')) {
+                        valueSpan.textContent = value + '%';
+                    } else {
+                        valueSpan.textContent = value + 's';
+                    }
+                }
+                updateTimeline();
+            });
+        });
+
+        function updateTimeline() {
+            const intro = parseFloat(document.getElementById('intro').value);
+            const outro = parseFloat(document.getElementById('outro').value);
+            const voiceDuration = 4; // Duración estimada de la voz
+            const total = intro + voiceDuration + outro;
+
+            const timeline = document.getElementById('timeline');
+            timeline.style.display = 'block';
+
+            const introBar = document.getElementById('timelineIntro');
+            const voiceBar = document.getElementById('timelineVoice');
+            const outroBar = document.getElementById('timelineOutro');
+
+            introBar.style.width = (intro / total * 100) + '%';
+            introBar.style.left = '0';
+
+            voiceBar.style.width = (voiceDuration / total * 100) + '%';
+            voiceBar.style.left = (intro / total * 100) + '%';
+
+            outroBar.style.width = (outro / total * 100) + '%';
+            outroBar.style.left = ((intro + voiceDuration) / total * 100) + '%';
+
+            document.getElementById('durationInfo').textContent = 
+                `Duración total estimada: ${total.toFixed(1)}s (Intro: ${intro}s + Voz: ~${voiceDuration}s + Outro: ${outro}s)`;
+        }
+
+        async function generateJingle() {
+            const button = event.target;
+            button.disabled = true;
+            const status = document.getElementById('status');
+            status.className = 'info';
+            status.textContent = 'Generando jingle...';
+
+            const options = {
+                music_file: 'Martin Roth - Just Sine Waves.mp3',
+                music_volume: parseFloat(document.getElementById('musicVolume').value) / 100,
+                voice_volume: parseFloat(document.getElementById('voiceVolume').value) / 100,
+                fade_in: parseFloat(document.getElementById('fadeIn').value),
+                fade_out: parseFloat(document.getElementById('fadeOut').value),
+                music_duck: document.getElementById('ducking').checked,
+                intro_silence: parseFloat(document.getElementById('intro').value),
+                outro_silence: parseFloat(document.getElementById('outro').value)
+            };
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        text: document.getElementById('text').value,
+                        voice: 'mateo',
+                        options: options
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    status.className = 'success';
+                    status.textContent = `¡Jingle generado! Duración: ${data.duration?.toFixed(1) || 'N/A'}s`;
+
+                    const player = document.getElementById('player');
+                    player.src = 'data:audio/mp3;base64,' + data.audio;
+                    player.style.display = 'block';
+                    player.play();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                status.className = 'error';
+                status.textContent = 'Error: ' + error.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function testWithSynthetic() {
+            const button = event.target;
+            button.disabled = true;
+            const status = document.getElementById('status');
+            status.className = 'info';
+            status.textContent = 'Generando jingle de prueba con voz sintética...';
+
+            const options = {
+                music_file: 'Martin Roth - Just Sine Waves.mp3',
+                music_volume: parseFloat(document.getElementById('musicVolume').value) / 100,
+                voice_volume: parseFloat(document.getElementById('voiceVolume').value) / 100,
+                fade_in: parseFloat(document.getElementById('fadeIn').value),
+                fade_out: parseFloat(document.getElementById('fadeOut').value),
+                music_duck: document.getElementById('ducking').checked,
+                intro_silence: parseFloat(document.getElementById('intro').value),
+                outro_silence: parseFloat(document.getElementById('outro').value),
+                voice_duration: 3 // Duración fija de la voz sintética
+            };
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/test-jingle.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(options)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    status.className = 'success';
+                    status.textContent = `¡Jingle de prueba generado! Duración real: ${data.duration?.toFixed(1)}s, Esperada: ${data.expected_duration}s`;
+
+                    const player = document.getElementById('player');
+                    player.src = 'data:audio/mp3;base64,' + data.audio;
+                    player.style.display = 'block';
+                    player.play();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                status.className = 'error';
+                status.textContent = 'Error: ' + error.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // Inicializar timeline
+        updateTimeline();
+    </script>
+</body>
+</html>
