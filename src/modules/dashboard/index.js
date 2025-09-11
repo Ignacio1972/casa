@@ -6,6 +6,8 @@
 
 import { getCategoryShortLabel } from '../campaigns/utils/formatters.js';
 import { VoiceService } from '../../core/voice-service.js';
+import { AISuggestionsComponent } from './components/ai-suggestions.js';
+import { JingleControls } from './components/jingle-controls.js';
 
 export default class DashboardV2Module {
     constructor() {
@@ -13,6 +15,12 @@ export default class DashboardV2Module {
         this.container = null;
         this.eventBus = window.eventBus;
         this.apiClient = window.apiClient;
+        
+        // Componente de sugerencias IA
+        this.aiSuggestions = null;
+        
+        // Componente de controles de jingle
+        this.jingleControls = null;
         
         // Estado del módulo
         this.state = {
@@ -28,15 +36,13 @@ export default class DashboardV2Module {
                 similarity_boost: 0.8,
                 use_speaker_boost: true
             },
-            quotaData: null,
             recentMessages: []
         };
         
         // Referencias a elementos DOM
         this.elements = {};
         
-        // Intervalos para actualizaciones
-        this.quotaInterval = null;
+        // Intervalo para actualizaciones
         this.messagesInterval = null;
         
         // Exponer para onclick handlers
@@ -85,16 +91,25 @@ export default class DashboardV2Module {
             // 3. Cargar voces disponibles
             await this.loadVoices();
             
+            // 3.5. Cargar música disponible
+            await this.loadMusicList();
+            
             // 4. Configurar event listeners
             this.setupEventListeners();
             
-            // 5. Cargar datos iniciales
+            // 5. Inicializar componente de sugerencias IA
+            this.initializeAISuggestions();
+            
+            // 6. Inicializar controles de jingle
+            this.initializeJingleControls();
+            
+            // 7. Cargar datos iniciales
             await this.loadInitialData();
             
-            // 6. Iniciar actualizaciones periódicas
+            // 8. Iniciar actualizaciones periódicas
             this.startPeriodicUpdates();
             
-            // 7. Emitir evento de módulo cargado
+            // 9. Emitir evento de módulo cargado
             this.eventBus.emit('module:loaded', { module: this.name });
             
         } catch (error) {
@@ -123,6 +138,7 @@ export default class DashboardV2Module {
             // Generador
             messageText: document.getElementById('messageText'),
             voiceSelect: document.getElementById('voiceSelect'),
+            musicSelect: document.getElementById('musicSelect'),
             generateBtn: document.getElementById('generateBtn'),
             messageForm: document.getElementById('messageForm'),
             
@@ -205,6 +221,46 @@ export default class DashboardV2Module {
     }
     
     /**
+     * Carga la lista de música disponible
+     */
+    async loadMusicList() {
+        try {
+            const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'list_music' })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.music && this.elements.musicSelect) {
+                // Mantener la opción "Sin música"
+                this.elements.musicSelect.innerHTML = '<option value="">-- Sin música --</option>';
+                
+                data.music.forEach(music => {
+                    const displayName = music.file ? music.file.replace('.mp3', '').replace('.wav', '').replace('.ogg', '') : music.name;
+                    const option = document.createElement('option');
+                    option.value = music.file;
+                    option.textContent = displayName;
+                    this.elements.musicSelect.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('[Dashboard] Error cargando música:', error);
+        }
+    }
+    
+    /**
+     * Inicializa los controles de jingle
+     */
+    initializeJingleControls() {
+        // Ya no necesitamos mostrar el componente JingleControls
+        // porque el selector de música está integrado en el formulario principal
+        // Solo mantenemos una referencia nula
+        this.jingleControls = null;
+    }
+    
+    /**
      * Configura los event listeners
      */
     setupEventListeners() {
@@ -266,39 +322,99 @@ export default class DashboardV2Module {
         this.elements.generateBtn.textContent = 'Generando...';
         
         try {
-            const voice = this.state.voices.find(v => v.key === this.state.selectedVoice);
-            console.log('Voz seleccionada:', this.state.selectedVoice);
-            console.log('Voz encontrada:', voice);
-            console.log('Categoría seleccionada:', this.state.selectedCategory);
+            // Verificar si se debe generar un jingle - ahora verificamos el selector de música directamente
+            const selectedMusic = this.elements.musicSelect ? this.elements.musicSelect.value : '';
+            const jingleOptions = this.jingleControls ? this.jingleControls.getJingleOptions() : null;
             
-            if (!voice) {
-                this.showError('No se encontró la voz seleccionada');
-                return;
-            }
-            
-            const response = await this.apiClient.post('/api/generate.php', {
-                action: 'generate_audio',
-                text: text,
-                voice: voice.id,
-                category: this.state.selectedCategory,
-                voice_settings: {
+            // Si hay música seleccionada o jingle controls está activo
+            if (selectedMusic || jingleOptions) {
+                // Generar jingle
+                
+                // Crear opciones del jingle combinando selector de música y controles
+                const finalJingleOptions = jingleOptions || {
+                    music_volume: 0.3,
+                    voice_volume: 1.0,
+                    fade_in: 2,
+                    fade_out: 2,
+                    music_duck: true,
+                    duck_level: 0.2,
+                    intro_silence: 2,
+                    outro_silence: 4
+                };
+                
+                // Si hay música seleccionada en el dropdown, usarla
+                if (selectedMusic) {
+                    finalJingleOptions.music_file = selectedMusic;
+                }
+                
+                console.log('[Dashboard] Generando jingle con opciones:', finalJingleOptions);
+                
+                // Agregar voice_settings a las opciones del jingle
+                const voiceSettings = finalJingleOptions.voice_settings || {
                     style: this.state.voiceSettings.style,
                     stability: this.state.voiceSettings.stability,
                     similarity_boost: this.state.voiceSettings.similarity_boost,
                     use_speaker_boost: this.state.voiceSettings.use_speaker_boost
-                }
-            });
-            
-            // La API devuelve filename, no audio_url
-            if (response.success && (response.audio_url || response.filename)) {
-                const audioUrl = response.audio_url || `/api/temp/${response.filename}`;
-                this.playAudio(audioUrl);
-                this.showSuccess('Audio generado exitosamente');
+                };
                 
-                // Actualizar mensajes recientes (quota eliminado)
-                await this.loadRecentMessages();
+                const jingleOptionsWithVoice = {
+                    ...finalJingleOptions,
+                    voice_settings: voiceSettings
+                };
+                
+                const response = await this.apiClient.post('/api/jingle-service.php', {
+                    action: 'generate',
+                    text: text,
+                    voice: this.state.selectedVoice,
+                    options: jingleOptionsWithVoice
+                });
+                
+                if (response.success && response.audio) {
+                    // Crear URL del audio base64
+                    const audioUrl = 'data:audio/mp3;base64,' + response.audio;
+                    this.playAudio(audioUrl);
+                    this.showSuccess(`¡Jingle generado! Duración: ${response.duration?.toFixed(1) || 'N/A'}s`);
+                    
+                    // TODO: Guardar jingle en biblioteca si el usuario lo desea
+                } else {
+                    throw new Error(response.error || 'Error al generar jingle');
+                }
             } else {
-                throw new Error(response.error || 'Error al generar audio');
+                // Generación normal de TTS
+                const voice = this.state.voices.find(v => v.key === this.state.selectedVoice);
+                console.log('Voz seleccionada:', this.state.selectedVoice);
+                console.log('Voz encontrada:', voice);
+                console.log('Categoría seleccionada:', this.state.selectedCategory);
+                
+                if (!voice) {
+                    this.showError('No se encontró la voz seleccionada');
+                    return;
+                }
+                
+                const response = await this.apiClient.post('/api/generate.php', {
+                    action: 'generate_audio',
+                    text: text,
+                    voice: voice.id,
+                    category: this.state.selectedCategory,
+                    voice_settings: {
+                        style: this.state.voiceSettings.style,
+                        stability: this.state.voiceSettings.stability,
+                        similarity_boost: this.state.voiceSettings.similarity_boost,
+                        use_speaker_boost: this.state.voiceSettings.use_speaker_boost
+                    }
+                });
+                
+                // La API devuelve filename, no audio_url
+                if (response.success && (response.audio_url || response.filename)) {
+                    const audioUrl = response.audio_url || `/api/temp/${response.filename}`;
+                    this.playAudio(audioUrl);
+                    this.showSuccess('Audio generado exitosamente');
+                    
+                    // Actualizar mensajes recientes (quota eliminado)
+                    await this.loadRecentMessages();
+                } else {
+                    throw new Error(response.error || 'Error al generar audio');
+                }
             }
             
         } catch (error) {
@@ -366,40 +482,7 @@ export default class DashboardV2Module {
      * Controles avanzados siempre visibles - método eliminado
      */
     
-    /**
-     * Actualiza el chart de quota
-     */
-    async updateQuotaChart() {
-        try {
-            const response = await fetch('/playground/api/quota.php');
-            const data = await response.json();
-            
-            this.state.quotaData = data;
-            
-            // Calcular porcentaje
-            const percentage = Math.round((data.used / data.limit) * 100);
-            
-            // Actualizar círculo
-            const circumference = 100;
-            const strokeDasharray = `${percentage} ${circumference}`;
-            this.elements.quotaProgressCircle.setAttribute('stroke-dasharray', strokeDasharray);
-            
-            // Actualizar textos
-            this.elements.quotaPercentage.textContent = percentage + '%';
-            this.elements.quotaUsed.textContent = this.formatNumber(data.used);
-            this.elements.quotaRemaining.textContent = this.formatNumber(data.remaining);
-            
-            // Formatear fecha de reset
-            if (data.reset_date) {
-                const resetDate = new Date(data.reset_date);
-                const days = Math.ceil((resetDate - new Date()) / (1000 * 60 * 60 * 24));
-                this.elements.quotaResetDate.textContent = `Renueva en ${days} días`;
-            }
-            
-        } catch (error) {
-            console.error('[Dashboard v2] Error updating quota:', error);
-        }
-    }
+    // Función removida - quota chart ya no se usa
     
     /**
      * Carga los mensajes recientes
@@ -559,19 +642,14 @@ export default class DashboardV2Module {
     async loadInitialData() {
         // Controles avanzados siempre visibles - no necesita localStorage
         
-        // Cargar quota y mensajes
-        await Promise.all([
-            this.updateQuotaChart(),
-            this.loadRecentMessages()
-        ]);
+        // Cargar mensajes recientes
+        await this.loadRecentMessages();
     }
     
     /**
      * Inicia actualizaciones periódicas
      */
     startPeriodicUpdates() {
-        // Quota eliminado - ya no se actualiza
-        // this.quotaInterval = setInterval(() => this.updateQuotaChart(), 30000);
         
         // Actualizar mensajes cada minuto
         this.messagesInterval = setInterval(() => this.loadRecentMessages(), 60000);
@@ -592,8 +670,7 @@ export default class DashboardV2Module {
             console.log('[Dashboard v2] Styles removed');
         }
         
-        // Limpiar intervalos
-        if (this.quotaInterval) clearInterval(this.quotaInterval);
+        // Limpiar intervalo
         if (this.messagesInterval) clearInterval(this.messagesInterval);
         
         // Limpiar event listeners
@@ -750,5 +827,30 @@ export default class DashboardV2Module {
     initializeCategory() {
         const savedCategory = this.state.selectedCategory;
         this.updateCategory(savedCategory);
+    }
+    
+    /**
+     * Inicializar componente de sugerencias IA
+     */
+    initializeAISuggestions() {
+        try {
+            // Crear instancia del componente
+            this.aiSuggestions = new AISuggestionsComponent(this);
+            
+            // Montar el componente
+            this.aiSuggestions.mount('messageForm');
+            
+            // Escuchar eventos de sugerencias seleccionadas
+            this.eventBus.on('llm:suggestion:selected', (data) => {
+                // El texto ya se pone automáticamente en el campo
+                console.log('[Dashboard v2] Sugerencia seleccionada:', data.suggestion.text.substring(0, 50) + '...');
+            });
+            
+            console.log('[Dashboard v2] Componente IA inicializado');
+            
+        } catch (error) {
+            console.error('[Dashboard v2] Error inicializando IA:', error);
+            // No es crítico, el dashboard puede funcionar sin IA
+        }
     }
 }

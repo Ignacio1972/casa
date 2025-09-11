@@ -63,7 +63,7 @@
 
 /* Textarea del mensaje */
 #messageText {
-  height: 200px;
+  height: 300px;
   resize: vertical;
   font-size: 1.25rem;
   line-height: 1.5;
@@ -81,10 +81,46 @@
   margin-top: var(--spacing-md);
 }
 
-.voice-selector {
+.voice-selector,
+.music-selector-inline {
   display: flex;
   flex-direction: column;
   min-width: 200px;
+}
+
+/* Toggle v3 Alpha */
+.v3-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.v3-toggle:hover {
+  background: rgba(102, 126, 234, 0.15);
+}
+
+.v3-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.v3-toggle label {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.v3-toggle:hover label {
+  color: var(--text-primary);
 }
 
 .voice-selector .form-label {
@@ -421,7 +457,8 @@
     align-items: stretch;
   }
   
-  .voice-selector {
+  .voice-selector,
+  .music-selector-inline {
     width: 100%;
   }
   

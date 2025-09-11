@@ -35,6 +35,12 @@
                     rows="6"></textarea>
             </div>
             <div class="form-actions-inline">
+                <div class="music-selector-inline">
+                    <select id="musicSelect" class="form-select">
+                        <option value="">-- Sin música --</option>
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
                 <div class="voice-selector">
                     <select id="voiceSelect" class="form-select">
                         <!-- Se llenará dinámicamente -->
@@ -84,7 +90,7 @@
             
             <div class="control-item">
                 <label class="control-label">
-                    Claridad
+                    Similitud
                     <span class="control-value" id="clarityValue">80%</span>
                 </label>
                 <div class="slider-container">

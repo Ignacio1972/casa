@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Systems - Sistema Automatizado de Marketing</title>
+    <link rel="icon" type="image/svg+xml" href="/styles-v5/icons/marketing%20systems.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="/styles-v5/icons/marketing%20systems.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 50px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            width: 240px;
+            height: 100px;
+            margin: 0 auto 30px;
+            display: block;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #a0a0a0;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            margin: 30px 0;
+            position: relative;
+            text-align: center;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e1e4e8;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .help-text {
+            color: #888;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        .help-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .help-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 40px 30px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <img src="/styles-v5/icons/marketing%20systems.png" alt="Marketing Systems">
+        </div>
+        
+        <h1>Bienvenido al Sistema Automatizado de Marketing</h1>
+        <p class="subtitle">Por favor ingresa tu número de cliente</p>
+        
+        <form onsubmit="return false;">
+            <div class="form-group">
+                <label class="form-label" for="client-number">Número de Cliente</label>
+                <input 
+                    type="text" 
+                    id="client-number" 
+                    class="form-input" 
+                    placeholder="Ej: CL-2024-0001"
+                    autocomplete="off"
+                >
+            </div>
+            
+            <button type="submit" class="login-button" onclick="handleLogin()">
+                Ingresar al Sistema
+            </button>
+        </form>
+        
+        <div class="divider">
+            <span>o</span>
+        </div>
+        
+        <p class="help-text">
+            ¿Necesitas ayuda? <a href="#" class="help-link" onclick="showHelp()">Contacta a soporte</a>
+        </p>
+    </div>
+
+    <script>
+        function handleLogin() {
+            const clientNumber = document.getElementById('client-number').value;
+            if (clientNumber) {
+                // Simula verificación pero no hace nada
+                setTimeout(() => {
+                    alert('Acceso no autorizado. Por favor contacta a tu administrador.');
+                    document.getElementById('client-number').value = '';
+                }, 500);
+            } else {
+                alert('Por favor ingresa tu número de cliente');
+            }
+        }
+
+        function showHelp() {
+            alert('Para soporte técnico, contacta a: soporte@mediaflow.com');
+            return false;
+        }
+
+        // Enter key para submit
+        document.getElementById('client-number').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+    </script>
+</body>
+</html>
