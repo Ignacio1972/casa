@@ -43,50 +43,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
     
-    // Validar filename - ACTUALIZADO PARA PERMITIR TTS Y ARCHIVOS EXTERNOS
+    // Validar filename - ACTUALIZADO PARA PERMITIR TTS, JINGLES Y ARCHIVOS EXTERNOS
     $isTTSFile = preg_match('/^tts\d+(_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+)?\.mp3$/', $filename);
+    $isJingleFile = preg_match('/^jingle_\d+_\d+_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+\.mp3$/', $filename);
     $isExternalFile = preg_match('/^[a-zA-Z0-9._\-ñÑáéíóúÁÉÍÓÚ]+\.(mp3|wav|flac|aac|ogg|m4a|opus)$/i', $filename);
     
-    if (!$isTTSFile && !$isExternalFile) {
+    if (!$isTTSFile && !$isJingleFile && !$isExternalFile) {
         header('Content-Type: application/json');
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'Archivo inválido']);
         exit;
     }
     
-    // Buscar archivo: primero en Grabaciones (TTS y externos nuevos), luego en raíz (externos antiguos)
-    $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
-    $tempFile = UPLOAD_DIR . 'temp_' . $filename;
-    
-    // Verificar si existe en Grabaciones
-    $checkCommand = sprintf(
-        'sudo docker exec azuracast test -f %s && echo "EXISTS" || echo "NOT_FOUND" 2>&1',
-        escapeshellarg($dockerPath)
-    );
-    $exists = trim(shell_exec($checkCommand));
-    
-    if ($exists !== 'EXISTS') {
-        // Si no está en Grabaciones, buscar en raíz (archivos externos antiguos)
-        $dockerPath = '/var/azuracast/stations/test/media/' . $filename;
-        logMessage("Archivo no encontrado en Grabaciones, buscando en raíz: $dockerPath");
+    // Para jingles, buscar primero en la carpeta temp local
+    if ($isJingleFile) {
+        $localJinglePath = __DIR__ . '/temp/' . $filename;
+        logMessage("Buscando jingle en carpeta local: $localJinglePath");
+        
+        if (file_exists($localJinglePath)) {
+            logMessage("Jingle encontrado en carpeta local");
+            $tempFile = $localJinglePath;
+        } else {
+            logMessage("Jingle no encontrado en carpeta local, buscando en Docker");
+            // Si no está en local, buscar en Docker como los demás archivos
+            $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
+            $tempFile = UPLOAD_DIR . 'temp_' . $filename;
+            
+            $copyCommand = sprintf(
+                'sudo docker cp azuracast:%s %s 2>&1',
+                escapeshellarg($dockerPath),
+                escapeshellarg($tempFile)
+            );
+            
+            logMessage("copyCommand para jingle: " . $copyCommand);
+            $copyResult = shell_exec($copyCommand);
+            logMessage("copyResult: " . $copyResult);
+        }
+    } else {
+        // Para archivos TTS y externos, buscar en Docker
+        $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
+        $tempFile = UPLOAD_DIR . 'temp_' . $filename;
+        
+        // Verificar si existe en Grabaciones
+        $checkCommand = sprintf(
+            'sudo docker exec azuracast test -f %s && echo "EXISTS" || echo "NOT_FOUND" 2>&1',
+            escapeshellarg($dockerPath)
+        );
+        $exists = trim(shell_exec($checkCommand));
+        
+        if ($exists !== 'EXISTS') {
+            // Si no está en Grabaciones, buscar en raíz (archivos externos antiguos)
+            $dockerPath = '/var/azuracast/stations/test/media/' . $filename;
+            logMessage("Archivo no encontrado en Grabaciones, buscando en raíz: $dockerPath");
+        }
+        
+        // Copiar archivo desde Docker a temporal
+        $copyCommand = sprintf(
+            'sudo docker cp azuracast:%s %s 2>&1',
+            escapeshellarg($dockerPath),
+            escapeshellarg($tempFile)
+        );
+        
+        logMessage("dockerPath final: " . $dockerPath);
+        logMessage("copyCommand: " . $copyCommand);
+        $copyResult = shell_exec($copyCommand);
+        logMessage("copyResult: " . $copyResult);
     }
     
-    // Copiar archivo desde Docker a temporal
-    $copyCommand = sprintf(
-        'sudo docker cp azuracast:%s %s 2>&1',
-        escapeshellarg($dockerPath),
-        escapeshellarg($tempFile)
-    );
-    
-    logMessage("dockerPath final: " . $dockerPath);
-    logMessage("copyCommand: " . $copyCommand);
-    $copyResult = shell_exec($copyCommand);
-    
-    logMessage("copyResult: " . $copyResult);
     if (!file_exists($tempFile)) {
         header('Content-Type: application/json');
         http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Archivo no encontrado en Grabaciones ni en raíz']);
+        echo json_encode(['success' => false, 'error' => 'Archivo no encontrado']);
         exit;
     }
     
@@ -104,8 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     
     readfile($tempFile);
     
-    // Limpiar archivo temporal
-    unlink($tempFile);
+    // Limpiar archivo temporal solo si no es un jingle local
+    if (!$isJingleFile || strpos($tempFile, 'temp_') !== false) {
+        unlink($tempFile);
+    }
     exit;
 }
 
