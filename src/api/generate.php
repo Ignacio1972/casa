@@ -79,7 +79,9 @@ try {
                 $activeVoices[$key] = [
                     'id' => $voice['id'],
                     'label' => $voice['label'],
-                    'gender' => $voice['gender']
+                    'gender' => $voice['gender'],
+                    'is_default' => isset($voice['is_default']) ? $voice['is_default'] : false,
+                    'order' => isset($voice['order']) ? $voice['order'] : 999
                 ];
             }
         }
@@ -114,6 +116,16 @@ try {
                 'use_speaker_boost' => $input['voice_settings']['use_speaker_boost'] ?? true
             ];
             logMessage("Voice settings recibidos: " . json_encode($generatorOptions['voice_settings']));
+        }
+        
+        // Leer configuración de API desde archivo
+        $configFile = __DIR__ . '/data/api-config.json';
+        if (file_exists($configFile)) {
+            $apiConfig = json_decode(file_get_contents($configFile), true);
+            if (isset($apiConfig['use_v3_api']) && $apiConfig['use_v3_api'] === true) {
+                $generatorOptions['use_v3'] = true;
+                logMessage("Usando ElevenLabs v3 (configurado desde playground)");
+            }
         }
         
         // Verificar si es template o texto directo

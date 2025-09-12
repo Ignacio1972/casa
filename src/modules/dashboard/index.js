@@ -181,14 +181,25 @@ export default class DashboardV2Module {
                 key: key,
                 id: voice.id,
                 label: voice.label,
-                gender: voice.gender
+                gender: voice.gender,
+                is_default: voice.is_default || false,
+                order: voice.order || 999
             }));
+            
+            // Ordenar voces por el campo 'order'
+            this.state.voices.sort((a, b) => a.order - b.order);
             
             // Poblar el selector de voces
             this.populateVoiceSelector();
             
-            // Establecer la primera voz como seleccionada por defecto
-            if (this.state.voices.length > 0) {
+            // Buscar y establecer la voz por defecto
+            const defaultVoice = this.state.voices.find(v => v.is_default);
+            if (defaultVoice) {
+                this.state.selectedVoice = defaultVoice.key;
+                this.elements.voiceSelect.value = defaultVoice.key;
+                console.log('[Dashboard v2] Voz por defecto establecida:', defaultVoice.label);
+            } else if (this.state.voices.length > 0) {
+                // Si no hay voz por defecto, usar la primera
                 this.state.selectedVoice = this.state.voices[0].key;
                 this.elements.voiceSelect.value = this.state.voices[0].key;
             }

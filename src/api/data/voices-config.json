@@ -4,10 +4,11 @@
             "id": "G4IAP30yc6c1gK0csDfu",
             "label": "Juan Carlos",
             "gender": "M",
-            "active": false,
+            "active": true,
             "category": "custom",
             "added_date": "2025-08-23 17:06:14",
-            "is_default": true
+            "is_default": false,
+            "order": 2
         },
         "test_voice": {
             "id": "test123",
@@ -15,15 +16,19 @@
             "gender": "F",
             "active": false,
             "category": "custom",
-            "added_date": "2025-08-24 03:28:44"
+            "added_date": "2025-08-24 03:28:44",
+            "is_default": false,
+            "order": 4
         },
         "alejandro": {
             "id": "6nZRiu6mJ5DiYZA30eh5",
             "label": "alejandro",
             "gender": "M",
-            "active": false,
+            "active": true,
             "category": "custom",
-            "added_date": "2025-08-24 04:32:55"
+            "added_date": "2025-08-24 04:32:55",
+            "is_default": false,
+            "order": 3
         },
         "jefry": {
             "id": "pXOYlNbO024q13bfqrw0",
@@ -31,15 +36,19 @@
             "gender": "M",
             "active": true,
             "category": "custom",
-            "added_date": "2025-08-24 04:57:42"
+            "added_date": "2025-08-24 04:57:42",
+            "is_default": false,
+            "order": 5
         },
         "cristi": {
             "id": "9bDwPIakVNJ6w1nZOeRD",
             "label": "cristi",
             "gender": "F",
-            "active": true,
+            "active": false,
             "category": "custom",
-            "added_date": "2025-08-26 04:15:43"
+            "added_date": "2025-08-26 04:15:43",
+            "is_default": false,
+            "order": 6
         },
         "veronica": {
             "id": "Obg6KIFo8Md4PUo1m2mR",
@@ -47,12 +56,64 @@
             "gender": "F",
             "active": true,
             "category": "custom",
-            "added_date": "2025-09-01 18:18:33"
+            "added_date": "2025-09-01 18:18:33",
+            "is_default": false,
+            "order": 7
+        },
+        "cristian": {
+            "id": "nNS8uylvF9GBWVSiIt5h",
+            "label": "Cristian",
+            "gender": "M",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-09-03 22:18:24",
+            "is_default": false,
+            "order": 8
+        },
+        "yorman": {
+            "id": "J2Jb9yZNvpXUNAL3a2bw",
+            "label": "Yorman",
+            "gender": "M",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-09-03 22:19:53",
+            "is_default": false,
+            "order": 9
+        },
+        "lizy": {
+            "id": "g10k86KeEUyBqW9lcKYg",
+            "label": "Lizy",
+            "gender": "F",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-09-04 00:52:16",
+            "is_default": true,
+            "order": 1
+        },
+        "sandra": {
+            "id": "rEVYTKPqwSMhytFPayIb",
+            "label": "Sandra",
+            "gender": "F",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-09-04 00:54:53",
+            "is_default": false,
+            "order": 10
+        },
+        "hope": {
+            "id": "uYXf8XasLslADfZ2MB4u",
+            "label": "Hope",
+            "gender": "F",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-09-11 18:30:34",
+            "is_default": false,
+            "order": 11
         }
     },
     "settings": {
-        "default_voice": "juan_carlos",
-        "last_updated": "2025-09-03T22:06:18-03:00",
+        "default_voice": "lizy",
+        "last_updated": "2025-09-11T21:26:28-03:00",
         "version": "2.0"
     }
 }

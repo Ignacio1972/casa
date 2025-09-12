@@ -25,7 +25,11 @@
             <button class="nav-btn" data-section="template-builder">📝 Template Builder</button>
             <button class="nav-btn" data-section="monitors">📊 Monitors</button>
             <button class="nav-btn" data-section="tools">🛠️ Tools</button>
-       <button class="nav-btn" data-section="voice-admin">🎙️ Admin Voces</button>
+            <button class="nav-btn" data-section="voice-admin">🎙️ Admin Voces</button>
+            <button class="nav-btn" data-section="claude-ai">🤖 Claude AI</button>
+            <button class="nav-btn" data-section="test-integration">🧪 Tests</button>
+            <button class="nav-btn" onclick="window.open('/playground/jingle-studio.html', '_blank')">🎵 Jingle Studio</button>
+            <button class="nav-btn" onclick="window.open('/playground/jingle-config.html', '_blank')">⚙️ Config Jingles</button>
         </nav>
         
         <main class="playground-content">
@@ -167,6 +171,7 @@
                         <th style="text-align: left; padding: 0.75rem;">Voice ID</th>
                         <th style="text-align: center; padding: 0.75rem;">Género</th>
                         <th style="text-align: center; padding: 0.75rem;">Estado</th>
+                        <th style="text-align: center; padding: 0.75rem;">Orden</th>
                         <th style="text-align: center; padding: 0.75rem;">Default</th>
                         <th style="text-align: center; padding: 0.75rem;">Acciones</th>
                     </tr>
@@ -264,19 +269,26 @@
                             <div id="suggested-settings"></div>
                         </div>
                         <div class="tool-card">
-    <h3>🎤 Voice Manager</h3>
-    <div class="voice-manager">
-        <h4>Agregar Nueva Voz</h4>
-        <input type="text" id="new-voice-id" placeholder="Voice ID de ElevenLabs">
-        <input type="text" id="new-voice-name" placeholder="Nombre de la voz">
-        <select id="new-voice-gender">
-            <option value="F">Femenino</option>
-            <option value="M">Masculino</option>
-        </select>
-        <button id="add-voice-btn" class="btn btn-primary">➕ Agregar Voz</button>
+    <h3>⚙️ Configuración de API</h3>
+    <div class="api-config-manager">
+        <h4>ElevenLabs API</h4>
+        <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="checkbox" id="elevenlabs-v3-api" style="cursor: pointer;">
+                <span>Usar API v3 de ElevenLabs (experimental)</span>
+            </label>
+            <small style="display: block; margin-top: 0.5rem; color: var(--text-secondary);">
+                La API v3 ofrece mejoras en la calidad de voz pero puede tener cambios en la estructura de respuesta.
+            </small>
+            <button id="save-api-config" class="btn btn-secondary" style="margin-top: 0.5rem;">💾 Guardar Configuración</button>
+        </div>
         
-        <h4 style="margin-top: 1rem;">Voces Personalizadas</h4>
-        <div id="custom-voices-list"></div>
+        <div style="background: rgba(76, 175, 80, 0.1); padding: 1rem; border-radius: 8px;">
+            <p style="margin: 0;">
+                <strong>💡 Gestión de Voces:</strong><br>
+                Para agregar o administrar voces, usa el botón <strong>"🎙️ Admin Voces"</strong> en el menú superior.
+            </p>
+        </div>
     </div>
 </div>
                         
@@ -289,6 +301,22 @@
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <!-- Claude AI Section -->
+            <section id="claude-ai" class="content-section">
+                <iframe src="claude.html" 
+                        style="width: 100%; height: calc(100vh - 150px); border: none;"
+                        title="Claude AI Playground">
+                </iframe>
+            </section>
+
+            <!-- Test Integration Section -->
+            <section id="test-integration" class="content-section">
+                <iframe src="test-integration.html"
+                        style="width: 100%; height: calc(100vh - 150px); border: none;"
+                        title="Test Integration">
+                </iframe>
             </section>
 
         </main>
@@ -357,6 +385,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-</body>
 </body>
 </html>

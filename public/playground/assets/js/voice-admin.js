@@ -45,7 +45,14 @@ class VoiceAdminManager {
         const tbody = document.getElementById('voices-table-body');
         tbody.innerHTML = '';
 
-        voices.forEach(([key, voice]) => {
+        // Ordenar voces por el campo 'order'
+        const sortedVoices = voices.sort((a, b) => {
+            const orderA = a[1].order || 999;
+            const orderB = b[1].order || 999;
+            return orderA - orderB;
+        });
+
+        sortedVoices.forEach(([key, voice]) => {
             const row = document.createElement('tr');
             row.style.borderBottom = '1px solid #f0f0f0';
             
@@ -71,6 +78,20 @@ class VoiceAdminManager {
                             style="padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;
                                    background: ${voice.active ? '#4caf50' : '#f44336'}; color: white;">
                         ${voice.active ? 'Activa' : 'Inactiva'}
+                    </button>
+                </td>
+                <td style="text-align: center; padding: 0.75rem;">
+                    <button onclick="reorderVoice('${key}', 'up')" 
+                            style="padding: 4px 8px; border: 1px solid #ddd; 
+                                   background: white; border-radius: 4px; cursor: pointer; margin-right: 4px;"
+                            title="Subir">
+                        ⬆️
+                    </button>
+                    <button onclick="reorderVoice('${key}', 'down')" 
+                            style="padding: 4px 8px; border: 1px solid #ddd; 
+                                   background: white; border-radius: 4px; cursor: pointer;"
+                            title="Bajar">
+                        ⬇️
                     </button>
                 </td>
                 <td style="text-align: center; padding: 0.75rem;">
@@ -196,6 +217,30 @@ class VoiceAdminManager {
         }
     }
 
+    async reorderVoice(voiceKey, direction) {
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'reorder',
+                    voice_key: voiceKey,
+                    direction: direction
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                await this.loadVoices();
+            } else {
+                this.showNotification(data.error || 'No se puede mover en esa dirección', 'warning');
+            }
+        } catch (error) {
+            console.error('Error reordering voice:', error);
+            this.showNotification('Error reordenando voz', 'error');
+        }
+    }
+
     showNotification(message, type = 'info') {
         // Crear notificación temporal
         const notification = document.createElement('div');
@@ -252,6 +297,10 @@ function deleteVoice(key) {
 
 function setDefaultVoice(key) {
     voiceAdmin.setDefaultVoice(key);
+}
+
+function reorderVoice(key, direction) {
+    voiceAdmin.reorderVoice(key, direction);
 }
 
 // Inicializar cuando se muestre la sección

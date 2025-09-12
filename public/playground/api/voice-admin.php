@@ -87,6 +87,59 @@ switch($action) {
         echo json_encode(['success' => true, 'message' => 'Voice deleted']);
         break;
         
+    case 'reorder':
+        $config = json_decode(file_get_contents($voicesFile), true);
+        $voiceKey = $input['voice_key'];
+        $direction = $input['direction']; // 'up' o 'down'
+        
+        if (!isset($config['voices'][$voiceKey])) {
+            echo json_encode(['success' => false, 'error' => 'Voice not found']);
+            exit;
+        }
+        
+        $currentOrder = $config['voices'][$voiceKey]['order'] ?? 999;
+        
+        // Encontrar la voz con la que intercambiar
+        $swapKey = null;
+        $swapOrder = null;
+        
+        if ($direction === 'up') {
+            // Buscar la voz con order inmediatamente menor
+            $maxLower = 0;
+            foreach ($config['voices'] as $key => $voice) {
+                $order = $voice['order'] ?? 999;
+                if ($order < $currentOrder && $order > $maxLower) {
+                    $maxLower = $order;
+                    $swapKey = $key;
+                    $swapOrder = $order;
+                }
+            }
+        } else if ($direction === 'down') {
+            // Buscar la voz con order inmediatamente mayor
+            $minHigher = 9999;
+            foreach ($config['voices'] as $key => $voice) {
+                $order = $voice['order'] ?? 999;
+                if ($order > $currentOrder && $order < $minHigher) {
+                    $minHigher = $order;
+                    $swapKey = $key;
+                    $swapOrder = $order;
+                }
+            }
+        }
+        
+        // Intercambiar órdenes
+        if ($swapKey !== null) {
+            $config['voices'][$voiceKey]['order'] = $swapOrder;
+            $config['voices'][$swapKey]['order'] = $currentOrder;
+            $config['settings']['last_updated'] = date('c');
+            
+            file_put_contents($voicesFile, json_encode($config, JSON_PRETTY_PRINT));
+            echo json_encode(['success' => true, 'message' => 'Order updated']);
+        } else {
+            echo json_encode(['success' => false, 'error' => 'Cannot move in that direction']);
+        }
+        break;
+        
     case 'set_default':
         $config = json_decode(file_get_contents($voicesFile), true);
         $voiceKey = $input['voice_key'];
