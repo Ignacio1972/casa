@@ -163,6 +163,29 @@ switch($action) {
         echo json_encode(['success' => true, 'message' => 'Default voice updated']);
         break;
         
+    case 'update_label':
+        $config = json_decode(file_get_contents($voicesFile), true);
+        $voiceKey = $input['voice_key'];
+        $newLabel = $input['new_label'] ?? '';
+        
+        if (!isset($config['voices'][$voiceKey])) {
+            echo json_encode(['success' => false, 'error' => 'Voice not found']);
+            exit;
+        }
+        
+        if (empty($newLabel)) {
+            echo json_encode(['success' => false, 'error' => 'Label cannot be empty']);
+            exit;
+        }
+        
+        // Actualizar el label
+        $config['voices'][$voiceKey]['label'] = $newLabel;
+        $config['settings']['last_updated'] = date('c');
+        
+        file_put_contents($voicesFile, json_encode($config, JSON_PRETTY_PRINT));
+        echo json_encode(['success' => true, 'message' => 'Voice label updated successfully']);
+        break;
+        
     default:
         echo json_encode(['error' => 'Invalid action: ' . $action]);
 }

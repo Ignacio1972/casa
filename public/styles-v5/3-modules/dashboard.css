@@ -129,14 +129,16 @@
   color: var(--text-primary);
 }
 
-.voice-selector .form-label {
+.voice-selector .form-label,
+.music-selector-inline .form-label {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
   margin-bottom: var(--spacing-xs);
 }
 
-.voice-selector .form-select {
+.voice-selector .form-select,
+.music-selector-inline .form-select {
   height: 44px;
   padding: 0 var(--spacing-md);
   font-size: 1rem;
@@ -506,4 +508,31 @@
 
 .card-body {
   color: var(--text-primary);
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

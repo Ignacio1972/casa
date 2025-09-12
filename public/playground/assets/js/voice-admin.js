@@ -58,8 +58,18 @@ class VoiceAdminManager {
             
             row.innerHTML = `
                 <td style="padding: 0.75rem;">
-                    <strong>${voice.label}</strong>
-                    <br><small style="color: #666;">${key}</small>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div>
+                            <strong id="label-${key}">${voice.label}</strong>
+                            <br><small style="color: #666;">${key}</small>
+                        </div>
+                        <button onclick="editVoiceName('${key}')" 
+                                style="padding: 2px 6px; border: 1px solid #ddd; 
+                                       background: white; border-radius: 3px; cursor: pointer;
+                                       font-size: 0.8em;" title="Editar nombre">
+                            ✏️
+                        </button>
+                    </div>
                 </td>
                 <td style="padding: 0.75rem;">
                     <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-size: 0.85em;">
@@ -241,6 +251,36 @@ class VoiceAdminManager {
         }
     }
 
+    async editVoiceName(voiceKey) {
+        const currentLabel = this.voicesConfig.voices[voiceKey].label;
+        const newLabel = prompt('Editar nombre de la voz:', currentLabel);
+        
+        if (newLabel && newLabel !== currentLabel) {
+            try {
+                const response = await fetch(this.apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_label',
+                        voice_key: voiceKey,
+                        new_label: newLabel.trim()
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    this.showNotification('Nombre de voz actualizado', 'success');
+                    await this.loadVoices();
+                } else {
+                    this.showNotification(data.error || 'Error actualizando nombre', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating voice name:', error);
+                this.showNotification('Error actualizando nombre de voz', 'error');
+            }
+        }
+    }
+
     showNotification(message, type = 'info') {
         // Crear notificación temporal
         const notification = document.createElement('div');
@@ -301,6 +341,10 @@ function setDefaultVoice(key) {
 
 function reorderVoice(key, direction) {
     voiceAdmin.reorderVoice(key, direction);
+}
+
+function editVoiceName(key) {
+    voiceAdmin.editVoiceName(key);
 }
 
 // Inicializar cuando se muestre la sección

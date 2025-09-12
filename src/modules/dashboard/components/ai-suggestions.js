@@ -99,8 +99,8 @@ export class AISuggestionsComponent {
                             <div class="ai-field">
                                 <label for="aiDuration">Duración (seg)</label>
                                 <select id="aiDuration" class="ai-select">
-                                    <option value="5">5 segundos</option>
-                                    <option value="10" selected>10 segundos</option>
+                                    <option value="5" selected>5 segundos</option>
+                                    <option value="10">10 segundos</option>
                                     <option value="15">15 segundos</option>
                                     <option value="20">20 segundos</option>
                                     <option value="25">25 segundos</option>
@@ -354,6 +354,9 @@ export class AISuggestionsComponent {
         if (panel) {
             panel.outerHTML = this.renderSuggestionsPanel();
             this.attachEditListeners();
+            
+            // Hacer scroll automático hacia las sugerencias generadas
+            this.scrollToSuggestions();
         }
     }
     
@@ -387,11 +390,40 @@ export class AISuggestionsComponent {
                 card.classList.toggle('selected', card.dataset.suggestionId === id);
             });
             
-            // Opcionalmente cerrar el panel
-            setTimeout(() => this.hide(), 500);
+            // Hacer scroll suave hacia el generador de mensajes
+            const messageForm = document.querySelector('.create-message');
+            if (messageForm) {
+                const formTop = messageForm.getBoundingClientRect().top;
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const targetPosition = scrollTop + formTop - 100; // 100px de offset desde el top
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                // Después del scroll, enfocar el textarea y resaltarlo
+                setTimeout(() => {
+                    // Agregar efecto visual al textarea
+                    const textarea = this.dashboard.elements.messageText;
+                    if (textarea) {
+                        textarea.style.transition = 'box-shadow 0.3s ease';
+                        textarea.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.4)';
+                        textarea.focus();
+                        
+                        // Quitar el resaltado después de 2 segundos
+                        setTimeout(() => {
+                            textarea.style.boxShadow = '';
+                        }, 2000);
+                    }
+                    
+                    // Enfocar el botón de generar audio
+                    this.dashboard.elements.generateBtn.focus();
+                }, 800); // Esperar a que termine el scroll
+            }
             
-            // Enfocar el botón de generar audio
-            this.dashboard.elements.generateBtn.focus();
+            // Opcionalmente cerrar el panel (después del scroll)
+            setTimeout(() => this.hide(), 1500);
         }
     }
     
@@ -511,6 +543,37 @@ export class AISuggestionsComponent {
             }
         } else {
             console.warn('[AI Suggestions] No se encontró el placeholder para montar el componente');
+        }
+    }
+    
+    /**
+     * Hacer scroll automático hacia las sugerencias generadas
+     */
+    scrollToSuggestions() {
+        // Buscar el panel de sugerencias completo en lugar del header
+        const suggestionsPanel = document.getElementById('aiSuggestionsPanel');
+        
+        if (suggestionsPanel && suggestionsPanel.querySelector('.ai-suggestions-list')) {
+            // Calcular la posición con un offset para no ir tan abajo
+            const panelTop = suggestionsPanel.getBoundingClientRect().top;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetPosition = scrollTop + panelTop - 100; // 100px de offset desde el top
+            
+            // Hacer scroll suave a la posición calculada
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+            
+            // Agregar animación visual a las nuevas sugerencias
+            const suggestionCards = document.querySelectorAll('.ai-suggestion-card');
+            suggestionCards.forEach((card, index) => {
+                card.style.animation = `fadeInUp 0.3s ease forwards ${index * 0.1}s`;
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                }, 300 + (index * 100));
+            });
         }
     }
 }
