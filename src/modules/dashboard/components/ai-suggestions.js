@@ -49,7 +49,13 @@ export class AISuggestionsComponent {
      */
     render() {
         return `
-            <div id="aiSuggestionsContainer" class="ai-suggestions-container visible">
+            <div id="aiSuggestionsContainer" class="card ai-suggestions-container visible">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span class="card-icon">🤖</span>
+                        ¿Qué necesitas anunciar?
+                    </h2>
+                </div>
                 <!-- Panel de configuración siempre visible -->
                 <div id="aiPanel" class="ai-panel" style="display: block;">
                     ${this.renderConfigPanel()}
@@ -65,14 +71,9 @@ export class AISuggestionsComponent {
     renderConfigPanel() {
         return `
             <div class="ai-config-panel">
-                <div class="ai-config-header">
-                    <h3>🤖 Asistente de IA para Anuncios</h3>
-                </div>
-                
                 <div class="ai-config-body">
                     <!-- Contexto principal -->
                     <div class="ai-field">
-                        <label for="aiContext">¿Qué necesitas anunciar?</label>
                         <textarea 
                             id="aiContext" 
                             class="ai-context-input"

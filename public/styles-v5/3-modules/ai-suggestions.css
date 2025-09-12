@@ -9,6 +9,11 @@
     margin-top: 0; /* Cambiado de 1rem a 0 para alinear con grid */
 }
 
+/* Título del módulo AI - tamaño aumentado para mejor percepción visual */
+.ai-suggestions-container .card-header .card-title {
+    font-size: 1.45rem; /* Más grande que el estándar 1.25rem para mejor visibilidad */
+}
+
 /* Botón principal de IA */
 .btn-ai-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
