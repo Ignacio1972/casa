@@ -495,23 +495,21 @@ export class AISuggestionsComponent {
      * Montar el componente en el dashboard
      */
     mount(containerId) {
-        this.container = document.getElementById(containerId);
-        if (this.container) {
-            // Insertar después del formulario principal
-            const messageForm = document.getElementById('messageForm');
-            if (messageForm) {
-                const aiContainer = document.createElement('div');
-                aiContainer.innerHTML = this.render();
-                messageForm.parentNode.insertBefore(aiContainer.firstElementChild, messageForm.nextSibling);
-                
-                // Configurar listeners del slider
-                const tempSlider = document.getElementById('aiTemperature');
-                if (tempSlider) {
-                    tempSlider.addEventListener('input', (e) => {
-                        document.getElementById('aiTempValue').textContent = e.target.value + '%';
-                    });
-                }
+        // Buscar el placeholder específico para el componente AI
+        const placeholder = document.getElementById('ai-suggestions-placeholder');
+        if (placeholder) {
+            // Reemplazar el placeholder con el componente AI
+            placeholder.innerHTML = this.render();
+            
+            // Configurar listeners del slider
+            const tempSlider = document.getElementById('aiTemperature');
+            if (tempSlider) {
+                tempSlider.addEventListener('input', (e) => {
+                    document.getElementById('aiTempValue').textContent = e.target.value + '%';
+                });
             }
+        } else {
+            console.warn('[AI Suggestions] No se encontró el placeholder para montar el componente');
         }
     }
 }
