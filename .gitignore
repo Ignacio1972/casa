@@ -18,6 +18,9 @@ database/*.db-wal
 
 # Archivos de configuración con claves API
 src/api/config.php
+.env
+.env.*
+!.env.example
 
 # Node modules (si se usan en el futuro)
 node_modules/
@@ -34,9 +37,28 @@ Thumbs.db
 *.backup
 *.bak
 *~
+*.backup-*
+backup/
+backups/
+**/backup*/
+**/*.backup*
+src/modules/**/*.backup-*
+src/api/*.backup-*
+public/playground-backup*/
+stable-releases/
 
 # Archivos de sesión PHP
 sess_*
 
 # Archivos subidos
 uploads/
+
+# Archivos grandes y comprimidos
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Archivos de audio temporales (agregados pero no los de producción)
+src/api/temp/jingle_*.mp3
+src/api/temp/tts*.mp3
