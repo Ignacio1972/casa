@@ -1,165 +1,124 @@
-# CLAUDE.md
+# Casa Costanera - Sistema de Radio Automatizada
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Sistema de generación y programación de audio TTS para radio automatizada.
 
-## Development Commands
+## 🚀 Quick Start
 
-### Starting the Server
+### Generar Audio
 ```bash
-# Start Node.js development server (port 4000)
-node server.js
+# Generar con voz y categoría
+curl -X POST "http://localhost:4000/src/api/generate.php" \
+  -d '{"text":"Tu mensaje","voice":"Rachel","category":"promociones"}'
 
-# Alternative: Use nginx (already configured)
-sudo systemctl restart nginx
-sudo systemctl restart php8.1-fpm
+# Crear Jingle con música
+curl -X POST "http://localhost:4000/src/api/jingle-service.php" \
+  -d '{"action":"generate","text":"Tu mensaje","voice":"Rachel","music_file":"upbeat.mp3"}'
 ```
 
-### Database Operations
+### Programar Emisión
 ```bash
-# Access SQLite database
-sqlite3 database/casa.db
+curl -X POST "http://localhost:4000/src/api/audio-scheduler.php" \
+  -d '{"audio_file":"audio.mp3","schedule_type":"interval","interval":240}'
+```
 
-# Common queries
+## 📁 Estructura Principal
+
+```
+/var/www/casa/
+├── src/
+│   ├── api/              # APIs PHP
+│   │   ├── generate.php          # Generación TTS
+│   │   ├── jingle-service.php    # Jingles con música
+│   │   ├── claude-service.php    # IA para sugerencias
+│   │   └── audio-scheduler.php   # Programación
+│   ├── modules/
+│   │   └── dashboard/     # Interfaz principal
+│   └── core/             # Servicios JS
+├── database/
+│   └── casa.db           # SQLite database
+└── docs/                 # 📚 DOCUMENTACIÓN COMPLETA DISPONIBLE AQUÍ
+```
+
+## 🔧 Servicios Principales
+
+### TTS Generation
+- **Archivo**: `/src/api/generate.php`
+- **Voces disponibles**: Rachel, Domi, Bella, Antoni, Josh
+- **Categorías**: promociones, informativos, eventos, emergencias
+
+### Jingle Service  
+- **Archivo**: `/src/api/jingle-service.php`
+- **Música**: En `/public/audio/music/`
+- **Configuración remota**: `/src/api/data/jingle-config.json`
+
+### Claude AI Service
+- **Archivo**: `/src/api/claude-service.php`
+- **Modelo**: Configurado en servidor (claude-3-haiku)
+- **Multi-cliente**: `/src/api/data/clients-config.json`
+
+### Dashboard
+- **Ubicación**: `/src/modules/dashboard/`
+- **Componentes**: AI suggestions, jingle controls, voice controls
+
+## 🛠️ Comandos Útiles
+
+### Base de Datos
+```bash
+# Ver mensajes recientes
 sqlite3 database/casa.db "SELECT * FROM audio_metadata ORDER BY created_at DESC LIMIT 10;"
+
+# Ver programaciones activas
 sqlite3 database/casa.db "SELECT * FROM audio_schedule WHERE active = 1;"
 ```
 
-### Permissions Setup
+### Servidor
 ```bash
-# Required for audio file generation
+# Iniciar servidor Node.js
+node server.js
+
+# Ver logs
+tail -f src/api/logs/tts-$(date +%Y-%m-%d).log
+```
+
+## 📚 Documentación Adicional
+
+Para información detallada sobre cualquier componente, consulta la carpeta `/docs/`:
+
+- **Workflows**: `/docs/workflows/` - Flujos completos de trabajo
+- **Endpoints**: `/docs/endpoints/` - Documentación de APIs
+- **Components**: `/docs/components/` - Componentes del frontend
+- **Examples**: `/docs/examples/` - Ejemplos de uso
+- **Schemas**: `/docs/schemas/` - Estructura de base de datos
+
+## ⚙️ Configuración
+
+### Variables de Entorno (.env)
+```bash
+ELEVENLABS_API_KEY=tu_clave
+CLAUDE_API_KEY=tu_clave
+AZURACAST_API_KEY=tu_clave
+```
+
+### Permisos Requeridos
+```bash
 chmod 777 database/
 chmod 666 database/casa.db
 chown -R www-data:www-data src/api/temp/
 ```
 
-## Architecture Overview
+## 🎯 Contexto del Sistema
 
-### Module System
-The application uses a **modular frontend architecture** with dynamic module loading:
+- **Propósito**: Radio automatizada para centro comercial
+- **Stack**: PHP 8.1, SQLite, Node.js, nginx
+- **APIs**: ElevenLabs (TTS), Claude (AI), AzuraCast (Radio)
+- **Frontend**: Módulos JS vanilla con event bus
 
-- **Module Interface**: All modules in `/src/modules/` must implement `load()`, `unload()`, and `getName()` methods
-- **Event Bus**: Central communication via `/src/core/event-bus.js` - modules emit/listen to events like `audio:generated`, `schedule:updated`
-- **Module Loader**: `/src/core/module-loader.js` handles dynamic loading with CSS injection and cleanup
-- **Router**: Hash-based routing (`#dashboard`, `#calendar`, etc.) managed by `/src/core/router.js`
+## 💡 Tips
 
-### API Service Pattern
-PHP backend follows a service-oriented architecture:
+- Los jingles ahora se guardan automáticamente en mensajes recientes
+- El modelo de IA se configura solo desde el servidor
+- Las voces se pueden activar/desactivar desde `/playground/voice-admin.php`
+- La configuración de jingles se ajusta desde `/playground/jingle-config.html`
 
-```
-/src/api/
-├── services/           # Business logic services
-│   ├── tts-service.php        # ElevenLabs TTS integration
-│   └── audio-processor.php    # Audio file processing
-├── generate.php        # Main TTS generation endpoint
-├── audio-scheduler.php # Schedule management
-└── saved-messages.php  # Message CRUD operations
-```
-
-**API Request Flow**:
-1. Frontend module emits event → API client makes request
-2. PHP service processes → Updates SQLite database
-3. Returns JSON response → Frontend updates via event bus
-
-### Database Schema
-SQLite database with multi-tenant support:
-
-**Key Tables**:
-- `audio_metadata`: TTS files with category, voice, metadata
-- `audio_schedule`: Scheduling rules (interval/specific/once types)
-- `categories`: Dynamic category system shared across modules
-- `message_templates`: Reusable announcement templates
-
-**Important Fields**:
-- All tables use `client_id` for multi-tenancy
-- JSON fields for flexible metadata storage
-- Automatic timestamps via triggers
-
-### Voice Configuration System
-Voice settings cascade from multiple sources:
-
-1. **Base Configuration**: `/src/api/data/voices-config.json` - ElevenLabs voice IDs and metadata
-2. **Frontend Selection**: User selects voice in Dashboard module
-3. **Dynamic Settings**: Voice stability/style sliders send `voice_settings` object
-4. **PHP Processing**: `tts-service.php` merges all settings for API call
-
-### Event Communication Pattern
-Modules communicate through namespaced events:
-
-```javascript
-// Module emits
-eventBus.emit('calendar:schedule:created', scheduleData);
-
-// Another module listens
-eventBus.on('calendar:schedule:created', (data) => {
-    // React to schedule creation
-});
-```
-
-**System Events**:
-- `module:loaded` / `module:unloaded`
-- `navigation:change`
-- `audio:generated`
-- `message:saved`
-
-### Critical Files and Their Purposes
-
-**Frontend Core**:
-- `/src/core/api-client.js`: HTTP wrapper with error handling
-- `/src/core/voice-service.js`: Voice data loading and caching
-- `/src/core/storage-manager.js`: LocalStorage abstraction
-
-**Module Components**:
-- `/src/modules/dashboard/index.js`: Main TTS generation interface
-- `/src/modules/dashboard/components/ai-suggestions.js`: Claude AI integration
-- `/src/modules/calendar/services/schedule-service.js`: Schedule management
-
-**API Services**:
-- `/src/api/claude-service.php`: Claude API integration (check API key in .env)
-- `/src/api/jingle-service.php`: Music + TTS jingle generation
-- `/src/api/services/tts-service.php`: ElevenLabs TTS with voice settings
-
-## Environment Configuration
-
-**Required API Keys** (in `.env`):
-```bash
-ELEVENLABS_API_KEY=your_key_here
-CLAUDE_API_KEY=your_key_here  # For AI suggestions
-AZURACAST_API_KEY=your_key_here  # For radio integration
-```
-
-**Server Requirements**:
-- PHP 8.1+ with SQLite3, CURL extensions
-- nginx with PHP-FPM
-- ffmpeg for audio processing
-- Node.js for development server
-
-## Common Development Tasks
-
-### Adding a New Module
-1. Create directory in `/src/modules/your-module/`
-2. Implement module class with required methods
-3. Add CSS in `/public/styles-v5/3-modules/your-module.css`
-4. Register route in frontend router
-
-### Modifying Voice Settings
-1. Update `/src/api/data/voices-config.json` for new voices
-2. Modify `/src/api/services/tts-service.php` for processing logic
-3. Update Dashboard UI in `/src/modules/dashboard/index.js`
-
-### Working with Schedules
-- Schedule types: `interval` (recurring), `specific` (exact times), `once` (single execution)
-- Days stored as numbers: 0=Sunday, 1=Monday, etc.
-- Times in 24-hour format: "14:30"
-
-### Database Migrations
-No formal migration system - modify schema directly:
-```bash
-sqlite3 database/casa.db < your-migration.sql
-```
-
-## Security Considerations
-
-- **NEVER** commit API keys - use environment variables
-- PHP services validate all inputs before database operations
-- File uploads restricted to audio formats
-- CORS configured for local development only
+---
+*Para documentación técnica detallada, consulta `/docs/`*
