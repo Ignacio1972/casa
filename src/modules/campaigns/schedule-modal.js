@@ -265,26 +265,29 @@ export class ScheduleModal {
      * Crear botones de días de la semana estilo elegante
      */
     createWeekdayButtons(prefix) {
+        // IMPORTANTE: Mostramos Lunes primero en la UI, pero mantenemos los valores correctos
+        // donde 0=Domingo, 1=Lunes, etc. según el estándar JavaScript
         const days = [
-            { value: 'monday', label: 'LU' },
-            { value: 'tuesday', label: 'MA' },
-            { value: 'wednesday', label: 'MI' },
-            { value: 'thursday', label: 'JU' },
-            { value: 'friday', label: 'VI' },
-            { value: 'saturday', label: 'SA' },
-            { value: 'sunday', label: 'DO' }
+            { value: 1, label: 'LU', name: 'monday' },
+            { value: 2, label: 'MA', name: 'tuesday' },
+            { value: 3, label: 'MI', name: 'wednesday' },
+            { value: 4, label: 'JU', name: 'thursday' },
+            { value: 5, label: 'VI', name: 'friday' },
+            { value: 6, label: 'SA', name: 'saturday' },
+            { value: 0, label: 'DO', name: 'sunday' }
         ];
         
-        // Por defecto, días laborales seleccionados
-        const defaultSelected = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        // Por defecto, días laborales seleccionados (Lunes a Viernes = 1 a 5)
+        const defaultSelected = [1, 2, 3, 4, 5];
         
         return days.map(day => {
             const isSelected = defaultSelected.includes(day.value);
             return `
                 <button class="weekday-btn ${isSelected ? 'selected' : ''}" 
                         data-day="${day.value}"
+                        data-day-name="${day.name}"
                         data-prefix="${prefix}"
-                        onclick="window.scheduleModal.toggleDay('${day.value}', '${prefix}', this)">
+                        onclick="window.scheduleModal.toggleDay(${day.value}, '${prefix}', this)">
                     ${day.label}
                 </button>
             `;
@@ -367,6 +370,7 @@ export class ScheduleModal {
         };
         
         console.log('[ScheduleModal] Guardando con categoría:', data.category);
+        console.log('[ScheduleModal] Datos iniciales:', data);
         
         // Detectar el tipo real basado en qué configuración está visible
         const intervalConfig = document.getElementById('intervalConfig');
@@ -391,12 +395,12 @@ export class ScheduleModal {
             data.interval_hours = Math.floor(totalMinutes / 60);
             data.interval_minutes = totalMinutes % 60;
             
-            // Obtener días seleccionados para intervalo
+            // Obtener días seleccionados para intervalo (como números)
             const days = [];
             document.querySelectorAll('#intervalConfig .weekday-btn.selected').forEach(btn => {
-                days.push(btn.dataset.day);
+                days.push(parseInt(btn.dataset.day));
             });
-            data.schedule_days = days.length > 0 ? days : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            data.schedule_days = days.length > 0 ? days : [1, 2, 3, 4, 5]; // Lunes a Viernes por defecto
             
             // Obtener horas de inicio y fin
             const startTime = document.getElementById('intervalStartTime').value;
@@ -406,10 +410,10 @@ export class ScheduleModal {
             }
             
         } else if (this.scheduleType === 'specific') {
-            // Obtener días seleccionados
+            // Obtener días seleccionados (como números)
             const days = [];
             document.querySelectorAll('#specificConfig .weekday-btn.selected').forEach(btn => {
-                days.push(btn.dataset.day);
+                days.push(parseInt(btn.dataset.day));
             });
             data.schedule_days = days;
             
@@ -433,6 +437,8 @@ export class ScheduleModal {
             data.start_date = date;
             data.schedule_times = [time];
         }
+        
+        console.log('[ScheduleModal] Datos finales a enviar:', data);
         
         try {
             const response = await fetch('/api/audio-scheduler.php', {

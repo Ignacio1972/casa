@@ -310,7 +310,52 @@ export class CalendarView {
                         (event.extendedProps && event.extendedProps.file_path) || 
                         'Sin archivo';
         tooltipContent += '<p><strong>Archivo:</strong> ' + filename + '</p>';
-        tooltipContent += '<p><strong>Hora:</strong> ' + this.formatTime(event.start) + '</p>';
+        
+        // Para eventos recurrentes, usar startTime; para eventos únicos, usar start
+        let displayTime = '';
+        
+        // Debug: mostrar toda la información disponible
+        console.log('[CalendarView] Tooltip time debug:', {
+            eventTitle: event.title,
+            eventStart: event.start,
+            eventStartTime: event.startTime,
+            extendedProps: event.extendedProps,
+            originalTime: event.extendedProps?.originalTime,
+            schedule_times: event.extendedProps?.schedule_times
+        });
+        
+        // Primero verificar si hay originalTime en extendedProps (más directo)
+        if (event.extendedProps && event.extendedProps.originalTime) {
+            displayTime = event.extendedProps.originalTime;
+        } else if (event.extendedProps && event.extendedProps.schedule_times) {
+            const times = event.extendedProps.schedule_times;
+            
+            if (event.extendedProps.scheduleType === 'interval' && Array.isArray(times) && times.length >= 2) {
+                // Para interval, mostrar rango horario
+                displayTime = `${times[0]} - ${times[1]}`;
+            } else if (event.extendedProps.scheduleType === 'specific' && Array.isArray(times)) {
+                // Para specific, mostrar la primera hora (o todas si son pocas)
+                if (times.length === 1) {
+                    displayTime = times[0];
+                } else if (times.length <= 3) {
+                    displayTime = times.join(', ');
+                } else {
+                    displayTime = `${times[0]} (y ${times.length - 1} más)`;
+                }
+            } else if (typeof times === 'string') {
+                displayTime = times;
+            }
+        } else if (event.startTime) {
+            // Evento recurrente - la hora está en startTime (formato string "HH:MM")
+            displayTime = event.startTime;
+        } else if (event.start) {
+            // Evento único - formatear la fecha/hora con timezone correcto
+            displayTime = this.formatTime(event.start);
+        } else {
+            displayTime = 'No especificada';
+        }
+        
+        tooltipContent += '<p><strong>Hora:</strong> ' + displayTime + '</p>';
         
         const eventType = (event.extendedProps && event.extendedProps.scheduleType) || 
                          (event.extendedProps && event.extendedProps.type) || 
@@ -544,15 +589,18 @@ export class CalendarView {
                         // Verificar si el día está programado
                         let isDayScheduled = false;
                         if (Array.isArray(scheduleDays)) {
+                            // Los días pueden venir como números o strings
                             isDayScheduled = scheduleDays.includes(dayName) || 
-                                           scheduleDays.includes(String(dayOfWeek));
+                                           scheduleDays.includes(String(dayOfWeek)) ||
+                                           scheduleDays.includes(dayOfWeek); // IMPORTANTE: comparar también como número
                         } else if (typeof scheduleDays === 'string') {
                             // Si es string, intentar parsearlo como JSON
                             try {
                                 const parsedDays = JSON.parse(scheduleDays);
                                 if (Array.isArray(parsedDays)) {
                                     isDayScheduled = parsedDays.includes(dayName) || 
-                                                   parsedDays.includes(String(dayOfWeek));
+                                                   parsedDays.includes(String(dayOfWeek)) ||
+                                                   parsedDays.includes(dayOfWeek); // IMPORTANTE: comparar también como número
                                 } else {
                                     isDayScheduled = scheduleDays.includes(dayName) || 
                                                    scheduleDays.includes(String(dayOfWeek));
@@ -704,19 +752,81 @@ export class CalendarView {
                     
                     if (intervalMs <= 0) return null;
                     
-                    let nextTime = new Date(now.getTime() + intervalMs);
-                    
-                    if (schedule.start_date) {
-                        const startDate = new Date(schedule.start_date);
-                        if (nextTime < startDate) nextTime = startDate;
+                    // IMPORTANTE: Para intervalos, también verificar los días programados
+                    if (schedule.schedule_days) {
+                        // Obtener los días programados
+                        let scheduledDays = [];
+                        
+                        if (Array.isArray(schedule.schedule_days)) {
+                            scheduledDays = schedule.schedule_days;
+                        } else if (typeof schedule.schedule_days === 'string') {
+                            try {
+                                scheduledDays = JSON.parse(schedule.schedule_days);
+                            } catch(e) {
+                                console.error('[CalendarView] Error parsing schedule_days:', e);
+                                scheduledDays = [];
+                            }
+                        }
+                        
+                        // Buscar el próximo día válido
+                        let checkDate = new Date(now);
+                        let foundValidDay = false;
+                        const maxDaysToCheck = 7; // Máximo una semana
+                        
+                        for (let i = 0; i < maxDaysToCheck; i++) {
+                            const dayOfWeek = checkDate.getDay();
+                            
+                            // Verificar si este día está en los días programados
+                            // Los días pueden estar como números o strings
+                            const isDayScheduled = scheduledDays.includes(dayOfWeek) || 
+                                                  scheduledDays.includes(String(dayOfWeek)) ||
+                                                  scheduledDays.includes(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][dayOfWeek]);
+                            
+                            if (isDayScheduled) {
+                                foundValidDay = true;
+                                break;
+                            }
+                            
+                            // Avanzar al siguiente día
+                            checkDate.setDate(checkDate.getDate() + 1);
+                            checkDate.setHours(0, 0, 0, 0); // Reset hora al inicio del día
+                        }
+                        
+                        if (!foundValidDay) {
+                            console.warn('[CalendarView] No valid day found for interval schedule:', schedule.id);
+                            return null;
+                        }
+                        
+                        // Establecer la hora del próximo intervalo
+                        let nextTime = new Date(checkDate.getTime() + intervalMs);
+                        
+                        if (schedule.start_date) {
+                            const startDate = new Date(schedule.start_date);
+                            if (nextTime < startDate) nextTime = startDate;
+                        }
+                        
+                        if (schedule.end_date) {
+                            const endDate = new Date(schedule.end_date);
+                            if (nextTime > endDate) return null;
+                        }
+                        
+                        return nextTime;
+                    } else {
+                        // Si no hay días específicos, funcionar como antes
+                        let nextTime = new Date(now.getTime() + intervalMs);
+                        
+                        if (schedule.start_date) {
+                            const startDate = new Date(schedule.start_date);
+                            if (nextTime < startDate) nextTime = startDate;
+                        }
+                        
+                        if (schedule.end_date) {
+                            const endDate = new Date(schedule.end_date);
+                            if (nextTime > endDate) return null;
+                        }
+                        
+                        return nextTime;
                     }
-                    
-                    if (schedule.end_date) {
-                        const endDate = new Date(schedule.end_date);
-                        if (nextTime > endDate) return null;
-                    }
-                    
-                    return nextTime;
                     
                 case 'specific':
                     console.log('[TEST] Specific schedule:', {
@@ -870,11 +980,18 @@ export class CalendarView {
     }
     
     formatTime(date) {
+        // Si date es un string de hora simple (ej: "14:00"), devolverlo tal cual
+        if (typeof date === 'string' && /^\d{2}:\d{2}$/.test(date)) {
+            return date;
+        }
+        
+        // Si es un objeto Date o string de fecha, formatearlo con timezone correcto
         const d = new Date(date);
         return d.toLocaleTimeString('es-CL', {
             hour: '2-digit',
             minute: '2-digit',
-            hour12: false
+            hour12: false,
+            timeZone: 'America/Santiago'
         });
     }
     

@@ -329,7 +329,12 @@ export default class CalendarModule {
                     scheduleId: schedule.id,
                     filename: schedule.filename,
                     category: schedule.category || 'sin_categoria',
-                    isActive: schedule.is_active
+                    isActive: schedule.is_active,
+                    scheduleType: schedule.schedule_type,
+                    schedule_times: typeof schedule.schedule_time === 'string' && schedule.schedule_time.startsWith('[') 
+                                   ? JSON.parse(schedule.schedule_time) 
+                                   : schedule.schedule_time,
+                    notes: schedule.notes
                 }
             };
             
@@ -369,15 +374,41 @@ export default class CalendarModule {
                     break;
                     
                 case 'interval':
-                    // Para intervalos, crear un evento simple con fecha de inicio
-                    // FullCalendar no maneja bien intervalos personalizados con rrule
-                    const now = new Date();
-                    baseEvent.start = schedule.start_date || now.toISOString();
-                    baseEvent.title += ` (Cada ${schedule.interval_hours || 0}h ${schedule.interval_minutes || 0}m)`;
-                    baseEvent.backgroundColor = categoryColors.bg;
-                    baseEvent.borderColor = categoryColors.border;
-                    console.log('[Calendar] Created interval event:', baseEvent);
-                    events.push(baseEvent);
+                    // Para intervalos, crear eventos recurrentes en los días especificados
+                    try {
+                        const days = typeof schedule.schedule_days === 'string' ? 
+                                    JSON.parse(schedule.schedule_days) : 
+                                    schedule.schedule_days || [];
+                        
+                        if (days.length > 0) {
+                            // Los días ya vienen como números, no necesitan conversión
+                            baseEvent.daysOfWeek = days;
+                            baseEvent.startRecur = schedule.start_date || new Date().toISOString().split('T')[0];
+                            if (schedule.end_date) {
+                                baseEvent.endRecur = schedule.end_date;
+                            }
+                            baseEvent.title += ` (Cada ${schedule.interval_hours || 0}h ${schedule.interval_minutes || 0}m)`;
+                            baseEvent.backgroundColor = categoryColors.bg;
+                            baseEvent.borderColor = categoryColors.border;
+                            console.log('[Calendar] Created interval event with days:', {
+                                title: baseEvent.title,
+                                days: days,
+                                daysOfWeek: baseEvent.daysOfWeek
+                            });
+                            events.push(baseEvent);
+                        } else {
+                            // Si no hay días específicos, crear evento simple
+                            const now = new Date();
+                            baseEvent.start = schedule.start_date || now.toISOString();
+                            baseEvent.title += ` (Cada ${schedule.interval_hours || 0}h ${schedule.interval_minutes || 0}m)`;
+                            baseEvent.backgroundColor = categoryColors.bg;
+                            baseEvent.borderColor = categoryColors.border;
+                            console.log('[Calendar] Created interval event without specific days:', baseEvent);
+                            events.push(baseEvent);
+                        }
+                    } catch(e) {
+                        console.error('[Calendar] Error processing interval schedule:', e);
+                    }
                     break;
                     
                 case 'specific':
@@ -386,16 +417,66 @@ export default class CalendarModule {
                         const days = typeof schedule.schedule_days === 'string' ? 
                                     JSON.parse(schedule.schedule_days) : 
                                     schedule.schedule_days || [];
-                        const time = schedule.schedule_time || '00:00';
                         
-                        if (days.length > 0) {
-                            // Crear evento recurrente semanal
-                            baseEvent.daysOfWeek = days.map(day => this.getDayNumber(day));
-                            baseEvent.startTime = time;
-                            baseEvent.backgroundColor = categoryColors.bg;
-                            baseEvent.borderColor = categoryColors.border;
-                            console.log('[Calendar] Created specific event:', baseEvent);
-                            events.push(baseEvent);
+                        // schedule_time puede ser un JSON array de horas o un string simple
+                        let times = [];
+                        if (typeof schedule.schedule_time === 'string') {
+                            if (schedule.schedule_time.startsWith('[')) {
+                                // Es un JSON array
+                                times = JSON.parse(schedule.schedule_time);
+                            } else {
+                                // Es una hora simple
+                                times = [schedule.schedule_time];
+                            }
+                        } else if (Array.isArray(schedule.schedule_time)) {
+                            times = schedule.schedule_time;
+                        } else {
+                            times = ['00:00'];
+                        }
+                        
+                        if (days.length > 0 && times.length > 0) {
+                            // Crear un evento para cada hora específica
+                            times.forEach(time => {
+                                const eventForTime = {...baseEvent};
+                                
+                                // Los días ya vienen como números, no necesitan conversión
+                                // Si algún día viene como string, convertirlo
+                                eventForTime.daysOfWeek = days.map(day => {
+                                    if (typeof day === 'number') {
+                                        return day;
+                                    } else if (typeof day === 'string' && !isNaN(day)) {
+                                        return parseInt(day);
+                                    } else {
+                                        return this.getDayNumber(day);
+                                    }
+                                });
+                                
+                                eventForTime.startTime = time;
+                                eventForTime.title = `${baseEvent.title} - ${time}`;
+                                eventForTime.startRecur = schedule.start_date || new Date().toISOString().split('T')[0];
+                                if (schedule.end_date) {
+                                    eventForTime.endRecur = schedule.end_date;
+                                }
+                                eventForTime.backgroundColor = categoryColors.bg;
+                                eventForTime.borderColor = categoryColors.border;
+                                
+                                // Asegurar que schedule_times esté en extendedProps
+                                eventForTime.extendedProps = {
+                                    ...eventForTime.extendedProps,
+                                    schedule_times: times,
+                                    originalTime: time
+                                };
+                                
+                                console.log('[Calendar] Created specific event with times:', {
+                                    title: eventForTime.title,
+                                    originalDays: days,
+                                    daysOfWeek: eventForTime.daysOfWeek,
+                                    startTime: eventForTime.startTime,
+                                    schedule_times: times,
+                                    time: time
+                                });
+                                events.push(eventForTime);
+                            });
                         } else {
                             // Si no hay días, crear evento único
                             baseEvent.start = schedule.start_date || new Date().toISOString();

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Schedule Days</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #00ff00;
+        }
+        button {
+            background: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        .log {
+            background: #000;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #333;
+            white-space: pre-wrap;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test Schedule Days</h1>
+        
+        <div class="test-section">
+            <h2>Test 1: Enviar días como números</h2>
+            <button onclick="testNumericDays()">Probar Lunes (1) y Martes (2)</button>
+            <div id="log1" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 2: Enviar días como strings</h2>
+            <button onclick="testStringDays()">Probar 'monday' y 'tuesday'</button>
+            <div id="log2" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 3: Simular el modal actual</h2>
+            <button onclick="testModalData()">Simular datos del modal</button>
+            <div id="log3" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test 4: Ver logs del servidor</h2>
+            <button onclick="checkLogs()">Ver logs de debug</button>
+            <div id="log4" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(id, message, type = 'info') {
+            const logEl = document.getElementById(id);
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<span class="${type}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        async function testNumericDays() {
+            log('log1', 'Enviando días como números [1, 2]...', 'info');
+            
+            const data = {
+                action: 'create',
+                filename: 'test_numeric_' + Date.now() + '.mp3',
+                title: 'Test Numeric Days',
+                category: 'test',
+                schedule_type: 'interval',
+                schedule_days: [1, 2], // Lunes y Martes como números
+                interval_hours: 1,
+                interval_minutes: 0,
+                start_date: new Date().toISOString().split('T')[0],
+                is_active: true,
+                notes: 'Test con días numéricos'
+            };
+            
+            log('log1', 'Datos a enviar: ' + JSON.stringify(data, null, 2), 'info');
+            
+            try {
+                const response = await fetch('/api/audio-scheduler.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                log('log1', 'Respuesta: ' + JSON.stringify(result, null, 2), result.success ? 'success' : 'error');
+            } catch (error) {
+                log('log1', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testStringDays() {
+            log('log2', 'Enviando días como strings ["monday", "tuesday"]...', 'info');
+            
+            const data = {
+                action: 'create',
+                filename: 'test_string_' + Date.now() + '.mp3',
+                title: 'Test String Days',
+                category: 'test',
+                schedule_type: 'interval',
+                schedule_days: ['monday', 'tuesday'], // Como strings
+                interval_hours: 1,
+                interval_minutes: 0,
+                start_date: new Date().toISOString().split('T')[0],
+                is_active: true,
+                notes: 'Test con días strings'
+            };
+            
+            log('log2', 'Datos a enviar: ' + JSON.stringify(data, null, 2), 'info');
+            
+            try {
+                const response = await fetch('/api/audio-scheduler.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                log('log2', 'Respuesta: ' + JSON.stringify(result, null, 2), result.success ? 'success' : 'error');
+            } catch (error) {
+                log('log2', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testModalData() {
+            log('log3', 'Simulando datos del modal...', 'info');
+            
+            // Simular exactamente lo que envía el modal
+            const selectedDays = [1, 2, 3, 4, 5]; // Lunes a Viernes
+            
+            const data = {
+                action: 'create',
+                filename: 'test_modal_' + Date.now() + '.mp3',
+                title: 'Test Modal Simulation',
+                category: 'ofertas',
+                schedule_type: 'interval',
+                start_date: new Date().toISOString().split('T')[0],
+                end_date: null,
+                notes: 'Simulación del modal',
+                is_active: true,
+                interval_hours: 4,
+                interval_minutes: 0,
+                schedule_days: selectedDays,
+                schedule_times: ['10:00', '20:00']
+            };
+            
+            log('log3', 'Datos a enviar (simulando modal): ' + JSON.stringify(data, null, 2), 'info');
+            
+            try {
+                const response = await fetch('/api/audio-scheduler.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                log('log3', 'Respuesta: ' + JSON.stringify(result, null, 2), result.success ? 'success' : 'error');
+                
+                if (result.success && result.schedule_id) {
+                    // Listar para ver cómo quedó guardado
+                    const listResponse = await fetch('/api/audio-scheduler.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'list' })
+                    });
+                    
+                    const listResult = await listResponse.json();
+                    const savedSchedule = listResult.schedules?.find(s => s.id === result.schedule_id);
+                    
+                    if (savedSchedule) {
+                        log('log3', 'Schedule guardado: ' + JSON.stringify(savedSchedule, null, 2), 'success');
+                        log('log3', 'schedule_days guardado: ' + savedSchedule.schedule_days, 'info');
+                    }
+                }
+            } catch (error) {
+                log('log3', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function checkLogs() {
+            log('log4', 'Verificando logs del servidor...', 'info');
+            
+            try {
+                // Intentar leer el archivo de log
+                const response = await fetch('/api/logs/schedule-debug.log');
+                if (response.ok) {
+                    const text = await response.text();
+                    log('log4', 'Contenido del log:\n' + text, 'success');
+                } else {
+                    log('log4', 'No se pudo acceder al archivo de log', 'error');
+                }
+            } catch (error) {
+                log('log4', 'Error: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

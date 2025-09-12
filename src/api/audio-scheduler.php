@@ -36,7 +36,7 @@ function getDBConnection() {
 
 /**
  * Crear nueva programación
- * @modified Ahora incluye category
+ * @modified Ahora incluye category y conversión de días
  */
 function createSchedule($input) {
     $db = getDBConnection();
@@ -80,9 +80,60 @@ function createSchedule($input) {
         $schedule_time = json_encode($times);
     }
     
-    // Guardar días como JSON
+    // Convertir días de nombres en inglés a números (0=Domingo, 1=Lunes, etc)
     if (is_array($schedule_days)) {
-        $schedule_days = json_encode($schedule_days);
+        $dayMapping = [
+            'sunday' => 0,
+            'monday' => 1,
+            'tuesday' => 2,
+            'wednesday' => 3,
+            'thursday' => 4,
+            'friday' => 5,
+            'saturday' => 6
+        ];
+        
+        $convertedDays = [];
+        foreach ($schedule_days as $day) {
+            $dayLower = strtolower($day);
+            if (isset($dayMapping[$dayLower])) {
+                $convertedDays[] = $dayMapping[$dayLower];
+            } else if (is_numeric($day)) {
+                // Si ya es número, mantenerlo
+                $convertedDays[] = intval($day);
+            }
+        }
+        $schedule_days = json_encode($convertedDays);
+        
+        // Log para debugging - Escribir a archivo específico
+        $logFile = __DIR__ . '/logs/schedule-debug.log';
+        $logMessage = date('Y-m-d H:i:s') . " [AudioScheduler] Días recibidos: " . json_encode($input['schedule_days']) . " => Días convertidos: " . $schedule_days . " | Tipo: " . $schedule_type . PHP_EOL;
+        file_put_contents($logFile, $logMessage, FILE_APPEND);
+        error_log("[AudioScheduler] Días convertidos: " . json_encode($input['schedule_days']) . " => " . $schedule_days);
+    } else if ($schedule_days) {
+        // Si ya viene como JSON string, intentar convertir
+        $decodedDays = json_decode($schedule_days, true);
+        if ($decodedDays) {
+            $dayMapping = [
+                'sunday' => 0,
+                'monday' => 1,
+                'tuesday' => 2,
+                'wednesday' => 3,
+                'thursday' => 4,
+                'friday' => 5,
+                'saturday' => 6
+            ];
+            
+            $convertedDays = [];
+            foreach ($decodedDays as $day) {
+                $dayLower = strtolower($day);
+                if (isset($dayMapping[$dayLower])) {
+                    $convertedDays[] = $dayMapping[$dayLower];
+                } else if (is_numeric($day)) {
+                    $convertedDays[] = intval($day);
+                }
+            }
+            $schedule_days = json_encode($convertedDays);
+        }
     }
     
     // Preparar notes con información adicional
@@ -149,10 +200,40 @@ function getSchedules($input) {
     
     // Decodificar JSON fields y agregar category
     foreach ($schedules as &$schedule) {
-        // Decodificar días
+        // Decodificar días - ya deberían estar como números, pero por compatibilidad
         if ($schedule['schedule_days']) {
             $decoded = json_decode($schedule['schedule_days'], true);
-            $schedule['schedule_days'] = $decoded ?: $schedule['schedule_days'];
+            if (is_array($decoded)) {
+                // Verificar si necesitan conversión (si son strings)
+                $needsConversion = false;
+                foreach ($decoded as $day) {
+                    if (is_string($day) && !is_numeric($day)) {
+                        $needsConversion = true;
+                        break;
+                    }
+                }
+                
+                if ($needsConversion) {
+                    $dayMapping = [
+                        'sunday' => 0, 'monday' => 1, 'tuesday' => 2,
+                        'wednesday' => 3, 'thursday' => 4, 'friday' => 5, 'saturday' => 6
+                    ];
+                    $convertedDays = [];
+                    foreach ($decoded as $day) {
+                        $dayLower = strtolower($day);
+                        if (isset($dayMapping[$dayLower])) {
+                            $convertedDays[] = $dayMapping[$dayLower];
+                        } else if (is_numeric($day)) {
+                            $convertedDays[] = intval($day);
+                        }
+                    }
+                    $schedule['schedule_days'] = $convertedDays;
+                } else {
+                    $schedule['schedule_days'] = $decoded;
+                }
+            } else {
+                $schedule['schedule_days'] = $decoded ?: $schedule['schedule_days'];
+            }
         }
         
         // Decodificar notes
@@ -287,7 +368,8 @@ function deleteSchedule($input) {
 function getSchedulesToExecute() {
     $db = getDBConnection();
     $current_time = date('H:i');
-    $current_day = strtolower(date('l'));
+    $current_day_name = strtolower(date('l')); // e.g., 'monday'
+    $current_day_num = intval(date('w')); // 0=Sunday, 1=Monday, etc.
     $current_date = date('Y-m-d');
     
     $sql = "
@@ -315,14 +397,36 @@ function getSchedulesToExecute() {
             $interval_minutes = intval($notes['interval_minutes'] ?? 0);
             
             if ($interval_hours > 0 || $interval_minutes > 0) {
-                $last_executed = getLastExecution($schedule['id']);
-                if (!$last_executed) {
-                    $should_execute = true;
-                } else {
-                    $last_time = strtotime($last_executed);
-                    $interval_seconds = ($interval_hours * 3600) + ($interval_minutes * 60);
-                    if ((time() - $last_time) >= $interval_seconds) {
+                // Verificar si hoy está en los días programados
+                $schedule_days = json_decode($schedule['schedule_days'], true) ?? [];
+                $day_matches = false;
+                
+                // Los días pueden venir como números o strings
+                foreach ($schedule_days as $day) {
+                    if (is_numeric($day)) {
+                        if (intval($day) === $current_day_num) {
+                            $day_matches = true;
+                            break;
+                        }
+                    } else {
+                        // Por compatibilidad con datos antiguos
+                        if (strtolower($day) === $current_day_name) {
+                            $day_matches = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if ($day_matches) {
+                    $last_executed = getLastExecution($schedule['id']);
+                    if (!$last_executed) {
                         $should_execute = true;
+                    } else {
+                        $last_time = strtotime($last_executed);
+                        $interval_seconds = ($interval_hours * 3600) + ($interval_minutes * 60);
+                        if ((time() - $last_time) >= $interval_seconds) {
+                            $should_execute = true;
+                        }
                     }
                 }
             }
@@ -330,7 +434,25 @@ function getSchedulesToExecute() {
             $schedule_days = json_decode($schedule['schedule_days'], true) ?? [];
             $schedule_times = json_decode($schedule['schedule_time'], true) ?? [];
             
-            if (in_array($current_day, $schedule_days)) {
+            // Verificar si hoy está en los días programados
+            $day_matches = false;
+            
+            foreach ($schedule_days as $day) {
+                if (is_numeric($day)) {
+                    if (intval($day) === $current_day_num) {
+                        $day_matches = true;
+                        break;
+                    }
+                } else {
+                    // Por compatibilidad con datos antiguos
+                    if (strtolower($day) === $current_day_name) {
+                        $day_matches = true;
+                        break;
+                    }
+                }
+            }
+            
+            if ($day_matches) {
                 foreach ($schedule_times as $time) {
                     if ($time === $current_time) {
                         $should_execute = true;
