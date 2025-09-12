@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de Clientes - Claude AI</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .model-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .model-card {
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .model-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .model-card.selected {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .model-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .model-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .model-cost {
+            font-size: 0.7rem;
+            color: var(--warning);
+        }
+
+        .suggestions-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .suggestion-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+            min-height: 100px;
+        }
+
+        .suggestion-text {
+            color: var(--text-primary);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .suggestion-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .client-context-selector {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .client-context-selector select {
+            flex: 1;
+        }
+
+        .context-preview {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .model-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Administración de Clientes - Sistema Claude AI</h1>
+        
+        <!-- Botón de debug temporal -->
+        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+            <button id="debugBtn" style="background: #ff6b6b; color: white; padding: 10px; border-radius: 5px; border: none; cursor: pointer;">
+                🐛 Debug Info
+            </button>
+        </div>
+        
+        <div class="grid">
+            <!-- Panel de Configuración -->
+            <div class="card">
+                <h2 class="card-title">
+                    <span>⚙️</span>
+                    Configuración
+                </h2>
+                
+                <!-- Selector de Cliente/Contexto -->
+                <div class="form-group">
+                    <label for="clientSelect">Cliente / Contexto</label>
+                    <div class="client-context-selector">
+                        <select id="clientSelect">
+                            <!-- Se llena dinámicamente -->
+                        </select>
+                        <button type="button" class="btn btn-secondary btn-small" id="editContextBtn">
+                            ✏️ Editar
+                        </button>
+                    </div>
+                    <div id="contextPreview" class="context-preview"></div>
+                    <div style="margin-top: 10px; display: flex; gap: 10px;">
+                        <button class="btn" id="setActiveBtn" style="flex: 1;">
+                            ⭐ Establecer como Cliente Activo
+                        </button>
+                        <button class="btn btn-secondary" id="deleteClientBtn" style="padding: 0.75rem 1rem;">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Selector de Modelo -->
+                <div class="form-group">
+                    <label>Modelo Claude</label>
+                    <div class="model-selector">
+                        <label class="model-card selected">
+                            <input type="radio" name="model" value="claude-3-haiku-20240307" checked>
+                            <div class="model-name">Haiku</div>
+                            <div class="model-desc">Rápido y económico</div>
+                            <div class="model-cost">$0.25/$1.25 por 1M</div>
+                        </label>
+                        
+                        <label class="model-card">
+                            <input type="radio" name="model" value="claude-3-sonnet-20240229">
+                            <div class="model-name">Sonnet</div>
+                            <div class="model-desc">Balance ideal</div>
+                            <div class="model-cost">$3/$15 por 1M</div>
+                        </label>
+                        
+                        <label class="model-card">
+                            <input type="radio" name="model" value="claude-3-opus-20240229">
+                            <div class="model-name">Opus</div>
+                            <div class="model-desc">Máxima calidad</div>
+                            <div class="model-cost">$15/$75 por 1M</div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Parámetros -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="categorySelect">Categoría</label>
+                        <select id="categorySelect">
+                            <option value="ofertas">Ofertas</option>
+                            <option value="eventos">Eventos</option>
+                            <option value="informacion">Información</option>
+                            <option value="servicios">Servicios</option>
+                            <option value="horarios">Horarios</option>
+                            <option value="emergencias">Emergencias</option>
+                            <option value="general">General</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toneSelect">Tono</label>
+                        <select id="toneSelect">
+                            <option value="profesional">Profesional</option>
+                            <option value="entusiasta">Entusiasta</option>
+                            <option value="amigable">Amigable</option>
+                            <option value="urgente">Urgente</option>
+                            <option value="informativo">Informativo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="durationSelect">Duración objetivo</label>
+                        <select id="durationSelect">
+                            <option value="5">5 segundos</option>
+                            <option value="10" selected>10 segundos</option>
+                            <option value="15">15 segundos</option>
+                            <option value="20">20 segundos</option>
+                            <option value="25">25 segundos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="temperatureSlider">Creatividad: <span id="tempValue">80%</span></label>
+                        <input type="range" id="temperatureSlider" min="0" max="100" value="80">
+                    </div>
+                </div>
+                
+                <!-- Input de Contexto -->
+                <div class="form-group">
+                    <label for="contextInput">Contexto del Anuncio</label>
+                    <textarea id="contextInput" 
+                              placeholder="Describe qué necesitas anunciar. Por ejemplo: Promoción 2x1 en restaurantes este fin de semana, válido solo sábado y domingo">Inauguración de nueva tienda de tecnología con descuentos del 30% en todos los productos durante la primera semana</textarea>
+                </div>
+                
+                <!-- Keywords opcionales -->
+                <div class="form-group">
+                    <label for="keywordsInput">Palabras clave (opcional)</label>
+                    <input type="text" id="keywordsInput" 
+                           placeholder="Separadas por comas: descuento, oferta, limitado">
+                </div>
+                
+                <!-- Botón Generar -->
+                <button id="generateBtn" class="btn" style="width: 100%;">
+                    ✨ Generar 3 Sugerencias
+                </button>
+            </div>
+            
+            <!-- Panel de Resultados -->
+            <div class="card">
+                <h2 class="card-title">
+                    <span>💬</span>
+                    Sugerencias Generadas
+                </h2>
+                
+                <div id="suggestionsContainer" class="suggestions-container">
+                    <!-- Estado vacío inicial -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💡</div>
+                        <p>Las sugerencias aparecerán aquí</p>
+                        <small>Configura los parámetros y presiona "Generar"</small>
+                    </div>
+                </div>
+                
+                <!-- Loading -->
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem;">Generando sugerencias con Claude...</p>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div id="stats" class="stats" style="display: none;">
+                    <div class="stat">
+                        <span class="stat-label">Modelo</span>
+                        <span class="stat-value" id="statModel">-</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Tokens</span>
+                        <span class="stat-value" id="statTokens">-</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Costo estimado</span>
+                        <span class="stat-value" id="statCost">-</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Tiempo</span>
+                        <span class="stat-value" id="statTime">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal para editar contexto (oculto por defecto) -->
+        <div id="contextModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000;">
+            <div style="background: var(--bg-card); max-width: 600px; margin: 5% auto; padding: 2rem; border-radius: 12px;">
+                <h3 id="modalTitle" style="margin-bottom: 1rem;">Editar Contexto del Cliente</h3>
+                
+                <div id="clientNameGroup" style="display: none; margin-bottom: 1rem;">
+                    <label for="clientName" style="display: block; margin-bottom: 0.5rem;">Nombre del Cliente</label>
+                    <input type="text" id="clientName" style="width: 100%;" placeholder="Ej: Mall Plaza Vespucio">
+                </div>
+                
+                <label for="customContext" style="display: block; margin-bottom: 0.5rem;">Contexto de IA</label>
+                <textarea id="customContext" style="width: 100%; min-height: 200px; margin-bottom: 1rem;" 
+                          placeholder="Eres un experto en crear anuncios para [tu negocio]. [Descripción del negocio y características especiales]..."></textarea>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="cancelModalBtn">Cancelar</button>
+                    <button class="btn" id="saveModalBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Estado global
+        let currentSuggestions = [];
+        let generationStartTime = null;
+        let clientsData = {};
+        let activeClientId = null;
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            loadClients();
+            setupModelCards();
+            setupEventListeners();
+        });
+        
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Botón editar contexto
+            const editBtn = document.getElementById('editContextBtn');
+            if (editBtn) {
+                editBtn.addEventListener('click', editContext);
+            }
+            
+            // Botón establecer activo
+            const setActiveBtn = document.getElementById('setActiveBtn');
+            if (setActiveBtn) {
+                setActiveBtn.addEventListener('click', setActiveClient);
+            }
+            
+            // Botón eliminar cliente
+            const deleteBtn = document.getElementById('deleteClientBtn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', deleteCurrentClient);
+            }
+            
+            // Botón generar
+            const generateBtn = document.getElementById('generateBtn');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', generateAnnouncements);
+            }
+            
+            // Selector de cliente
+            const clientSelect = document.getElementById('clientSelect');
+            if (clientSelect) {
+                clientSelect.addEventListener('change', updateClientContext);
+            }
+            
+            // Modal buttons
+            const cancelBtn = document.getElementById('cancelModalBtn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', closeContextModal);
+            }
+            
+            const saveBtn = document.getElementById('saveModalBtn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', saveCustomContext);
+            }
+            
+            // Debug button
+            const debugBtn = document.getElementById('debugBtn');
+            if (debugBtn) {
+                debugBtn.addEventListener('click', debugInfo);
+            }
+            
+            // Temperature slider
+            const tempSlider = document.getElementById('temperatureSlider');
+            if (tempSlider) {
+                tempSlider.addEventListener('input', function() {
+                    document.getElementById('tempValue').textContent = this.value + '%';
+                });
+            }
+            
+            console.log('[setupEventListeners] Event listeners configurados');
+        }
+        
+        // Cargar clientes desde el servidor
+        async function loadClients() {
+            try {
+                console.log('[loadClients] Cargando clientes...');
+                const response = await fetch('/api/clients-service.php?action=list');
+                const data = await response.json();
+                
+                if (data.success) {
+                    clientsData = data.clients;
+                    activeClientId = data.active_client;
+                    console.log('[loadClients] Clientes cargados:', Object.keys(clientsData));
+                    console.log('[loadClients] Cliente activo:', activeClientId);
+                    updateClientSelector();
+                    updateClientContext();
+                    updateActiveClientIndicator();
+                } else {
+                    console.error('[loadClients] Error en respuesta:', data);
+                }
+            } catch (error) {
+                console.error('[loadClients] Error cargando clientes:', error);
+                alert('Error al cargar los clientes. Por favor recarga la página.');
+            }
+        }
+        
+        // Actualizar selector de clientes
+        function updateClientSelector() {
+            const select = document.getElementById('clientSelect');
+            select.innerHTML = '';
+            
+            for (const [id, client] of Object.entries(clientsData)) {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = client.name;
+                if (id === activeClientId) {
+                    option.selected = true;
+                    option.textContent += ' ⭐ (ACTIVO EN DASHBOARD)';
+                }
+                select.appendChild(option);
+            }
+            
+            // Agregar opción para nuevo cliente
+            const newOption = document.createElement('option');
+            newOption.value = 'NEW';
+            newOption.textContent = '➕ Agregar nuevo cliente...';
+            select.appendChild(newOption);
+        }
+        
+        // Configurar cards de modelo
+        function setupModelCards() {
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    this.querySelector('input[type="radio"]').checked = true;
+                });
+            });
+        }
+        
+        // Actualizar contexto del cliente
+        function updateClientContext() {
+            const select = document.getElementById('clientSelect');
+            const preview = document.getElementById('contextPreview');
+            
+            if (select.value === 'NEW') {
+                preview.innerHTML = '<em>Selecciona esta opción para agregar un nuevo cliente</em>';
+                return;
+            }
+            
+            const client = clientsData[select.value];
+            if (client) {
+                preview.textContent = client.context;
+                
+                // Mostrar indicador si es el cliente activo
+                if (select.value === activeClientId) {
+                    preview.innerHTML = `
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 8px; border-radius: 4px; margin-bottom: 8px;">
+                            ⭐ <strong>CLIENTE ACTIVO EN EL DASHBOARD</strong>
+                        </div>
+                        ${client.context}
+                    `;
+                }
+            }
+        }
+        
+        // Actualizar indicador de cliente activo
+        function updateActiveClientIndicator() {
+            const container = document.querySelector('.card-title');
+            const existing = document.getElementById('activeClientIndicator');
+            if (existing) existing.remove();
+            
+            const indicator = document.createElement('div');
+            indicator.id = 'activeClientIndicator';
+            indicator.style.cssText = 'background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; margin-top: 10px;';
+            
+            const activeClient = clientsData[activeClientId];
+            indicator.innerHTML = `🏢 Cliente activo del sistema: <strong>${activeClient?.name || 'No configurado'}</strong>`;
+            
+            container.parentNode.insertBefore(indicator, container.nextSibling);
+        }
+        
+        // Establecer cliente activo
+        async function setActiveClient() {
+            const select = document.getElementById('clientSelect');
+            const clientId = select.value;
+            
+            if (clientId === 'NEW') {
+                editContext();
+                return;
+            }
+            
+            if (!confirm(`¿Establecer "${clientsData[clientId].name}" como el cliente activo del dashboard?\n\nEsto cambiará el contexto que verán todos los usuarios.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/clients-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'set_active',
+                        client_id: clientId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    activeClientId = clientId;
+                    updateClientSelector();
+                    updateClientContext();
+                    updateActiveClientIndicator();
+                    
+                    // Mostrar notificación
+                    showNotification('✅ Cliente activo actualizado correctamente');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al establecer cliente activo');
+            }
+        }
+        
+        // Debug Info
+        function debugInfo() {
+            console.log('=== DEBUG INFO ===');
+            console.log('clientsData:', clientsData);
+            console.log('activeClientId:', activeClientId);
+            console.log('Modal exists:', !!document.getElementById('contextModal'));
+            console.log('Textarea exists:', !!document.getElementById('customContext'));
+            console.log('Select value:', document.getElementById('clientSelect')?.value);
+            
+            alert(`Debug Info:
+- Clientes cargados: ${Object.keys(clientsData).length}
+- Cliente activo: ${activeClientId}
+- Modal existe: ${!!document.getElementById('contextModal')}
+- Textarea existe: ${!!document.getElementById('customContext')}
+- Cliente seleccionado: ${document.getElementById('clientSelect')?.value}
+
+Abre la consola del navegador (F12) para ver más detalles.`);
+        }
+        
+        // Mostrar notificación
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; animation: slideIn 0.3s ease;';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // Editar contexto
+        function editContext() {
+            try {
+                console.log('[editContext] Iniciando edición...');
+                
+                const modal = document.getElementById('contextModal');
+                const textarea = document.getElementById('customContext');
+                const select = document.getElementById('clientSelect');
+                const clientId = select.value;
+                
+                console.log('[editContext] Cliente seleccionado:', clientId);
+                console.log('[editContext] Modal encontrado:', !!modal);
+                console.log('[editContext] Textarea encontrado:', !!textarea);
+                
+                if (!modal) {
+                    alert('Error: No se encontró el modal de edición');
+                    return;
+                }
+                
+                if (!textarea) {
+                    alert('Error: No se encontró el campo de texto');
+                    return;
+                }
+                
+                if (clientId === 'NEW') {
+                    // Nuevo cliente
+                    console.log('[editContext] Modo: Nuevo cliente');
+                    document.getElementById('modalTitle').textContent = 'Agregar Nuevo Cliente';
+                    document.getElementById('clientNameGroup').style.display = 'block';
+                    document.getElementById('clientName').value = '';
+                    textarea.value = 'Eres un experto creando anuncios para [nombre del negocio]. [Descripción del negocio]';
+                } else if (clientsData[clientId]) {
+                    // Editar existente
+                    console.log('[editContext] Modo: Editar cliente existente');
+                    document.getElementById('modalTitle').textContent = 'Editar Contexto del Cliente';
+                    document.getElementById('clientNameGroup').style.display = 'none';
+                    const client = clientsData[clientId];
+                    textarea.value = client.context;
+                } else {
+                    alert('Error: Cliente no encontrado');
+                    return;
+                }
+                
+                // Mostrar modal
+                modal.style.display = 'block';
+                console.log('[editContext] Modal mostrado');
+                
+            } catch (error) {
+                console.error('[editContext] Error:', error);
+                alert('Error al abrir el editor: ' + error.message);
+            }
+        }
+        
+        // Cerrar modal de contexto
+        function closeContextModal() {
+            document.getElementById('contextModal').style.display = 'none';
+        }
+        
+        // Guardar contexto personalizado
+        async function saveCustomContext() {
+            const textarea = document.getElementById('customContext');
+            const select = document.getElementById('clientSelect');
+            const clientId = select.value;
+            
+            try {
+                let clientData;
+                
+                if (clientId === 'NEW') {
+                    // Crear nuevo cliente
+                    const name = document.getElementById('clientName').value.trim();
+                    if (!name) {
+                        alert('Por favor ingresa un nombre para el cliente');
+                        return;
+                    }
+                    
+                    clientData = {
+                        name: name,
+                        context: textarea.value,
+                        category: 'custom',
+                        active: true
+                    };
+                } else {
+                    // Actualizar existente
+                    clientData = {
+                        ...clientsData[clientId],
+                        context: textarea.value
+                    };
+                }
+                
+                const response = await fetch('/api/clients-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'save',
+                        client: clientData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await loadClients();
+                    closeContextModal();
+                    showNotification('✅ Cliente guardado correctamente');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al guardar el cliente');
+            }
+        }
+        
+        // Eliminar cliente actual
+        async function deleteCurrentClient() {
+            const select = document.getElementById('clientSelect');
+            const clientId = select.value;
+            
+            if (clientId === 'NEW') return;
+            
+            const client = clientsData[clientId];
+            
+            if (!confirm(`¿Eliminar el cliente "${client.name}"?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/clients-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        client_id: clientId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await loadClients();
+                    showNotification('✅ Cliente eliminado correctamente');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al eliminar el cliente');
+            }
+        }
+        
+        // Generar anuncios
+        async function generateAnnouncements() {
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('suggestionsContainer');
+            
+            // Validar input
+            const contextInput = document.getElementById('contextInput').value.trim();
+            if (!contextInput) {
+                alert('Por favor describe qué necesitas anunciar');
+                return;
+            }
+            
+            // Obtener configuración
+            const config = {
+                context: contextInput,
+                category: document.getElementById('categorySelect').value,
+                tone: document.getElementById('toneSelect').value,
+                duration: parseInt(document.getElementById('durationSelect').value),
+                temperature: document.getElementById('temperatureSlider').value / 100,
+                keywords: document.getElementById('keywordsInput').value.split(',').map(k => k.trim()).filter(k => k),
+                model: document.querySelector('input[name="model"]:checked').value,
+                client_context: clientsData[document.getElementById('clientSelect').value]?.context
+            };
+            
+            // UI: Mostrar loading
+            btn.disabled = true;
+            loading.classList.add('active');
+            container.innerHTML = '';
+            document.getElementById('stats').style.display = 'none';
+            
+            generationStartTime = Date.now();
+            
+            try {
+                const response = await fetch('/api/claude-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        ...config
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.suggestions) {
+                    displaySuggestions(data.suggestions);
+                    updateStats(data);
+                } else {
+                    throw new Error(data.error || 'Error al generar sugerencias');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>Error al generar sugerencias</p>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('active');
+            }
+        }
+        
+        // Mostrar sugerencias
+        function displaySuggestions(suggestions) {
+            const container = document.getElementById('suggestionsContainer');
+            currentSuggestions = suggestions;
+            
+            container.innerHTML = suggestions.map((sug, index) => `
+                <div class="suggestion-card">
+                    <div class="suggestion-text">${sug.text}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <small style="color: var(--text-secondary);">
+                            📝 ${sug.word_count} palabras | 📏 ${sug.char_count} caracteres
+                        </small>
+                        <div class="suggestion-actions">
+                            <button class="btn btn-secondary btn-small" onclick="copySuggestion(${index})">
+                                📋 Copiar
+                            </button>
+                            <button class="btn btn-small" onclick="useSuggestion(${index})">
+                                🎙️ Usar para TTS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Actualizar estadísticas
+        function updateStats(data) {
+            const elapsedTime = ((Date.now() - generationStartTime) / 1000).toFixed(2);
+            
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('statModel').textContent = data.model?.split('-').slice(-2, -1)[0] || 'Haiku';
+            document.getElementById('statTokens').textContent = data.tokens_used || 'N/A';
+            
+            // Calcular costo estimado
+            const tokens = data.tokens_used || 500;
+            const costs = {
+                'claude-3-haiku-20240307': 0.00025 + 0.00125,
+                'claude-3-5-sonnet-20241022': 0.003 + 0.015,
+                'claude-3-opus-20240229': 0.015 + 0.075
+            };
+            const modelCost = costs[data.model] || costs['claude-3-haiku-20240307'];
+            const estimatedCost = (tokens * modelCost / 1000).toFixed(4);
+            
+            document.getElementById('statCost').textContent = `$${estimatedCost}`;
+            document.getElementById('statTime').textContent = `${elapsedTime}s`;
+        }
+        
+        // Copiar sugerencia
+        function copySuggestion(index) {
+            const text = currentSuggestions[index].text;
+            navigator.clipboard.writeText(text).then(() => {
+                // Feedback visual
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copiado';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1500);
+            });
+        }
+        
+        // Usar sugerencia para TTS
+        function useSuggestion(index) {
+            const text = currentSuggestions[index].text;
+            
+            // Si estamos en el dashboard, poner el texto directamente
+            if (window.opener || window.parent !== window) {
+                // Intentar comunicarse con la ventana padre
+                window.parent.postMessage({
+                    action: 'use_text',
+                    text: text
+                }, '*');
+            }
+            
+            // Guardar en localStorage para que el dashboard lo pueda leer
+            localStorage.setItem('claude_suggestion', text);
+            
+            // Feedback visual
+            const btn = event.target;
+            btn.textContent = '✅ Enviado';
+            setTimeout(() => {
+                btn.textContent = '🎙️ Usar para TTS';
+            }, 1500);
+            
+            // Opcional: Redirigir al dashboard
+            if (confirm('¿Quieres ir al Dashboard para generar el audio?')) {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

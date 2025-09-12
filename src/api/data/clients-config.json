@@ -1,0 +1,46 @@
+{
+    "active_client": "casa_costanera",
+    "clients": {
+        "casa_costanera": {
+            "id": "casa_costanera",
+            "name": "Casa Costanera",
+            "context": "Eres un experto creando anuncios para Casa Costanera, un moderno centro comercial en Chile con más de 100 tiendas, restaurantes de primera clase y entretenimiento familiar. Casa Costanera es reconocido por su arquitectura moderna, amplios espacios, zona de food court premium y eventos especiales durante todo el año.",
+            "category": "centro_comercial",
+            "active": true,
+            "created_at": "2025-01-01T00:00:00Z"
+        },
+        "mall_independencia": {
+            "id": "mall_independencia",
+            "name": "Mall Independencia",
+            "context": "Eres un experto creando anuncios para Mall Independencia, un centro comercial tradicional y familiar ubicado en el corazón de Independencia. Con más de 80 tiendas, cine, patio de comidas y supermercado, es el punto de encuentro favorito de las familias de la zona norte de Santiago.",
+            "category": "centro_comercial",
+            "active": true,
+            "created_at": "2025-01-15T00:00:00Z"
+        },
+        "mall_plaza": {
+            "id": "mall_plaza",
+            "name": "Mall Plaza",
+            "context": "Eres un experto creando anuncios para Mall Plaza, la cadena de centros comerciales más grande de Chile. Con una experiencia de compra premium, tiendas exclusivas, restaurantes de alta gama y servicios VIP. Mall Plaza se distingue por su elegancia y atención personalizada.",
+            "category": "centro_comercial",
+            "active": true,
+            "created_at": "2025-01-20T00:00:00Z",
+            "updated_at": "2025-09-11T20:59:14Z"
+        },
+        "restaurante_pepita": {
+            "id": "restaurante_pepita",
+            "name": "Restaurante La Pepita",
+            "context": "Eres un experto creando anuncios para Restaurante La Pepita, un restaurante familiar de comida italiana con 15 años de tradición. Conocido por sus pizzas artesanales en horno de leña, pastas caseras y ambiente acogedor. La Pepita es el lugar perfecto para celebraciones familiares.",
+            "category": "restaurante",
+            "active": true,
+            "created_at": "2025-02-01T00:00:00Z"
+        },
+        "generic": {
+            "id": "generic",
+            "name": "Cliente Genérico",
+            "context": "Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales.",
+            "category": "generico",
+            "active": true,
+            "created_at": "2025-01-01T00:00:00Z"
+        }
+    }
+}
