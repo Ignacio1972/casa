@@ -13,6 +13,7 @@ class ClaudeService {
     private $logFile;
     
     public function __construct() {
+        // Cargar desde variables de entorno
         $this->apiKey = getenv('CLAUDE_API_KEY') ?: '';
         $this->model = getenv('CLAUDE_MODEL') ?: 'claude-3-haiku-20240307';
         $this->maxTokens = (int)(getenv('CLAUDE_MAX_TOKENS') ?: 500);

@@ -1,0 +1,371 @@
+<!-- MIGRADO: Los estilos ahora se cargan globalmente desde /styles-v5/main.css -->
+<!-- No es necesario importar CSS específicos del módulo -->
+
+<!-- Estilos inline para asegurar el orden correcto de columnas -->
+<style>
+    /* Override para columnas invertidas - 30% izq / 70% der */
+    .dashboard-grid {
+        display: grid !important;
+        grid-template-columns: minmax(300px, 30%) 70% !important;
+        grid-template-rows: repeat(3, auto) !important;
+        gap: var(--space-lg, 1.5rem) !important;
+        padding: var(--space-lg, 1.5rem);
+        align-items: start;
+    }
+    
+    /* Columna izquierda: Sugerencias (arriba) y Mensajes (abajo) */
+    .dashboard-grid #recent-suggestions-placeholder,
+    .dashboard-grid .recent-suggestions {
+        grid-column: 1 !important;
+        grid-row: 1 / 2 !important;
+        height: calc(50vh - 60px);
+        min-height: 300px;
+        max-height: 500px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .dashboard-grid .recent-messages {
+        grid-column: 1 !important;
+        grid-row: 2 / 4 !important;
+        height: calc(50vh - 60px);
+        min-height: 300px;
+        max-height: 500px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Optimizar headers de cards para ganar espacio */
+    .dashboard-grid .card-header {
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .dashboard-grid .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    
+    /* Estilos para las sugerencias */
+    .suggestions-list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 0.5rem;
+    }
+    
+    /* Estilos para mensajes recientes */
+    .message-list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 0.5rem;
+    }
+    
+    .suggestion-item {
+        background: var(--bg-tertiary, rgba(255,255,255,0.02));
+        border-radius: var(--radius-md, 8px);
+        padding: var(--space-md, 1rem);
+        margin-bottom: var(--space-sm, 0.5rem);
+        border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .suggestion-item:hover {
+        background: var(--bg-hover, rgba(255,255,255,0.05));
+        border-color: var(--primary-color, #3b82f6);
+    }
+    
+    .suggestion-item.suggestion-used {
+        opacity: 0.6;
+    }
+    
+    .suggestion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .suggestion-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .suggestion-time {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #a6bdc9);
+    }
+    
+    .used-badge {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+        border-radius: 999px;
+        background: var(--success-color, #10b981);
+        color: white;
+    }
+    
+    .suggestion-actions {
+        display: flex;
+        gap: 0.25rem;
+    }
+    
+    .btn-icon-small {
+        background: transparent;
+        border: none;
+        padding: 0.25rem;
+        cursor: pointer;
+        font-size: 1rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    
+    .btn-icon-small:hover {
+        opacity: 1;
+    }
+    
+    .suggestion-text {
+        font-size: 0.875rem;
+        line-height: 1.4;
+        color: var(--text-primary, #ffffff);
+        margin-bottom: 0.5rem;
+    }
+    
+    .suggestion-context {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #a6bdc9);
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    }
+    
+    .suggestion-details {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .detail-badge {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+        border-radius: 999px;
+        background: var(--bg-tertiary, rgba(255,255,255,0.05));
+        color: var(--text-secondary, #a6bdc9);
+    }
+    
+    /* Columna derecha: AI, Generador y Controles */
+    .dashboard-grid #ai-suggestions-placeholder {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        align-self: start;
+    }
+    
+    .dashboard-grid .create-message {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        align-self: start;
+        margin-bottom: var(--space-md, 1rem) !important;
+        max-height: fit-content;
+    }
+    
+    .dashboard-grid .controls-section {
+        grid-column: 2 !important;
+        grid-row: 3 !important;
+        align-self: start;
+        margin-top: 0 !important;
+    }
+    
+    /* Asegurar que no haya overlap */
+    .dashboard-grid > * {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: auto auto auto auto !important;
+        }
+        
+        .dashboard-grid #recent-suggestions-placeholder,
+        .dashboard-grid .recent-suggestions {
+            grid-column: 1 !important;
+            grid-row: 1 !important;
+            height: 400px;
+        }
+        
+        .dashboard-grid .recent-messages {
+            grid-column: 1 !important;
+            grid-row: 2 !important;
+            height: 400px;
+        }
+        
+        .dashboard-grid #ai-suggestions-placeholder {
+            grid-column: 1 !important;
+            grid-row: 3 !important;
+        }
+        
+        .dashboard-grid .create-message {
+            grid-column: 1 !important;
+            grid-row: 4 !important;
+        }
+        
+        .dashboard-grid .controls-section {
+            grid-column: 1 !important;
+            grid-row: 5 !important;
+        }
+    }
+</style>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    
+    <!-- COLUMNA IZQUIERDA: Sugerencias y Mensajes Recientes -->
+    
+    <!-- Sugerencias Recientes (ARRIBA) -->
+    <div id="recent-suggestions-placeholder">
+        <!-- Se llenará dinámicamente con el componente de sugerencias recientes -->
+        <div class="card" style="opacity: 0.5;">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <span class="card-icon">💡</span>
+                    Cargando Sugerencias Recientes...
+                </h2>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mensajes Recientes (ABAJO) -->
+    <div class="card recent-messages">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">📝</span>
+                Mensajes Recientes
+            </h2>
+            <button class="btn-icon" id="refreshMessages">🔄</button>
+        </div>
+        <div class="message-list" id="messageList">
+            <!-- Los mensajes se cargarán dinámicamente aquí -->
+            <div class="loading-messages" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                Cargando mensajes...
+            </div>
+        </div>
+    </div>
+    
+    <!-- COLUMNA DERECHA: AI, Generador y Controles -->
+    
+    <!-- PLACEHOLDER PARA COMPONENTE AI - Se llenará dinámicamente -->
+    <div id="ai-suggestions-placeholder">
+        <!-- Mensaje temporal mientras carga -->
+        <div class="card" style="opacity: 0.5;">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <span class="card-icon">🤖</span>
+                    Cargando Asistente IA...
+                </h2>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Generador de Texto -->
+    <div class="card create-message">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">🎙️</span>
+                Generador de Mensajes
+            </h2>
+            <div class="category-badge-container">
+                <span class="message-badge badge-sin-categoria" id="categoryBadge" data-category="sin_categoria" onclick="window.dashboardRedesign.toggleCategoryDropdown(event)">
+                    Sin Cat.
+                </span>
+                <div class="category-dropdown" id="categoryDropdown">
+                    <div class="category-option" data-category="ofertas" onclick="window.dashboardRedesign.updateCategory('ofertas')">🛒 Ofertas</div>
+                    <div class="category-option" data-category="eventos" onclick="window.dashboardRedesign.updateCategory('eventos')">🎉 Eventos</div>
+                    <div class="category-option" data-category="informacion" onclick="window.dashboardRedesign.updateCategory('informacion')">ℹ️ Información</div>
+                    <div class="category-option" data-category="servicios" onclick="window.dashboardRedesign.updateCategory('servicios')">🛠️ Servicios</div>
+                    <div class="category-option" data-category="horarios" onclick="window.dashboardRedesign.updateCategory('horarios')">🕐 Horarios</div>
+                    <div class="category-option" data-category="emergencias" onclick="window.dashboardRedesign.updateCategory('emergencias')">🚨 Emergencias</div>
+                    <div class="category-option" data-category="sin_categoria" onclick="window.dashboardRedesign.updateCategory('sin_categoria')">📋 Sin Categoría</div>
+                </div>
+            </div>
+        </div>
+        <form class="message-form" id="messageForm">
+            <div class="form-group">
+                <textarea 
+                    id="messageText"
+                    class="form-textarea" 
+                    placeholder="Escriba aquí el mensaje que será convertido a voz..."
+                    rows="6"></textarea>
+            </div>
+            <div class="form-actions-inline">
+                <div class="music-selector-inline">
+                    <select id="musicSelect" class="form-select">
+                        <option value="">-- Sin música --</option>
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                <div class="voice-selector">
+                    <select id="voiceSelect" class="form-select">
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                <button type="button" id="generateBtn" class="btn btn-primary">
+                    <span>🎙️</span>
+                    Generar Audio
+                </button>
+            </div>
+        </form>
+        
+    </div>
+    
+    <!-- Controles de Voz -->
+    <div class="card controls-section" id="controlsSection">
+        <div class="card-header">
+            <h2 class="card-title">
+                <span class="card-icon">🎛️</span>
+                Controles de Voz
+            </h2>
+        </div>
+        
+        <!-- CONTROLES DE VOZ REALES -->
+        <div class="controls-content">
+            <div class="control-item">
+                <label class="control-label">
+                    Estilo
+                    <span class="control-value" id="styleValue">50%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="50" id="styleSlider">
+                    <div class="slider-track" id="styleTrack" style="width: 50%"></div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label class="control-label">
+                    Estabilidad
+                    <span class="control-value" id="stabilityValue">75%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="75" id="stabilitySlider">
+                    <div class="slider-track" id="stabilityTrack" style="width: 75%"></div>
+                </div>
+            </div>
+            
+            <div class="control-item">
+                <label class="control-label">
+                    Similitud
+                    <span class="control-value" id="clarityValue">80%</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" class="slider" min="0" max="100" value="80" id="claritySlider">
+                    <div class="slider-track" id="clarityTrack" style="width: 80%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

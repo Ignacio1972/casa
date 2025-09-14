@@ -1,0 +1,1 @@
+/var/www/casa/src/api/generate.php
