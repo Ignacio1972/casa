@@ -32,26 +32,61 @@ class AutomaticJingleService {
     }
     
     /**
-     * Obtener música por defecto para modo automático
+     * Obtener configuración completa de jingles
      */
-    private function getDefaultMusic() {
+    private function getJingleConfig() {
         $configFile = __DIR__ . '/data/jingle-config.json';
+        
+        // Configuración por defecto
+        $defaultConfig = [
+            'music_file' => 'Uplift.mp3',
+            'music_volume' => 0.3,
+            'voice_volume' => 1.0,
+            'fade_in' => 2,
+            'fade_out' => 2,
+            'music_duck' => true,
+            'duck_level' => 0.2,
+            'intro_silence' => 2,
+            'outro_silence' => 4,
+            'voice_settings' => [
+                'stability' => 0.75,
+                'similarity_boost' => 0.8,
+                'style' => 0.5,
+                'use_speaker_boost' => true
+            ]
+        ];
         
         if (file_exists($configFile)) {
             $config = json_decode(file_get_contents($configFile), true);
-            if (isset($config['automatic_mode']['default_music'])) {
-                return $config['automatic_mode']['default_music'];
+            if (isset($config['jingle_defaults'])) {
+                // Combinar configuración del archivo con valores por defecto
+                $jingleConfig = array_merge($defaultConfig, [
+                    'music_file' => $config['jingle_defaults']['default_music'] ?? $defaultConfig['music_file'],
+                    'music_volume' => $config['jingle_defaults']['music_volume'] ?? $defaultConfig['music_volume'],
+                    'voice_volume' => $config['jingle_defaults']['voice_volume'] ?? $defaultConfig['voice_volume'],
+                    'fade_in' => $config['jingle_defaults']['fade_in'] ?? $defaultConfig['fade_in'],
+                    'fade_out' => $config['jingle_defaults']['fade_out'] ?? $defaultConfig['fade_out'],
+                    'music_duck' => $config['jingle_defaults']['ducking_enabled'] ?? $defaultConfig['music_duck'],
+                    'duck_level' => $config['jingle_defaults']['duck_level'] ?? $defaultConfig['duck_level'],
+                    'intro_silence' => $config['jingle_defaults']['intro_silence'] ?? $defaultConfig['intro_silence'],
+                    'outro_silence' => $config['jingle_defaults']['outro_silence'] ?? $defaultConfig['outro_silence'],
+                    'voice_settings' => $config['jingle_defaults']['voice_settings'] ?? $defaultConfig['voice_settings']
+                ]);
+                
+                $this->log("Configuración cargada desde jingle-config.json");
+                $this->log("intro_silence: " . $jingleConfig['intro_silence'] . "s, outro_silence: " . $jingleConfig['outro_silence'] . "s");
+                return $jingleConfig;
             }
         }
         
-        // Música por defecto si no hay configuración
-        return 'Uplift.mp3';  // Archivo que existe en /public/audio/music/
+        $this->log("Usando configuración por defecto (archivo no encontrado o sin configuración válida)");
+        return $defaultConfig;
     }
     
     /**
      * Proceso completo: Texto → Mejora → Jingle
      */
-    public function processAutomatic($textOrAudio, $voiceId, $isText = false) {
+    public function processAutomatic($textOrAudio, $voiceId, $isText = false, $musicFile = null) {
         try {
             $this->log("=== Iniciando proceso automático ===");
             $this->log("Voz seleccionada: $voiceId");
@@ -112,21 +147,28 @@ class AutomaticJingleService {
             $improvedText = $claudeResult['suggestions'][0]['text'] ?? $originalText;
             $this->log("Texto mejorado: $improvedText");
             
-            // Paso 3: Generar jingle con música por defecto
-            $this->log("Paso 3: Generando jingle...");
+            // Paso 3: Generar jingle con configuración completa
+            $this->log("Paso 3: Generando jingle con configuración del sistema...");
             
-            // Usar función generateJingle directamente
-            $jingleOptions = [
-                'music_file' => $this->getDefaultMusic(),
-                'music_volume' => 0.3,
-                'voice_volume' => 1.0,
-                'voice_settings' => [
-                    'stability' => 0.75,
-                    'similarity_boost' => 0.8,
-                    'style' => 0.5,
-                    'use_speaker_boost' => true
-                ]
-            ];
+            // Obtener configuración completa desde jingle-config.json
+            $jingleOptions = $this->getJingleConfig();
+            
+            // Si se especificó música personalizada, usarla
+            if ($musicFile !== null) {
+                if ($musicFile === '' || $musicFile === 'none') {
+                    // Sin música
+                    $jingleOptions['music_file'] = null;
+                    $this->log("Generando sin música de fondo (selección del usuario)");
+                } else {
+                    // Música personalizada
+                    $jingleOptions['music_file'] = $musicFile;
+                    $this->log("Usando música personalizada: $musicFile");
+                }
+            } else {
+                $this->log("Usando música por defecto: " . $jingleOptions['music_file']);
+            }
+            
+            $this->log("Opciones del jingle: " . json_encode($jingleOptions));
             
             // generateJingle retorna array con audio binario
             $jingleResult = generateJingle($improvedText, $voiceId, $jingleOptions);
@@ -235,14 +277,17 @@ if (basename(__FILE__) == basename($_SERVER['PHP_SELF'])) {
         $voiceId = $input['voice_id'];
         $service = new AutomaticJingleService();
         
+        // Obtener música si se especificó
+        $musicFile = isset($input['music_file']) ? $input['music_file'] : null;
+        
         // Verificar si es texto directo o audio
         if (isset($input['text'])) {
             // Modo texto directo (Web Speech API)
-            $result = $service->processAutomatic($input['text'], $voiceId, true);
+            $result = $service->processAutomatic($input['text'], $voiceId, true, $musicFile);
         } elseif (isset($input['audio'])) {
             // Modo audio (Whisper)
             $audioData = base64_decode($input['audio']);
-            $result = $service->processAutomatic($audioData, $voiceId, false);
+            $result = $service->processAutomatic($audioData, $voiceId, false, $musicFile);
         } else {
             throw new Exception('Debe proporcionar texto o audio');
         }

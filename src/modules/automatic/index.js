@@ -16,14 +16,17 @@ export default class AutomaticModeModule {
             isProcessing: false,
             currentAudio: null,
             selectedVoice: null,
+            selectedMusic: null,  // Música seleccionada
             voices: [],
+            musicList: [],  // Lista de música disponible
             audioBlob: null,
             generatedAudio: null,
             mediaRecorder: null,
             recordingTimer: null,
             recordingSeconds: 0,
             recognition: null,  // Web Speech API
-            transcribedText: '' // Texto transcrito
+            transcribedText: '', // Texto transcrito
+            advancedMode: false  // Modo avanzado activo
         };
         
         // Referencias DOM
@@ -32,6 +35,10 @@ export default class AutomaticModeModule {
         // Audio context para visualización
         this.audioContext = null;
         this.analyser = null;
+        this.playerAnalyser = null;
+        this.playerSource = null;
+        this.animationId = null;
+        this.isVisualizerActive = false;
         
         // Exponer para handlers
         window.automaticMode = this;
@@ -79,6 +86,7 @@ export default class AutomaticModeModule {
             
             // 5. Continuar con la carga normal
             await this.loadVoices();
+            await this.loadMusicList();
             this.setupEventListeners();
             
             console.log('Módulo Automático cargado exitosamente');
@@ -124,9 +132,20 @@ export default class AutomaticModeModule {
             statusMessage: document.getElementById('status-message'),
             audioPlayer: document.getElementById('generated-audio'),
             playerSection: document.getElementById('player-section'),
-            regenerateBtn: document.getElementById('regenerate-btn'),
             sendToRadioBtn: document.getElementById('send-to-radio-btn'),
-            visualizer: document.getElementById('audio-visualizer')
+            visualizer: document.getElementById('audio-visualizer'),
+            playerVisualizer: document.getElementById('player-visualizer'),
+            playPauseBtn: document.getElementById('play-pause-btn'),
+            playIcon: document.querySelector('.play-icon'),
+            pauseIcon: document.querySelector('.pause-icon'),
+            progressBar: document.querySelector('.progress-bar'),
+            progressFill: document.getElementById('progress-fill'),
+            currentTimeEl: document.getElementById('current-time'),
+            durationEl: document.getElementById('duration'),
+            advancedToggle: document.getElementById('advanced-toggle'),
+            advancedOptions: document.getElementById('advanced-options'),
+            voiceManualSelect: document.getElementById('voice-manual-select'),
+            musicSelect: document.getElementById('music-select')
         };
         
         // Verificar elementos críticos y loguear los que faltan
@@ -168,10 +187,69 @@ export default class AutomaticModeModule {
                     .sort((a, b) => (a.order || 999) - (b.order || 999));
                 
                 this.renderVoices();
+                this.populateVoiceSelect();
             }
         } catch (error) {
             console.error('Error cargando voces:', error);
         }
+    }
+    
+    /**
+     * Cargar lista de música disponible
+     */
+    async loadMusicList() {
+        try {
+            const response = await fetch('/api/music-service.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'list' })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.music) {
+                this.state.musicList = data.music;
+                this.populateMusicSelect();
+            }
+        } catch (error) {
+            console.error('Error cargando música:', error);
+        }
+    }
+    
+    /**
+     * Popular select de voces manual
+     */
+    populateVoiceSelect() {
+        if (!this.elements.voiceManualSelect) return;
+        
+        this.elements.voiceManualSelect.innerHTML = `
+            <option value="">Usar selección visual</option>
+            ${this.state.voices.map(voice => `
+                <option value="${voice.key}" data-voice-id="${voice.id}">${voice.label}</option>
+            `).join('')}
+        `;
+    }
+    
+    /**
+     * Popular select de música
+     */
+    populateMusicSelect() {
+        if (!this.elements.musicSelect) return;
+        
+        this.elements.musicSelect.innerHTML = `
+            <option value="">Por defecto (${this.getDefaultMusicName()})</option>
+            <option value="none">Sin música</option>
+            ${this.state.musicList.map(music => `
+                <option value="${music.file}">${music.name || music.file.replace('.mp3', '')}</option>
+            `).join('')}
+        `;
+    }
+    
+    /**
+     * Obtener nombre de música por defecto
+     */
+    getDefaultMusicName() {
+        // Intentar obtener de la configuración
+        return 'Cool.mp3';
     }
     
     /**
@@ -184,13 +262,21 @@ export default class AutomaticModeModule {
         }
         
         this.elements.voicesList.innerHTML = this.state.voices.map(voice => `
-            <div class="voice-card" data-voice="${voice.id}" data-voice-key="${voice.key || voice.id}" onclick="automaticMode.selectVoice('${voice.key || voice.id}', '${voice.id}')">
-                <div class="voice-icon">
+            <div class="voice-card" 
+                 data-voice="${voice.id}" 
+                 data-voice-key="${voice.key || voice.id}" 
+                 role="listitem"
+                 tabindex="0"
+                 aria-label="Voz ${voice.label}">
+                <div class="voice-icon" aria-hidden="true">
                     ${voice.gender === 'M' || voice.gender === 'male' ? '👨' : '👩'}
                 </div>
                 <div class="voice-name">${voice.label}</div>
             </div>
         `).join('');
+        
+        // Agregar event listeners a las tarjetas de voz
+        this.attachVoiceCardListeners();
     }
     
     /**
@@ -199,18 +285,44 @@ export default class AutomaticModeModule {
     setupEventListeners() {
         // Verificar que los elementos existen antes de agregar listeners
         if (this.elements.recordButton) {
+            // Usar tanto click como touch para mejor compatibilidad
             this.elements.recordButton.addEventListener('click', () => this.toggleRecording());
+            this.elements.recordButton.addEventListener('touchend', (e) => {
+                e.preventDefault(); // Prevenir delay de 300ms en móviles
+                this.toggleRecording();
+            }, { passive: false });
         } else {
             console.error('Record button not found');
-        }
-        
-        if (this.elements.regenerateBtn) {
-            this.elements.regenerateBtn.addEventListener('click', () => this.regenerate());
         }
         
         if (this.elements.sendToRadioBtn) {
             this.elements.sendToRadioBtn.addEventListener('click', () => this.sendToRadio());
         }
+        
+        // Player controls
+        if (this.elements.playPauseBtn) {
+            this.elements.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+        }
+        
+        if (this.elements.progressBar) {
+            this.elements.progressBar.addEventListener('click', (e) => this.seekAudio(e));
+        }
+        
+        // Audio events
+        if (this.elements.audioPlayer) {
+            this.setupAudioEvents();
+        }
+        
+        // Advanced options toggle
+        if (this.elements.advancedToggle) {
+            this.setupAdvancedOptions();
+        }
+        
+        // Detectar orientación para ajustes
+        window.addEventListener('orientationchange', () => this.handleOrientationChange());
+        
+        // Prevenir zoom en double tap
+        this.preventDoubleTapZoom();
         
         // Solicitar permisos de micrófono al cargar
         this.checkMicrophonePermission();
@@ -266,6 +378,11 @@ export default class AutomaticModeModule {
      */
     async startRecording() {
         try {
+            // Vibración táctil en móviles
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+            
             // Resetear estado
             this.resetState();
             this.state.transcribedText = '';
@@ -337,6 +454,7 @@ export default class AutomaticModeModule {
             
             // Actualizar UI
             this.elements.recordButton.classList.add('recording');
+            this.elements.recordButton.setAttribute('aria-pressed', 'true');
             this.elements.recordIcon.textContent = '⏹';
             this.elements.recordText.textContent = 'Detener';
             
@@ -366,8 +484,14 @@ export default class AutomaticModeModule {
                 this.state.recordingTimer = null;
             }
             
+            // Vibración táctil al detener
+            if ('vibrate' in navigator) {
+                navigator.vibrate([50, 30, 50]);
+            }
+            
             // Actualizar UI
             this.elements.recordButton.classList.remove('recording');
+            this.elements.recordButton.setAttribute('aria-pressed', 'false');
             this.elements.recordIcon.textContent = '🎤';
             this.elements.recordText.textContent = 'Grabar';
             this.elements.timer.textContent = '';
@@ -417,6 +541,9 @@ export default class AutomaticModeModule {
     async selectVoice(voiceKey, realVoiceId) {
         if (this.state.isProcessing) return;
         
+        // Si ya hay un audio generado y se selecciona una voz diferente, regenerar
+        const isRegenerating = this.state.generatedAudio && this.state.selectedVoice !== voiceKey;
+        
         // Usar el voiceKey para el backend (juan_carlos, etc.)
         this.state.selectedVoice = voiceKey;
         this.state.selectedVoiceId = realVoiceId; // ID real de ElevenLabs
@@ -426,6 +553,11 @@ export default class AutomaticModeModule {
             card.classList.remove('selected');
         });
         document.querySelector(`[data-voice-key="${voiceKey}"]`).classList.add('selected');
+        
+        // Si es una regeneración, mostrar mensaje apropiado
+        if (isRegenerating) {
+            this.showStatus('Regenerando con nueva voz... ✨', 'processing');
+        }
         
         // Procesar audio
         await this.processAudio();
@@ -442,13 +574,21 @@ export default class AutomaticModeModule {
         
         try {
             // Enviar texto directamente (Web Speech API ya lo transcribió)
+            // Preparar datos para enviar
+            const requestData = {
+                text: this.state.transcribedText,  // Enviar texto en lugar de audio
+                voice_id: this.state.selectedVoice  // Enviamos el key (juan_carlos, etc.)
+            };
+            
+            // Si hay música seleccionada, agregarla
+            if (this.state.selectedMusic) {
+                requestData.music_file = this.state.selectedMusic === 'none' ? null : this.state.selectedMusic;
+            }
+            
             const response = await fetch('/api/automatic-jingle-service.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: this.state.transcribedText,  // Enviar texto en lugar de audio
-                    voice_id: this.state.selectedVoice  // Enviamos el key (juan_carlos, etc.)
-                })
+                body: JSON.stringify(requestData)
             });
             
             const data = await response.json();
@@ -482,27 +622,180 @@ export default class AutomaticModeModule {
         // Mostrar reproductor
         this.elements.playerSection.style.display = 'block';
         
-        // Configurar y reproducir
+        // Configurar audio
         this.elements.audioPlayer.src = audioUrl;
-        this.elements.audioPlayer.play().catch(e => {
-            console.error('Error reproduciendo audio:', e);
-        });
+        
+        // Inicializar visualizador
+        this.setupPlayerVisualizer();
+        
+        // Auto-play
+        setTimeout(() => {
+            this.elements.audioPlayer.play().catch(e => {
+                console.error('Error reproduciendo audio:', e);
+            });
+        }, 500);
         
         // Scroll al reproductor
         this.elements.playerSection.scrollIntoView({ behavior: 'smooth' });
     }
     
     /**
-     * Regenerar jingle
+     * Setup audio events
      */
-    regenerate() {
-        // Resetear para nueva grabación
-        this.resetForNewRecording();
-        this.showStatus('Graba un nuevo mensaje', 'info');
+    setupAudioEvents() {
+        const audio = this.elements.audioPlayer;
         
-        // Scroll al botón de grabación
-        this.elements.recordButton.scrollIntoView({ behavior: 'smooth' });
+        // Update time display
+        audio.addEventListener('loadedmetadata', () => {
+            this.elements.durationEl.textContent = this.formatTime(audio.duration);
+        });
+        
+        audio.addEventListener('timeupdate', () => {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            this.elements.progressFill.style.width = progress + '%';
+            this.elements.currentTimeEl.textContent = this.formatTime(audio.currentTime);
+        });
+        
+        audio.addEventListener('play', () => {
+            this.elements.playPauseBtn.classList.add('playing');
+            this.elements.playIcon.style.display = 'none';
+            this.elements.pauseIcon.style.display = 'flex';
+            this.startVisualizer();
+        });
+        
+        audio.addEventListener('pause', () => {
+            this.elements.playPauseBtn.classList.remove('playing');
+            this.elements.playIcon.style.display = 'flex';
+            this.elements.pauseIcon.style.display = 'none';
+            this.stopVisualizer();
+        });
+        
+        audio.addEventListener('ended', () => {
+            this.elements.playPauseBtn.classList.remove('playing');
+            this.elements.playIcon.style.display = 'flex';
+            this.elements.pauseIcon.style.display = 'none';
+            this.elements.progressFill.style.width = '0%';
+            this.stopVisualizer();
+        });
     }
+    
+    /**
+     * Toggle play/pause
+     */
+    togglePlayPause() {
+        const audio = this.elements.audioPlayer;
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    }
+    
+    /**
+     * Seek audio
+     */
+    seekAudio(e) {
+        const audio = this.elements.audioPlayer;
+        const rect = this.elements.progressBar.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = percent * audio.duration;
+    }
+    
+    /**
+     * Format time
+     */
+    formatTime(seconds) {
+        if (isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+    
+    /**
+     * Setup player visualizer
+     */
+    setupPlayerVisualizer() {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // Create analyser for player
+        this.playerAnalyser = this.audioContext.createAnalyser();
+        this.playerAnalyser.fftSize = 128; // Menos barras para mejor performance en móvil
+        
+        // Connect audio element to analyser
+        if (!this.playerSource) {
+            this.playerSource = this.audioContext.createMediaElementSource(this.elements.audioPlayer);
+            this.playerSource.connect(this.playerAnalyser);
+            this.playerAnalyser.connect(this.audioContext.destination);
+        }
+    }
+    
+    /**
+     * Start visualizer animation
+     */
+    startVisualizer() {
+        if (this.isVisualizerActive) return;
+        this.isVisualizerActive = true;
+        
+        const canvas = this.elements.playerVisualizer;
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        const bufferLength = this.playerAnalyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        const draw = () => {
+            if (!this.isVisualizerActive) return;
+            
+            this.animationId = requestAnimationFrame(draw);
+            
+            this.playerAnalyser.getByteFrequencyData(dataArray);
+            
+            // Clear canvas completamente
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar waveform simple en blanco
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const sliceWidth = canvas.width / bufferLength;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 255;
+                const y = canvas.height / 2 + (v - 0.5) * canvas.height * 0.8;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                x += sliceWidth;
+            }
+            
+            ctx.stroke();
+        };
+        
+        draw();
+    }
+    
+    /**
+     * Stop visualizer
+     */
+    stopVisualizer() {
+        this.isVisualizerActive = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+    
     
     /**
      * Enviar a radio
@@ -661,6 +954,103 @@ export default class AutomaticModeModule {
     }
     
     /**
+     * Setup advanced options
+     */
+    setupAdvancedOptions() {
+        const toggle = this.elements.advancedToggle;
+        const options = this.elements.advancedOptions;
+        
+        if (!toggle || !options) return;
+        
+        toggle.addEventListener('click', () => {
+            const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', !isExpanded);
+            options.style.display = isExpanded ? 'none' : 'block';
+            this.state.advancedMode = !isExpanded;
+        });
+        
+        // Voice manual select
+        if (this.elements.voiceManualSelect) {
+            this.elements.voiceManualSelect.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    const option = e.target.selectedOptions[0];
+                    const voiceId = option.dataset.voiceId;
+                    this.selectVoice(e.target.value, voiceId);
+                }
+            });
+        }
+        
+        // Music select
+        if (this.elements.musicSelect) {
+            this.elements.musicSelect.addEventListener('change', (e) => {
+                this.state.selectedMusic = e.target.value;
+                console.log('Música seleccionada:', this.state.selectedMusic);
+            });
+        }
+    }
+    
+    
+    /**
+     * Attach event listeners a voice cards
+     */
+    attachVoiceCardListeners() {
+        const cards = this.elements.voicesList.querySelectorAll('.voice-card');
+        cards.forEach(card => {
+            const voiceKey = card.dataset.voiceKey;
+            const voiceId = card.dataset.voice;
+            
+            // Click event
+            card.addEventListener('click', () => {
+                this.selectVoice(voiceKey, voiceId);
+            });
+            
+            // Touch event para mejor respuesta
+            card.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.selectVoice(voiceKey, voiceId);
+            }, { passive: false });
+            
+            // Keyboard support
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.selectVoice(voiceKey, voiceId);
+                }
+            });
+        });
+    }
+    
+    /**
+     * Manejar cambio de orientación
+     */
+    handleOrientationChange() {
+        // Ajustar UI según orientación
+        setTimeout(() => {
+            if (window.orientation === 90 || window.orientation === -90) {
+                // Landscape
+                document.body.classList.add('landscape-mode');
+            } else {
+                // Portrait
+                document.body.classList.remove('landscape-mode');
+            }
+        }, 100);
+    }
+    
+    /**
+     * Prevenir zoom en double tap
+     */
+    preventDoubleTapZoom() {
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+    }
+    
+    /**
      * Descargar módulo
      */
     unload() {
@@ -678,6 +1068,9 @@ export default class AutomaticModeModule {
         if (this.audioContext) {
             this.audioContext.close();
         }
+        
+        // Stop visualizer
+        this.stopVisualizer();
         
         // Limpiar referencias
         this.container.innerHTML = '';

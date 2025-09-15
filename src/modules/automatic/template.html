@@ -1,65 +1,156 @@
-<!-- Automatic Mode Template -->
+<!-- Automatic Mode Template - Mobile Optimized -->
 <div class="automatic-container">
 
-    <!-- Recording Section -->
-    <div class="automatic-record-section">
-        <button id="record-button" class="automatic-record-btn">
-            <span id="record-icon" class="record-icon">🎤</span>
+    <!-- Recording Section - Touch Optimized -->
+    <section class="automatic-record-section" role="region" aria-label="Grabación de audio">
+        <button id="record-button" 
+                class="automatic-record-btn" 
+                type="button"
+                aria-label="Grabar mensaje"
+                aria-pressed="false">
+            <span id="record-icon" class="record-icon" aria-hidden="true">🎤</span>
             <span id="record-text" class="record-text">Grabar</span>
         </button>
-        <div id="recording-timer" class="recording-timer"></div>
+        <div id="recording-timer" class="recording-timer" role="timer" aria-live="polite"></div>
         
         <!-- Audio Visualizer Canvas -->
-        <canvas id="audio-visualizer" class="audio-visualizer" width="300" height="60"></canvas>
-    </div>
+        <canvas id="audio-visualizer" class="audio-visualizer" width="400" height="80" aria-hidden="true"></canvas>
+    </section>
 
-    <!-- Status Message -->
-    <div id="status-message" class="status-message" style="display: none;"></div>
+    <!-- Status Message - Fixed Position for Mobile -->
+    <div id="status-message" class="status-message" role="status" aria-live="polite" style="display: none;"></div>
 
-    <!-- Voice Selection Section -->
-    <div id="voices-section" class="automatic-voices-section" style="display: none;">
-        <h3 class="voices-title">Selecciona una voz</h3>
-        <div id="voices-list" class="automatic-voices-grid">
+    <!-- Voice Selection Section - Horizontal Scroll on Mobile -->
+    <section id="voices-section" 
+             class="automatic-voices-section" 
+             style="display: none;"
+             role="region"
+             aria-label="Selección de personaje">
+        <div class="voices-scroll-hint" aria-hidden="true">← Desliza para elegir a tu personaje →</div>
+        <div id="voices-list" 
+             class="automatic-voices-grid"
+             role="list"
+             aria-label="Lista de voces disponibles">
             <!-- Voice cards will be rendered here -->
         </div>
-    </div>
-
-    <!-- Audio Player Section -->
-    <div id="player-section" class="automatic-player-section" style="display: none;">
-        <div class="player-card">
-            <h3 class="player-title">Tu jingle está listo</h3>
+        
+        <!-- Advanced Options Toggle -->
+        <div class="advanced-options-container">
+            <button id="advanced-toggle" 
+                    class="advanced-toggle-btn"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="advanced-options">
+                <span class="toggle-icon">⚙️</span>
+                <span>Opciones Avanzadas</span>
+                <span class="toggle-arrow">▼</span>
+            </button>
             
-            <!-- Audio Player -->
+            <div id="advanced-options" 
+                 class="advanced-options"
+                 style="display: none;">
+                
+                <!-- Manual Voice Selection -->
+                <div class="option-group">
+                    <label for="voice-manual-select" class="option-label">
+                        🎭 Seleccionar voz manualmente:
+                    </label>
+                    <select id="voice-manual-select" class="option-select">
+                        <option value="">Usar selección visual</option>
+                    </select>
+                </div>
+                
+                <!-- Music Selection -->
+                <div class="option-group">
+                    <label for="music-select" class="option-label">
+                        🎵 Música de fondo:
+                    </label>
+                    <select id="music-select" class="option-select">
+                        <option value="">Por defecto</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Audio Player Section - Mobile Optimized Controls -->
+    <section id="player-section" 
+             class="automatic-player-section" 
+             style="display: none;"
+             role="region"
+             aria-label="Reproductor de jingle">
+        <div class="player-card">
+            
+            <!-- Custom Audio Visualizer -->
             <div class="audio-player-wrapper">
-                <audio id="generated-audio" class="automatic-audio-player" controls>
+                <!-- Hidden audio element -->
+                <audio id="generated-audio" 
+                       class="automatic-audio-player-hidden" 
+                       preload="metadata"
+                       aria-label="Jingle generado">
                     Tu navegador no soporta el elemento de audio.
                 </audio>
+                
+                <!-- Visual Audio Player -->
+                <div class="custom-audio-player">
+                    <!-- Visualizer Canvas -->
+                    <canvas id="player-visualizer" class="player-visualizer" width="300" height="120"></canvas>
+                    
+                    <!-- Play/Pause Button Overlay -->
+                    <button id="play-pause-btn" class="play-pause-btn" aria-label="Reproducir">
+                        <span class="play-icon">▶</span>
+                        <span class="pause-icon" style="display: none;">⏸</span>
+                    </button>
+                    
+                    <!-- Time Progress -->
+                    <div class="audio-progress">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                        <div class="time-display">
+                            <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <!-- Action Buttons -->
-            <div class="player-actions">
-                <button id="regenerate-btn" class="btn btn-secondary automatic-action-btn">
-                    <span class="btn-icon">🔄</span>
-                    <span>Regenerar</span>
-                </button>
-                <button id="send-to-radio-btn" class="btn btn-primary automatic-action-btn">
-                    <span class="btn-icon">📻</span>
-                    <span>Enviar a la Radio</span>
+            <!-- Action Button - Touch Target Optimized -->
+            <div class="player-actions" role="group" aria-label="Acciones del jingle">
+                <button id="send-to-radio-btn" 
+                        class="btn btn-primary automatic-action-btn full-width"
+                        type="button"
+                        aria-label="Enviar jingle a la radio">
+                    <span class="btn-icon" aria-hidden="true">📻</span>
+                    <span>Enviar a Radio</span>
                 </button>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Instructions Card -->
-    <div class="automatic-instructions">
-        <div class="instructions-card">
-            <h4 class="instructions-title">¿Cómo funciona?</h4>
-            <ol class="instructions-list">
-                <li>Presiona el botón de grabar y di tu mensaje (máximo 10 segundos)</li>
-                <li>Selecciona una voz de la lista</li>
-                <li>Escucha el jingle generado automáticamente</li>
-                <li>Envíalo a la radio o genera uno nuevo</li>
-            </ol>
-        </div>
-    </div>
+
+    <!-- Hidden scroll hint style -->
+    <style>
+        .voices-scroll-hint {
+            text-align: center;
+            color: var(--text-primary);
+            font-size: var(--text-lg);
+            font-weight: 600;
+            padding: var(--spacing-md) var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            opacity: 0.9;
+            animation: fadeIn 1s ease;
+        }
+        
+        .automatic-action-btn.full-width {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .voices-scroll-hint {
+                display: none;
+            }
+        }
+    </style>
 </div>
