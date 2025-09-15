@@ -6,6 +6,9 @@
 /* Importar variables del sistema de diseño */
 @import url('/assets/styles/core/variables.css');
 
+/* Importar estilos de tabs */
+@import url('./modules/tabs.css');
+
 /* ========================================
    HEADER CON DROPDOWN DE CATEGORÍA
    ======================================== */

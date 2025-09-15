@@ -62,6 +62,11 @@ class AnnouncementGenerator {
             'voice_settings' => $voiceSettings
         ];
         
+        // Agregar soporte para v3 si fue solicitado
+        if (isset($options['use_v3']) && $options['use_v3'] === true) {
+            $ttsOptions['use_v3'] = true;
+        }
+        
         // Generar audio
         $audioData = generateEnhancedTTS($text, $options['voice'], $ttsOptions);
         

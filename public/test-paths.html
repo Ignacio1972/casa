@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test de Rutas</title>
+    <style>
+        body { 
+            background: #1c1b19; 
+            color: #e9eff1; 
+            font-family: monospace; 
+            padding: 20px;
+        }
+        .test { 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #2f3236; 
+            border-radius: 5px;
+        }
+        .success { color: #10B981; }
+        .error { color: #EF4444; }
+    </style>
+</head>
+<body>
+    <h1>Test de Rutas del Sistema</h1>
+    <div id="results"></div>
+    
+    <script>
+        const paths = [
+            '/src/modules/automatic/index.js',
+            '/modules/automatic/index.js',
+            '../src/modules/automatic/index.js',
+            '/src/api/generate.php',
+            '/api/generate.php',
+            '../src/api/generate.php',
+            '/src/modules/dashboard/index.js',
+            '/modules/dashboard/index.js',
+            '../src/modules/dashboard/index.js'
+        ];
+        
+        const results = document.getElementById('results');
+        
+        paths.forEach(async path => {
+            const div = document.createElement('div');
+            div.className = 'test';
+            
+            try {
+                const response = await fetch(path, { method: 'HEAD' });
+                if (response.ok) {
+                    div.innerHTML = `<span class="success">✓</span> ${path} - Status: ${response.status}`;
+                } else {
+                    div.innerHTML = `<span class="error">✗</span> ${path} - Status: ${response.status}`;
+                }
+            } catch (error) {
+                div.innerHTML = `<span class="error">✗</span> ${path} - Error: ${error.message}`;
+            }
+            
+            results.appendChild(div);
+        });
+    </script>
+</body>
+</html>

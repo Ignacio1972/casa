@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparación de Tamaños de Fuente</title>
+    <link rel="stylesheet" href="/styles-v5/main.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--bg-primary);
+        }
+        .comparison-container {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        .test-card {
+            flex: 1;
+            background: white;
+            border: 2px solid red;
+            padding: 1rem;
+            color: black !important;
+        }
+        .test-card h2 {
+            color: black !important;
+        }
+        .measurement {
+            background: #fffacd;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .ruler {
+            position: absolute;
+            height: 2px;
+            background: red;
+            width: 100%;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comparación de Tamaños de Fuente</h1>
+    
+    <div class="comparison-container">
+        <!-- Card original de Mensajes Recientes -->
+        <div class="card recent-messages test-card">
+            <div class="card-header">
+                <h2 class="card-title" id="title1">
+                    <span class="card-icon">📝</span>
+                    Mensajes Recientes
+                </h2>
+            </div>
+            <div class="measurement" id="measure1">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Card de AI Suggestions con nueva estructura -->
+        <div class="card ai-suggestions-container test-card">
+            <div class="card-header">
+                <h2 class="card-title" id="title2">
+                    <span class="card-icon">🤖</span>
+                    ¿Qué necesitas anunciar?
+                </h2>
+            </div>
+            <div class="measurement" id="measure2">
+                <!-- Se llenará con JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Línea de referencia horizontal -->
+    <div class="ruler" id="ruler" style="display:none"></div>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background: white; border-radius: 8px; color: black;">
+        <h3 style="color: black;">Análisis de CSS</h3>
+        <div id="analysis" style="font-family: monospace; white-space: pre-wrap; color: black;"></div>
+    </div>
+    
+    <script>
+        function analyzeElements() {
+            const title1 = document.getElementById('title1');
+            const title2 = document.getElementById('title2');
+            
+            const styles1 = window.getComputedStyle(title1);
+            const styles2 = window.getComputedStyle(title2);
+            
+            // Obtener propiedades relevantes
+            const props = ['fontSize', 'fontWeight', 'lineHeight', 'fontFamily', 'letterSpacing', 'margin', 'padding'];
+            
+            let analysis = 'COMPARACIÓN DE ESTILOS COMPUTADOS:\n\n';
+            analysis += 'Propiedad'.padEnd(20) + 'Mensajes Recientes'.padEnd(30) + '¿Qué necesitas anunciar?\n';
+            analysis += '-'.repeat(75) + '\n';
+            
+            props.forEach(prop => {
+                const val1 = styles1[prop];
+                const val2 = styles2[prop];
+                const match = val1 === val2 ? '✅' : '❌';
+                analysis += prop.padEnd(20) + val1.padEnd(30) + val2.padEnd(30) + match + '\n';
+            });
+            
+            // Medidas del elemento
+            const rect1 = title1.getBoundingClientRect();
+            const rect2 = title2.getBoundingClientRect();
+            
+            document.getElementById('measure1').innerHTML = `
+                <strong>Medidas del elemento:</strong><br>
+                Font-size: ${styles1.fontSize}<br>
+                Font-weight: ${styles1.fontWeight}<br>
+                Line-height: ${styles1.lineHeight}<br>
+                Altura real: ${rect1.height.toFixed(2)}px<br>
+                Ancho: ${rect1.width.toFixed(2)}px
+            `;
+            
+            document.getElementById('measure2').innerHTML = `
+                <strong>Medidas del elemento:</strong><br>
+                Font-size: ${styles2.fontSize}<br>
+                Font-weight: ${styles2.fontWeight}<br>
+                Line-height: ${styles2.lineHeight}<br>
+                Altura real: ${rect2.height.toFixed(2)}px<br>
+                Ancho: ${rect2.width.toFixed(2)}px
+            `;
+            
+            document.getElementById('analysis').textContent = analysis;
+            
+            // Mostrar línea de referencia
+            const ruler = document.getElementById('ruler');
+            ruler.style.display = 'block';
+            ruler.style.top = rect1.top + (rect1.height / 2) + 'px';
+            
+            // Resaltar diferencias
+            if (styles1.fontSize !== styles2.fontSize) {
+                document.getElementById('measure2').style.background = '#ffcccc';
+            }
+        }
+        
+        // Ejecutar análisis cuando cargue la página
+        window.addEventListener('load', () => {
+            setTimeout(analyzeElements, 100);
+        });
+    </script>
+</body>
+</html>

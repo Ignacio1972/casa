@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jingle Studio - Playground</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .studio-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .studio-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .studio-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .studio-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .slider-group {
+            margin-bottom: 25px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .slider-label {
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .slider-value {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: #555;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f7ff;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .timeline {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .timeline-bar {
+            height: 60px;
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .timeline-segment {
+            position: absolute;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .timeline-intro {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+        }
+
+        .timeline-voice {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .timeline-outro {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .music-preview-btn {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .music-preview-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .advanced-options {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .toggle-advanced {
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .toggle-advanced:hover {
+            text-decoration: underline;
+        }
+
+        .history-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .history-meta {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="studio-container">
+        <div class="studio-header">
+            <h1 class="studio-title">
+                <span>🎵</span> Jingle Studio
+            </h1>
+            <p class="studio-subtitle">Centro de control avanzado para creación de jingles profesionales</p>
+        </div>
+
+        <div class="studio-grid">
+            <!-- Panel de Entrada -->
+            <div class="panel">
+                <h2 class="panel-title">📝 Contenido del Jingle</h2>
+                
+                <div class="form-group">
+                    <label for="messageText">Texto del mensaje:</label>
+                    <textarea id="messageText" rows="4" placeholder="Escriba aquí el mensaje que será convertido en jingle...">¡Bienvenidos a nuestra tienda! Tenemos las mejores ofertas de la temporada. ¡No te las pierdas!</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="voiceSelect">Voz del narrador:</label>
+                    <select id="voiceSelect">
+                        <option value="mateo">Mateo (Masculino, Joven)</option>
+                        <option value="juan_carlos">Juan Carlos (Masculino, Maduro)</option>
+                        <option value="sofia">Sofía (Femenino, Joven)</option>
+                        <option value="maria">María (Femenino, Maduro)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="musicSelect">Música de fondo:</label>
+                    <select id="musicSelect">
+                        <option value="">Cargando música...</option>
+                    </select>
+                    <button class="music-preview-btn" onclick="previewMusic()">▶️ Escuchar música</button>
+                </div>
+
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="applyPreset('radio')">📻 Radio</button>
+                    <button class="preset-btn" onclick="applyPreset('podcast')">🎙️ Podcast</button>
+                    <button class="preset-btn" onclick="applyPreset('promo')">🛍️ Promocional</button>
+                    <button class="preset-btn" onclick="applyPreset('ambient')">🌊 Ambiental</button>
+                    <button class="preset-btn" onclick="applyPreset('energetic')">⚡ Energético</button>
+                </div>
+            </div>
+
+            <!-- Panel de Controles -->
+            <div class="panel">
+                <h2 class="panel-title">🎛️ Controles Avanzados</h2>
+                
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Silencio Inicial</span>
+                        <span class="slider-value" id="introValue">2s</span>
+                    </div>
+                    <input type="range" id="introSlider" min="0" max="10" value="2" step="0.5">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Silencio Final</span>
+                        <span class="slider-value" id="outroValue">4s</span>
+                    </div>
+                    <input type="range" id="outroSlider" min="0" max="15" value="4" step="0.5">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Volumen Música</span>
+                        <span class="slider-value" id="musicVolumeValue">30%</span>
+                    </div>
+                    <input type="range" id="musicVolumeSlider" min="0" max="100" value="30" step="5">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Volumen Voz</span>
+                        <span class="slider-value" id="voiceVolumeValue">100%</span>
+                    </div>
+                    <input type="range" id="voiceVolumeSlider" min="0" max="200" value="100" step="10">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Fade In</span>
+                        <span class="slider-value" id="fadeInValue">2s</span>
+                    </div>
+                    <input type="range" id="fadeInSlider" min="0" max="5" value="2" step="0.5">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="slider-label">Fade Out</span>
+                        <span class="slider-value" id="fadeOutValue">3s</span>
+                    </div>
+                    <input type="range" id="fadeOutSlider" min="0" max="10" value="3" step="0.5">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="duckingEnabled" checked>
+                    <label for="duckingEnabled" class="checkbox-label">Auto-ducking (reducir música al hablar)</label>
+                </div>
+
+                <span class="toggle-advanced" onclick="toggleAdvanced()">
+                    ⚙️ Opciones avanzadas de ducking
+                </span>
+
+                <div id="advancedOptions" class="advanced-options" style="display: none;">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span class="slider-label">Nivel de Ducking</span>
+                            <span class="slider-value" id="duckLevelValue">20%</span>
+                        </div>
+                        <input type="range" id="duckLevelSlider" min="0" max="100" value="20" step="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Visual -->
+        <div class="panel">
+            <h2 class="panel-title">📊 Timeline del Jingle</h2>
+            <div class="timeline">
+                <div class="timeline-bar">
+                    <div class="timeline-intro timeline-segment" id="timelineIntro">Intro</div>
+                    <div class="timeline-voice timeline-segment" id="timelineVoice">Voz + Música</div>
+                    <div class="timeline-outro timeline-segment" id="timelineOutro">Outro</div>
+                </div>
+                <div class="timeline-labels">
+                    <span>0s</span>
+                    <span id="totalDuration">10s</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="generateJingle()">
+                    <span>🎵</span> Generar Jingle
+                </button>
+                <button class="btn btn-secondary" onclick="testSynthetic()">
+                    <span>🔊</span> Prueba Sintética
+                </button>
+                <button class="btn btn-secondary" onclick="savePreset()">
+                    <span>💾</span> Guardar Preset
+                </button>
+                <button class="btn btn-secondary" onclick="exportSettings()">
+                    <span>📤</span> Exportar Config
+                </button>
+            </div>
+
+            <div id="statusMessage"></div>
+            <audio id="audioPlayer" controls class="audio-player" style="display: none;"></audio>
+        </div>
+
+        <!-- Historial -->
+        <div class="panel">
+            <h2 class="panel-title">📜 Historial de Jingles</h2>
+            <div class="history-panel" id="historyPanel">
+                <div class="history-item">
+                    <div class="history-info">
+                        <div class="history-title">Jingle de Bienvenida</div>
+                        <div class="history-meta">Hace 5 minutos • 12s • Música: Relajante</div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="icon-btn">▶️</button>
+                        <button class="icon-btn">💾</button>
+                        <button class="icon-btn">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado de la aplicación
+        let state = {
+            musicList: [],
+            history: [],
+            currentPreset: null,
+            generating: false
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSliders();
+            loadMusicList();
+            updateTimeline();
+            loadHistory();
+        });
+
+        // Inicializar sliders
+        function initializeSliders() {
+            const sliders = [
+                { id: 'introSlider', valueId: 'introValue', suffix: 's' },
+                { id: 'outroSlider', valueId: 'outroValue', suffix: 's' },
+                { id: 'musicVolumeSlider', valueId: 'musicVolumeValue', suffix: '%' },
+                { id: 'voiceVolumeSlider', valueId: 'voiceVolumeValue', suffix: '%' },
+                { id: 'fadeInSlider', valueId: 'fadeInValue', suffix: 's' },
+                { id: 'fadeOutSlider', valueId: 'fadeOutValue', suffix: 's' },
+                { id: 'duckLevelSlider', valueId: 'duckLevelValue', suffix: '%' }
+            ];
+
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider.id);
+                if (element) {
+                    element.addEventListener('input', (e) => {
+                        document.getElementById(slider.valueId).textContent = e.target.value + slider.suffix;
+                        updateTimeline();
+                    });
+                }
+            });
+        }
+
+        // Cargar lista de música
+        async function loadMusicList() {
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/music-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list' })
+                });
+
+                const data = await response.json();
+                if (data.success && data.music) {
+                    state.musicList = data.music;
+                    updateMusicSelector();
+                }
+            } catch (error) {
+                console.error('Error cargando música:', error);
+                // Usar lista por defecto
+                state.musicList = [
+                    { file: 'Martin Roth - Just Sine Waves.mp3', name: 'Relajante' },
+                    { file: 'upbeat.mp3', name: 'Alegre' },
+                    { file: 'corporate.mp3', name: 'Corporativo' }
+                ];
+                updateMusicSelector();
+            }
+        }
+
+        // Actualizar selector de música
+        function updateMusicSelector() {
+            const select = document.getElementById('musicSelect');
+            select.innerHTML = `
+                <option value="">-- Seleccionar música --</option>
+                ${state.musicList.map(music => `
+                    <option value="${music.file}" data-mood="${music.mood || ''}">${music.name} ${music.description ? '- ' + music.description : ''}</option>
+                `).join('')}
+            `;
+        }
+
+        // Actualizar timeline visual
+        function updateTimeline() {
+            const intro = parseFloat(document.getElementById('introSlider').value);
+            const outro = parseFloat(document.getElementById('outroSlider').value);
+            const voiceDuration = 4; // Estimado
+
+            const total = intro + voiceDuration + outro;
+
+            const introBar = document.getElementById('timelineIntro');
+            const voiceBar = document.getElementById('timelineVoice');
+            const outroBar = document.getElementById('timelineOutro');
+
+            introBar.style.width = (intro / total * 100) + '%';
+            introBar.style.left = '0';
+            introBar.textContent = intro > 0.5 ? `Intro ${intro}s` : '';
+
+            voiceBar.style.width = (voiceDuration / total * 100) + '%';
+            voiceBar.style.left = (intro / total * 100) + '%';
+            voiceBar.textContent = `Voz ~${voiceDuration}s`;
+
+            outroBar.style.width = (outro / total * 100) + '%';
+            outroBar.style.left = ((intro + voiceDuration) / total * 100) + '%';
+            outroBar.textContent = outro > 0.5 ? `Outro ${outro}s` : '';
+
+            document.getElementById('totalDuration').textContent = `${total.toFixed(1)}s`;
+        }
+
+        // Generar jingle
+        async function generateJingle() {
+            if (state.generating) return;
+
+            const text = document.getElementById('messageText').value.trim();
+            if (!text) {
+                showStatus('Por favor ingrese un texto', 'error');
+                return;
+            }
+
+            const musicFile = document.getElementById('musicSelect').value;
+            if (!musicFile) {
+                showStatus('Por favor seleccione una música', 'error');
+                return;
+            }
+
+            state.generating = true;
+            showStatus('Generando jingle...', 'info');
+
+            const options = {
+                music_file: musicFile,
+                music_volume: parseFloat(document.getElementById('musicVolumeSlider').value) / 100,
+                voice_volume: parseFloat(document.getElementById('voiceVolumeSlider').value) / 100,
+                fade_in: parseFloat(document.getElementById('fadeInSlider').value),
+                fade_out: parseFloat(document.getElementById('fadeOutSlider').value),
+                music_duck: document.getElementById('duckingEnabled').checked,
+                duck_level: parseFloat(document.getElementById('duckLevelSlider').value) / 100,
+                intro_silence: parseFloat(document.getElementById('introSlider').value),
+                outro_silence: parseFloat(document.getElementById('outroSlider').value)
+            };
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        text: text,
+                        voice: document.getElementById('voiceSelect').value,
+                        options: options
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(`¡Jingle generado! Duración: ${data.duration?.toFixed(1)}s`, 'success');
+                    
+                    const player = document.getElementById('audioPlayer');
+                    player.src = 'data:audio/mp3;base64,' + data.audio;
+                    player.style.display = 'block';
+                    player.play();
+
+                    // Agregar al historial
+                    addToHistory(text, options, data.duration);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                state.generating = false;
+            }
+        }
+
+        // Prueba sintética
+        async function testSynthetic() {
+            if (state.generating) return;
+
+            const musicFile = document.getElementById('musicSelect').value;
+            if (!musicFile) {
+                showStatus('Por favor seleccione una música', 'error');
+                return;
+            }
+
+            state.generating = true;
+            showStatus('Generando prueba sintética...', 'info');
+
+            const options = {
+                music_file: musicFile,
+                music_volume: parseFloat(document.getElementById('musicVolumeSlider').value) / 100,
+                voice_volume: parseFloat(document.getElementById('voiceVolumeSlider').value) / 100,
+                fade_in: parseFloat(document.getElementById('fadeInSlider').value),
+                fade_out: parseFloat(document.getElementById('fadeOutSlider').value),
+                music_duck: document.getElementById('duckingEnabled').checked,
+                duck_level: parseFloat(document.getElementById('duckLevelSlider').value) / 100,
+                intro_silence: parseFloat(document.getElementById('introSlider').value),
+                outro_silence: parseFloat(document.getElementById('outroSlider').value),
+                voice_duration: 3
+            };
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/test-jingle.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(options)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(`¡Prueba generada! Duración: ${data.duration?.toFixed(1)}s`, 'success');
+                    
+                    const player = document.getElementById('audioPlayer');
+                    player.src = 'data:audio/mp3;base64,' + data.audio;
+                    player.style.display = 'block';
+                    player.play();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                state.generating = false;
+            }
+        }
+
+        // Aplicar preset
+        function applyPreset(type) {
+            const presets = {
+                radio: {
+                    intro: 1, outro: 2, musicVolume: 25, voiceVolume: 100,
+                    fadeIn: 1, fadeOut: 1, ducking: true, duckLevel: 15
+                },
+                podcast: {
+                    intro: 3, outro: 5, musicVolume: 20, voiceVolume: 100,
+                    fadeIn: 2, fadeOut: 3, ducking: true, duckLevel: 10
+                },
+                promo: {
+                    intro: 0.5, outro: 1, musicVolume: 40, voiceVolume: 120,
+                    fadeIn: 0.5, fadeOut: 1, ducking: true, duckLevel: 30
+                },
+                ambient: {
+                    intro: 4, outro: 6, musicVolume: 15, voiceVolume: 100,
+                    fadeIn: 3, fadeOut: 4, ducking: false, duckLevel: 0
+                },
+                energetic: {
+                    intro: 0, outro: 2, musicVolume: 50, voiceVolume: 150,
+                    fadeIn: 0.5, fadeOut: 2, ducking: true, duckLevel: 40
+                }
+            };
+
+            const preset = presets[type];
+            if (!preset) return;
+
+            // Aplicar valores
+            document.getElementById('introSlider').value = preset.intro;
+            document.getElementById('introValue').textContent = preset.intro + 's';
+            
+            document.getElementById('outroSlider').value = preset.outro;
+            document.getElementById('outroValue').textContent = preset.outro + 's';
+            
+            document.getElementById('musicVolumeSlider').value = preset.musicVolume;
+            document.getElementById('musicVolumeValue').textContent = preset.musicVolume + '%';
+            
+            document.getElementById('voiceVolumeSlider').value = preset.voiceVolume;
+            document.getElementById('voiceVolumeValue').textContent = preset.voiceVolume + '%';
+            
+            document.getElementById('fadeInSlider').value = preset.fadeIn;
+            document.getElementById('fadeInValue').textContent = preset.fadeIn + 's';
+            
+            document.getElementById('fadeOutSlider').value = preset.fadeOut;
+            document.getElementById('fadeOutValue').textContent = preset.fadeOut + 's';
+            
+            document.getElementById('duckingEnabled').checked = preset.ducking;
+            
+            document.getElementById('duckLevelSlider').value = preset.duckLevel;
+            document.getElementById('duckLevelValue').textContent = preset.duckLevel + '%';
+
+            // Actualizar botones
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            updateTimeline();
+            showStatus(`Preset "${type}" aplicado`, 'success');
+        }
+
+        // Preview música
+        function previewMusic() {
+            const musicFile = document.getElementById('musicSelect').value;
+            if (!musicFile) {
+                showStatus('Seleccione una música primero', 'error');
+                return;
+            }
+
+            const audio = new Audio(`/audio/music/${musicFile}`);
+            audio.volume = 0.3;
+            audio.play();
+
+            setTimeout(() => audio.pause(), 10000);
+            showStatus('Reproduciendo preview de 10 segundos', 'info');
+        }
+
+        // Toggle opciones avanzadas
+        function toggleAdvanced() {
+            const advanced = document.getElementById('advancedOptions');
+            advanced.style.display = advanced.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Guardar preset
+        function savePreset() {
+            const name = prompt('Nombre del preset:');
+            if (!name) return;
+
+            const preset = {
+                name: name,
+                intro: document.getElementById('introSlider').value,
+                outro: document.getElementById('outroSlider').value,
+                musicVolume: document.getElementById('musicVolumeSlider').value,
+                voiceVolume: document.getElementById('voiceVolumeSlider').value,
+                fadeIn: document.getElementById('fadeInSlider').value,
+                fadeOut: document.getElementById('fadeOutSlider').value,
+                ducking: document.getElementById('duckingEnabled').checked,
+                duckLevel: document.getElementById('duckLevelSlider').value
+            };
+
+            // Guardar en localStorage
+            const presets = JSON.parse(localStorage.getItem('jinglePresets') || '[]');
+            presets.push(preset);
+            localStorage.setItem('jinglePresets', JSON.stringify(presets));
+
+            showStatus(`Preset "${name}" guardado`, 'success');
+        }
+
+        // Exportar configuración
+        function exportSettings() {
+            const settings = {
+                intro: document.getElementById('introSlider').value,
+                outro: document.getElementById('outroSlider').value,
+                musicVolume: document.getElementById('musicVolumeSlider').value,
+                voiceVolume: document.getElementById('voiceVolumeSlider').value,
+                fadeIn: document.getElementById('fadeInSlider').value,
+                fadeOut: document.getElementById('fadeOutSlider').value,
+                ducking: document.getElementById('duckingEnabled').checked,
+                duckLevel: document.getElementById('duckLevelSlider').value,
+                music: document.getElementById('musicSelect').value,
+                voice: document.getElementById('voiceSelect').value
+            };
+
+            const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'jingle-settings.json';
+            a.click();
+
+            showStatus('Configuración exportada', 'success');
+        }
+
+        // Agregar al historial
+        function addToHistory(text, options, duration) {
+            const item = {
+                id: Date.now(),
+                text: text.substring(0, 50),
+                music: state.musicList.find(m => m.file === options.music_file)?.name || 'Desconocida',
+                duration: duration,
+                timestamp: new Date(),
+                options: options
+            };
+
+            state.history.unshift(item);
+            if (state.history.length > 10) state.history.pop();
+
+            localStorage.setItem('jingleHistory', JSON.stringify(state.history));
+            renderHistory();
+        }
+
+        // Cargar historial
+        function loadHistory() {
+            state.history = JSON.parse(localStorage.getItem('jingleHistory') || '[]');
+            renderHistory();
+        }
+
+        // Renderizar historial
+        function renderHistory() {
+            const panel = document.getElementById('historyPanel');
+            
+            if (state.history.length === 0) {
+                panel.innerHTML = '<div style="text-align: center; color: #999;">No hay jingles en el historial</div>';
+                return;
+            }
+
+            panel.innerHTML = state.history.map(item => `
+                <div class="history-item">
+                    <div class="history-info">
+                        <div class="history-title">${item.text}...</div>
+                        <div class="history-meta">
+                            ${getTimeAgo(item.timestamp)} • ${item.duration?.toFixed(1)}s • Música: ${item.music}
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="icon-btn" onclick="replayHistory(${item.id})">▶️</button>
+                        <button class="icon-btn" onclick="deleteHistory(${item.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Obtener tiempo relativo
+        function getTimeAgo(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+
+            if (diff < 60) return 'Hace unos segundos';
+            if (diff < 3600) return `Hace ${Math.floor(diff / 60)} minutos`;
+            if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} horas`;
+            return `Hace ${Math.floor(diff / 86400)} días`;
+        }
+
+        // Mostrar estado
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+
+            if (type !== 'info') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Replay del historial
+        function replayHistory(id) {
+            const item = state.history.find(h => h.id === id);
+            if (!item) return;
+
+            // Aplicar configuración
+            document.getElementById('introSlider').value = item.options.intro_silence;
+            document.getElementById('outroSlider').value = item.options.outro_silence;
+            document.getElementById('musicVolumeSlider').value = item.options.music_volume * 100;
+            document.getElementById('voiceVolumeSlider').value = item.options.voice_volume * 100;
+            document.getElementById('fadeInSlider').value = item.options.fade_in;
+            document.getElementById('fadeOutSlider').value = item.options.fade_out;
+            document.getElementById('duckingEnabled').checked = item.options.music_duck;
+            document.getElementById('musicSelect').value = item.options.music_file;
+
+            // Actualizar valores mostrados
+            initializeSliders();
+            updateTimeline();
+
+            showStatus('Configuración del historial aplicada', 'success');
+        }
+
+        // Eliminar del historial
+        function deleteHistory(id) {
+            state.history = state.history.filter(h => h.id !== id);
+            localStorage.setItem('jingleHistory', JSON.stringify(state.history));
+            renderHistory();
+            showStatus('Eliminado del historial', 'success');
+        }
+    </script>
+</body>
+</html>

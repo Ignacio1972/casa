@@ -1,0 +1,44 @@
+CASA COSTANERA - STABLE RELEASE
+================================
+Version: 2.0.0-stable
+Release Date: 2025-09-11
+Build: 20250911_183330
+
+CHANGELOG:
+----------
+[2.0.0] - 2025-09-11
+* Sistema de autenticación simple implementado
+* Integración completa de música/jingles en Dashboard
+* Admin Voces 100% funcional
+* Configuración API v3 ElevenLabs preservada
+* Sistema legacy de voice manager eliminado
+* Integración Claude AI para sugerencias
+* Sistema de categorías unificado
+* Errores de quota system resueltos
+
+FEATURES:
+---------
+- Dashboard con selector de música integrado
+- Admin Voces para gestión completa de voces
+- Jingle Studio para configuración avanzada
+- Claude AI integration para generación de textos
+- Sistema TTS con ElevenLabs
+- Calendario con programación de mensajes
+- Campañas con categorías sincronizadas
+
+TESTED COMPONENTS:
+------------------
+✅ Dashboard TTS Generation
+✅ Voice Administration
+✅ API v3 Configuration
+✅ Jingle Generation
+✅ Music Selection
+✅ Authentication System
+✅ Claude AI Suggestions
+
+KNOWN ISSUES:
+-------------
+- Quota system disabled (not needed)
+- Monitors section incomplete (low priority)
+
+PRODUCTION READY: YES

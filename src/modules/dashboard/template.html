@@ -1,8 +1,24 @@
 <!-- MIGRADO: Los estilos ahora se cargan globalmente desde /styles-v5/main.css -->
 <!-- No es necesario importar CSS específicos del módulo -->
 
-<!-- Dashboard Grid -->
-<div class="dashboard-grid">
+<!-- Dashboard Tabs -->
+<div class="dashboard-tabs">
+    <button class="tab-button active" data-tab="manual" onclick="window.dashboardV2.switchTab('manual')">
+        <span class="tab-icon">✍️</span>
+        <span class="tab-text">Manual</span>
+    </button>
+    <button class="tab-button" data-tab="automatic" onclick="window.dashboardV2.switchTab('automatic')">
+        <span class="tab-icon">🎤</span>
+        <span class="tab-text">Automático</span>
+    </button>
+</div>
+
+<!-- Dashboard Content -->
+<div class="dashboard-content">
+    <!-- Manual Mode Content -->
+    <div id="manual-tab-content" class="tab-content active">
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
     
     <!-- PLACEHOLDER PARA COMPONENTE AI - Se llenará dinámicamente -->
     <div id="ai-suggestions-placeholder">
@@ -133,3 +149,10 @@
     </div>
 
 </div>
+    </div><!-- Cierre de manual-tab-content -->
+    
+    <!-- Automatic Mode Content -->
+    <div id="automatic-tab-content" class="tab-content" style="display: none;">
+        <!-- El contenido del modo automático se cargará aquí dinámicamente -->
+    </div>
+</div><!-- Cierre de dashboard-content -->

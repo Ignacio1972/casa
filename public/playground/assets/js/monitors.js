@@ -145,8 +145,16 @@
                     <strong>${quota.limit.toLocaleString()} chars</strong>
                 </div>
                 <div class="quota-row">
+                    <span>Disponible:</span>
+                    <strong>${quota.remaining.toLocaleString()} chars</strong>
+                </div>
+                <div class="quota-row">
                     <span>Porcentaje:</span>
                     <strong style="color: ${color}">${percentage}%</strong>
+                </div>
+                <div class="quota-row">
+                    <span>Requests:</span>
+                    <strong>${quota.requests || 0}</strong>
                 </div>
                 <div class="quota-row">
                     <span>Reset:</span>

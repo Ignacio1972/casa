@@ -1,0 +1,125 @@
+/**
+ * Dashboard Tabs Styles
+ * Estilos para el sistema de tabs del dashboard
+ */
+
+/* ========================================
+   CONTENEDOR DE TABS
+   ======================================== */
+.dashboard-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-gray-700);
+}
+
+/* ========================================
+   BOTONES DE TAB
+   ======================================== */
+.tab-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: transparent !important;
+    border: none;
+    border-radius: var(--border-radius-md);
+    color: #a6bdc9 !important; /* Color gris claro visible con important */
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tab-button:hover {
+    background: var(--bg-tertiary) !important;
+    color: #e9eff1 !important; /* Texto más claro al hover con important */
+}
+
+/* Tab activo */
+.tab-button.active {
+    background: var(--color-primary) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(56, 122, 222, 0.3);
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    height: 3px;
+    background: var(--color-primary);
+    border-radius: 2px;
+}
+
+/* Iconos de tab */
+.tab-icon {
+    font-size: 1.25rem;
+}
+
+.tab-text {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ========================================
+   CONTENIDO DE TABS
+   ======================================== */
+.dashboard-content {
+    position: relative;
+    min-height: 600px;
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+    .dashboard-tabs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .tab-button {
+        width: 100%;
+    }
+    
+    .tab-button.active::after {
+        display: none;
+    }
+    
+    .tab-text {
+        font-size: 0.85rem;
+    }
+}

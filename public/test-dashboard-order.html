@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard Order - Casa Costanera</title>
+    <link rel="stylesheet" href="/styles-v5/main.css">
+    <style>
+        .test-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 2px solid #333;
+            padding: 20px;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .test-controls h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .test-controls button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .test-controls button:hover {
+            background: #45a049;
+        }
+        
+        .dom-inspector {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .dom-item {
+            margin: 2px 0;
+            padding: 5px;
+            background: white;
+            border-left: 3px solid #ddd;
+        }
+        
+        .dom-item.ai-component {
+            border-color: #ff6b6b;
+            background: #fff5f5;
+        }
+        
+        .dom-item.generator {
+            border-color: #4CAF50;
+            background: #f5fff5;
+        }
+        
+        .dom-item.controls {
+            border-color: #2196F3;
+            background: #f5f9ff;
+        }
+        
+        .highlight-component {
+            outline: 3px solid red !important;
+            outline-offset: 2px;
+        }
+        
+        .test-info {
+            background: #e3f2fd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .test-solution {
+            background: #fff3e0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .test-solution h4 {
+            margin-top: 0;
+            color: #e65100;
+        }
+    </style>
+</head>
+<body>
+    <!-- Panel de Control de Test -->
+    <div class="test-controls">
+        <h3>🔧 Test Dashboard Order</h3>
+        
+        <div class="test-info">
+            <strong>Problema:</strong> El componente AI aparece al final en lugar del principio
+        </div>
+        
+        <!-- Inspector DOM -->
+        <div class="dom-inspector" id="domInspector">
+            <div>Cargando estructura DOM...</div>
+        </div>
+        
+        <!-- Controles de Test -->
+        <h4>🧪 Pruebas de Solución:</h4>
+        
+        <button onclick="testSolution1()">
+            Test 1: Mover AI al principio (JS)
+        </button>
+        
+        <button onclick="testSolution2()">
+            Test 2: Aplicar Grid Order (CSS)
+        </button>
+        
+        <button onclick="testSolution3()">
+            Test 3: Flexbox con Order
+        </button>
+        
+        <button onclick="testSolution4()">
+            Test 4: Insertar antes del primer hijo
+        </button>
+        
+        <button onclick="highlightAIComponent()">
+            🔍 Resaltar componente AI
+        </button>
+        
+        <button onclick="resetDashboard()">
+            🔄 Reset Dashboard
+        </button>
+        
+        <button onclick="inspectDOM()">
+            📊 Actualizar Inspector DOM
+        </button>
+        
+        <!-- Resultado -->
+        <div class="test-solution" id="testResult">
+            <h4>Resultado:</h4>
+            <div id="resultText">Esperando prueba...</div>
+        </div>
+    </div>
+    
+    <!-- Container principal donde se carga el dashboard -->
+    <div id="app"></div>
+    
+    <!-- Cargamos el sistema principal -->
+    <script src="/src/core/api-client.js"></script>
+    <script src="/src/core/event-bus.js"></script>
+    <script src="/src/core/module-loader.js"></script>
+    
+    <script type="module">
+        import DashboardV2Module from '/src/modules/dashboard/index.js';
+        import AISuggestionsComponent from '/src/modules/dashboard/components/ai-suggestions.js';
+        
+        // Hacer disponibles globalmente para testing
+        window.DashboardV2Module = DashboardV2Module;
+        window.AISuggestionsComponent = AISuggestionsComponent;
+        
+        // Inicializar dashboard
+        const dashboard = new DashboardV2Module();
+        window.dashboardInstance = dashboard;
+        
+        async function initDashboard() {
+            const appContainer = document.getElementById('app');
+            await dashboard.load(appContainer);
+            
+            // Inspeccionar DOM inicial
+            setTimeout(() => {
+                inspectDOM();
+            }, 1000);
+        }
+        
+        initDashboard();
+    </script>
+    
+    <script>
+        // Función para inspeccionar el DOM
+        function inspectDOM() {
+            const grid = document.querySelector('.dashboard-grid');
+            const inspector = document.getElementById('domInspector');
+            
+            if (!grid) {
+                inspector.innerHTML = '<div style="color: red;">Dashboard grid no encontrado!</div>';
+                return;
+            }
+            
+            let html = '<div><strong>Estructura DOM actual:</strong></div>';
+            const children = grid.children;
+            
+            for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                const classes = child.className;
+                const title = child.querySelector('.card-title')?.textContent || 
+                             child.querySelector('h2')?.textContent || 
+                             child.querySelector('h3')?.textContent || 
+                             'Sin título';
+                
+                let itemClass = 'dom-item';
+                if (classes.includes('ai-')) itemClass += ' ai-component';
+                else if (classes.includes('create-message')) itemClass += ' generator';
+                else if (classes.includes('controls')) itemClass += ' controls';
+                
+                html += `
+                    <div class="${itemClass}">
+                        ${i + 1}. ${title}<br>
+                        <small>Classes: ${classes}</small>
+                    </div>
+                `;
+            }
+            
+            inspector.innerHTML = html;
+        }
+        
+        // Test 1: Mover con JavaScript
+        function testSolution1() {
+            const grid = document.querySelector('.dashboard-grid');
+            const aiComponent = document.querySelector('.ai-suggestions-container');
+            
+            if (grid && aiComponent) {
+                grid.insertBefore(aiComponent, grid.firstChild);
+                document.getElementById('resultText').innerHTML = 
+                    '✅ AI movido al principio con JS<br>' +
+                    '<code>grid.insertBefore(aiComponent, grid.firstChild)</code>';
+                inspectDOM();
+            } else {
+                document.getElementById('resultText').innerHTML = 
+                    '❌ No se encontró el componente AI o el grid';
+            }
+        }
+        
+        // Test 2: Aplicar Grid Order
+        function testSolution2() {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: grid !important;
+                }
+                .ai-suggestions-container {
+                    grid-row: 1 !important;
+                    grid-column: 1 !important;
+                }
+                .create-message {
+                    grid-row: 2 !important;
+                    grid-column: 1 !important;
+                }
+                .controls-section {
+                    grid-row: 3 !important;
+                    grid-column: 1 !important;
+                }
+                .recent-messages {
+                    grid-column: 2 !important;
+                    grid-row: 1 / 4 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.getElementById('resultText').innerHTML = 
+                '✅ CSS Grid order aplicado<br>' +
+                '<code>grid-row: 1 para AI</code>';
+            inspectDOM();
+        }
+        
+        // Test 3: Flexbox con Order
+        function testSolution3() {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: flex !important;
+                    flex-wrap: wrap !important;
+                }
+                .ai-suggestions-container {
+                    order: 1 !important;
+                    flex: 1 1 60% !important;
+                }
+                .create-message {
+                    order: 2 !important;
+                    flex: 1 1 60% !important;
+                }
+                .controls-section {
+                    order: 3 !important;
+                    flex: 1 1 60% !important;
+                }
+                .recent-messages {
+                    order: 4 !important;
+                    flex: 1 1 40% !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.getElementById('resultText').innerHTML = 
+                '✅ Flexbox con order aplicado<br>' +
+                '<code>order: 1 para AI</code>';
+            inspectDOM();
+        }
+        
+        // Test 4: Insertar antes del primer hijo
+        function testSolution4() {
+            const grid = document.querySelector('.dashboard-grid');
+            const aiComponent = document.querySelector('.ai-suggestions-container');
+            
+            if (grid && aiComponent) {
+                // Primero removemos el componente si existe
+                if (aiComponent.parentNode === grid) {
+                    grid.removeChild(aiComponent);
+                }
+                
+                // Crear un wrapper si no es hijo directo
+                const wrapper = document.createElement('div');
+                wrapper.className = 'ai-wrapper-test';
+                wrapper.appendChild(aiComponent);
+                
+                // Insertar al principio
+                grid.insertBefore(wrapper, grid.firstChild);
+                
+                document.getElementById('resultText').innerHTML = 
+                    '✅ AI insertado con wrapper<br>' +
+                    '<code>Creado wrapper y movido al principio</code>';
+                inspectDOM();
+            } else {
+                document.getElementById('resultText').innerHTML = 
+                    '❌ No se encontró el componente AI o el grid';
+            }
+        }
+        
+        // Resaltar componente AI
+        function highlightAIComponent() {
+            const aiComponent = document.querySelector('.ai-suggestions-container');
+            if (aiComponent) {
+                // Quitar highlight anterior
+                document.querySelectorAll('.highlight-component').forEach(el => {
+                    el.classList.remove('highlight-component');
+                });
+                
+                // Agregar highlight
+                aiComponent.classList.add('highlight-component');
+                
+                // Scroll into view
+                aiComponent.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                document.getElementById('resultText').innerHTML = 
+                    '🔍 Componente AI resaltado en rojo';
+            } else {
+                document.getElementById('resultText').innerHTML = 
+                    '❌ Componente AI no encontrado';
+            }
+        }
+        
+        // Reset Dashboard
+        function resetDashboard() {
+            location.reload();
+        }
+        
+        // Auto-actualizar inspector cada 2 segundos
+        setInterval(() => {
+            // Solo actualizar si el dashboard está cargado
+            if (document.querySelector('.dashboard-grid')) {
+                inspectDOM();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

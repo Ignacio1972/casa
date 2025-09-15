@@ -1,0 +1,44 @@
+=====================================
+BACKUP DE PLAYGROUND - VERSIÓN ESTABLE
+=====================================
+
+Fecha: 2024-09-04 11:58:28
+Archivo: playground-stable-20250904_115828.tar.gz
+Tamaño: ~19KB
+Ubicación: /var/www/casa/public/
+
+CONTENIDO DEL BACKUP:
+--------------------
+✅ /playground/index.html - Playground principal
+✅ /playground/api/ - APIs del playground (quota.php, etc.)
+✅ /playground/assets/css/ - Estilos CSS
+✅ /playground/assets/js/ - JavaScript (playground.js, monitors.js, voice-admin.js)
+✅ /playground/logger/ - Sistema de logs
+
+PARA RESTAURAR:
+--------------
+1. Hacer backup del playground actual:
+   mv /var/www/casa/public/playground /var/www/casa/public/playground.old
+
+2. Extraer el backup:
+   cd /var/www/casa/public
+   tar -xzf playground-stable-20250904_115828.tar.gz
+   
+3. Renombrar al directorio original:
+   mv playground-backup-stable-20250904_115828 playground
+
+4. Verificar permisos si es necesario:
+   chown -R www-data:www-data playground
+
+NOTAS:
+------
+- Este backup es una versión estable después de la limpieza de Eleven Labs
+- Los controles de voz del dashboard están funcionando correctamente
+- El textarea del generador tiene altura de 300px
+- No incluye archivos de prueba de Eleven Labs (fueron eliminados)
+
+Estado del sistema al momento del backup:
+- Sistema CASA Costanera: Funcionando
+- Dashboard: Operativo
+- Controles de voz: Conectados y funcionando
+- API PHP de Eleven Labs: Configurada

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Modo Automático</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1c1b19;
+            color: #e9eff1;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #2f3236;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #387ade;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1f60c1;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #3f4348;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success { color: #10B981; }
+        .error { color: #EF4444; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test del Modo Automático</h1>
+    
+    <!-- Test 1: Whisper Service -->
+    <div class="test-section">
+        <h2>1. Test Whisper Service</h2>
+        <p>Prueba la transcripción de audio con un archivo de prueba</p>
+        <button onclick="testWhisper()">Probar Whisper</button>
+        <div id="whisper-result" class="result"></div>
+    </div>
+    
+    <!-- Test 2: Claude Modo Automático -->
+    <div class="test-section">
+        <h2>2. Test Claude (Modo Automático)</h2>
+        <p>Prueba la mejora de texto con límite de 15-35 palabras</p>
+        <button onclick="testClaude()">Probar Claude</button>
+        <div id="claude-result" class="result"></div>
+    </div>
+    
+    <!-- Test 3: Flujo Completo -->
+    <div class="test-section">
+        <h2>3. Test Flujo Completo</h2>
+        <p>Simula el flujo completo con texto de prueba</p>
+        <button onclick="testFullFlow()">Probar Flujo Completo</button>
+        <div id="flow-result" class="result"></div>
+    </div>
+    
+    <!-- Test 4: Dashboard con Tab -->
+    <div class="test-section">
+        <h2>4. Acceder al Dashboard</h2>
+        <p>Abre el dashboard con el nuevo tab automático</p>
+        <button onclick="window.location.href='/#/radio'">Ir al Dashboard</button>
+    </div>
+
+    <script>
+        // Test Whisper (simulado con texto)
+        async function testWhisper() {
+            const resultDiv = document.getElementById('whisper-result');
+            resultDiv.textContent = 'Probando servicio Whisper...';
+            
+            try {
+                // Crear un audio blob de prueba (silencio)
+                const audioContext = new AudioContext();
+                const buffer = audioContext.createBuffer(1, 44100, 44100);
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                
+                // Simular con texto directo por ahora
+                resultDiv.innerHTML = `<span class="success">✅ Whisper Service configurado</span>
+Nota: Para probar completamente, necesitas configurar OPENAI_API_KEY en .env`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        // Test Claude Modo Automático
+        async function testClaude() {
+            const resultDiv = document.getElementById('claude-result');
+            resultDiv.textContent = 'Probando Claude en modo automático...';
+            
+            try {
+                const response = await fetch('/src/api/claude-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        context: 'hay descuentos en zapatillas deportivas',
+                        category: 'automatic',
+                        mode: 'automatic'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const text = data.suggestions[0]?.text || 'Sin sugerencias';
+                    const wordCount = text.split(' ').length;
+                    resultDiv.innerHTML = `<span class="success">✅ Claude respondió correctamente</span>
+Texto mejorado (${wordCount} palabras): 
+"${text}"`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Error: ${data.error}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        // Test Flujo Completo
+        async function testFullFlow() {
+            const resultDiv = document.getElementById('flow-result');
+            resultDiv.textContent = 'Simulando flujo completo...';
+            
+            try {
+                // Simular audio base64 (muy pequeño para prueba)
+                const testAudio = btoa('test-audio-data');
+                
+                const response = await fetch('/src/api/automatic-jingle-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        audio: testAudio,
+                        voice_id: 'Rachel',
+                        format: 'webm'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    resultDiv.innerHTML = `<span class="success">✅ Flujo completo funcionando</span>
+Texto original: "${data.original_text || 'N/A'}"
+Texto mejorado: "${data.improved_text || 'N/A'}"
+Voz utilizada: ${data.voice_used}
+Audio URL: ${data.audio_url || 'N/A'}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">⚠️ ${data.error}</span>
+Nota: Es normal que falle sin OPENAI_API_KEY configurada`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

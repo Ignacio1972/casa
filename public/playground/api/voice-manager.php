@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 $voicesFile = __DIR__ . '/../../api/data/custom-voices.json';
+$configFile = __DIR__ . '/../../../src/api/data/api-config.json';
 
 // Crear archivo si no existe
 if (!file_exists($voicesFile)) {
@@ -68,6 +69,31 @@ switch($action) {
         // Aquí podrías hacer una llamada a ElevenLabs para verificar
         // Por ahora solo retornamos success
         echo json_encode(['success' => true, 'valid' => true]);
+        break;
+        
+    case 'get_config':
+        // Cargar configuración de API
+        if (file_exists($configFile)) {
+            $config = json_decode(file_get_contents($configFile), true);
+        } else {
+            $config = ['use_v3_api' => false];
+        }
+        echo json_encode(['success' => true, 'config' => $config]);
+        break;
+        
+    case 'save_config':
+        // Guardar configuración de API
+        $config = $input['config'] ?? [];
+        
+        // Crear directorio si no existe
+        if (!file_exists(dirname($configFile))) {
+            mkdir(dirname($configFile), 0755, true);
+        }
+        
+        // Guardar configuración
+        file_put_contents($configFile, json_encode($config, JSON_PRETTY_PRINT));
+        
+        echo json_encode(['success' => true, 'message' => 'Configuración guardada']);
         break;
         
     default:

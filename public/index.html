@@ -21,26 +21,23 @@
     <header class="header" style="padding: 1.2rem 0;">
         <div class="header-content" style="padding: 0 2rem; align-items: center;">
             <div class="logo">
-                <div class="logo-icon" style="background: none; width: 130px; height: 65px; border-radius: 0; margin-right: 15px; margin-top: 0; margin-bottom: 0;">
-                    <img src="/styles-v5/icons/casa2.svg" alt="Casa Costanera" style="width: 100%; height: 100%; object-fit: contain; filter: invert(1) brightness(100);">
+                <div class="logo-icon" style="background: none; width: 145px; height: 72px; border-radius: 0; margin-left: 30px; margin-right: 15px; margin-top: 0; margin-bottom: 0;">
+                    <img src="/styles-v5/icons/lider.png" alt="Lider" style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
-                <div class="logo-text">
+                <!-- <div class="logo-text">
                     <div class="logo-title" style="font-size: 2rem; font-weight: 700;">Casa Costanera</div>
                     <div class="logo-subtitle" style="font-size: 1.1rem;">Sistema de Radio Automatizada</div>
-                </div>
+                </div> -->
             </div>
             <nav class="header-nav">
-                <a href="#dashboard" class="nav-link active" data-view="dashboard">
-                    <span class="nav-icon">📊</span> Dashboard
+                <a href="#dashboard" class="nav-link active" data-view="dashboard" style="display: flex; align-items: center;">
+                    <img src="/styles-v5/icons/dash.svg" alt="Dashboard" style="width: 20px; height: 20px; margin-right: 8px; filter: brightness(0) invert(1);"> Dashboard
                 </a>
-                <a href="#campaigns" class="nav-link" data-view="campaigns">
-                    <span class="nav-icon">📚</span> Campañas
+                <a href="#campaigns" class="nav-link" data-view="campaigns" style="display: flex; align-items: center;">
+                    <img src="/styles-v5/icons/star.svg" alt="Campañas" style="width: 20px; height: 20px; margin-right: 8px; filter: brightness(0) saturate(100%) invert(84%) sepia(37%) saturate(2065%) hue-rotate(356deg) brightness(103%) contrast(103%);"> Campañas
                 </a>
-                <a href="#calendar" class="nav-link" data-view="calendar">
-                    <span class="nav-icon">📅</span> Calendario
-                </a>
-                <a href="/playground/claude.html" class="nav-link" target="_blank">
-                    <span class="nav-icon">🤖</span> Claude AI
+                <a href="#calendar" class="nav-link" data-view="calendar" style="display: flex; align-items: center;">
+                    <img src="/styles-v5/icons/calendar.svg" alt="Calendario" style="width: 20px; height: 20px; margin-right: 8px; filter: brightness(0) saturate(100%) invert(85%) sepia(15%) saturate(854%) hue-rotate(90deg) brightness(95%) contrast(91%);"> Calendario
                 </a>
             </nav>
         </div>
@@ -167,6 +164,7 @@
                     // Mapeo de rutas para compatibilidad
                     const moduleMap = {
                         'dashboard': 'dashboard',
+                        'dashboard-new': 'dashboard-redesign',
                         'campaigns': 'campaigns', 
                         'calendar': 'calendar',
                         'audio-archive': 'audio-archive'

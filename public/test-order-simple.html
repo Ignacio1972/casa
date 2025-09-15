@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Order Simple - Casa Costanera</title>
+    <link rel="stylesheet" href="/styles-v5/main.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid #333;
+            padding: 20px;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .test-panel h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .test-button {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #45a049;
+        }
+        
+        .test-button.danger {
+            background: #f44336;
+        }
+        
+        .test-button.danger:hover {
+            background: #da190b;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .dom-structure {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .dom-element {
+            margin: 2px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 2px;
+        }
+        
+        .ai-element {
+            background: #ffebee;
+            border-left: 3px solid #f44336;
+        }
+        
+        .highlight-ai {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+        
+        .status-message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .status-success {
+            background: #c8e6c9;
+            color: #1b5e20;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .status-error {
+            background: #ffcdd2;
+            color: #b71c1c;
+            border-left: 4px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- Panel de control -->
+    <div class="test-panel">
+        <h2>🔧 Test Orden Dashboard</h2>
+        
+        <div class="info-box">
+            <strong>Problema:</strong><br>
+            El componente AI aparece después del generador de mensajes en lugar de antes.
+        </div>
+        
+        <div id="domStructure" class="dom-structure">
+            Esperando carga del dashboard...
+        </div>
+        
+        <button class="test-button" onclick="loadDashboard()">
+            1️⃣ Cargar Dashboard Original
+        </button>
+        
+        <button class="test-button" onclick="testMoveAI()">
+            2️⃣ Test: Mover AI al principio
+        </button>
+        
+        <button class="test-button" onclick="testCSSFix()">
+            3️⃣ Test: Aplicar CSS Fix
+        </button>
+        
+        <button class="test-button" onclick="testFlexboxFix()">
+            4️⃣ Test: Flexbox + Order
+        </button>
+        
+        <button class="test-button" onclick="findAIComponent()">
+            🔍 Buscar componente AI
+        </button>
+        
+        <button class="test-button danger" onclick="location.reload()">
+            🔄 Reiniciar Todo
+        </button>
+        
+        <div id="statusMessage"></div>
+    </div>
+    
+    <!-- Contenedor principal -->
+    <div id="app" class="container"></div>
+    
+    <!-- Scripts base -->
+    <script src="/src/core/event-bus.js"></script>
+    <script src="/src/core/api-client.js"></script>
+    <script src="/src/core/module-loader.js"></script>
+    
+    <script>
+        // Función para mostrar estructura DOM
+        function showDOMStructure() {
+            const container = document.querySelector('.dashboard-grid');
+            const domDiv = document.getElementById('domStructure');
+            
+            if (!container) {
+                domDiv.innerHTML = '<div style="color: red;">❌ Dashboard-grid no encontrado</div>';
+                return;
+            }
+            
+            let html = '<strong>Estructura actual:</strong><br>';
+            const children = Array.from(container.children);
+            
+            children.forEach((child, index) => {
+                const title = child.querySelector('.card-title, h2, h3')?.textContent?.trim() || 'Sin título';
+                const classes = child.className;
+                const isAI = classes.includes('ai-') || title.includes('IA') || title.includes('Asistente');
+                
+                html += `<div class="dom-element ${isAI ? 'ai-element' : ''}">
+                    ${index + 1}. ${title}
+                    <br><small>${classes}</small>
+                </div>`;
+            });
+            
+            domDiv.innerHTML = html;
+        }
+        
+        // Función para cargar el dashboard
+        async function loadDashboard() {
+            try {
+                showStatus('Cargando dashboard...', 'info');
+                
+                // Cargar el módulo dashboard usando el moduleLoader global
+                await window.moduleLoader.loadModule('dashboard');
+                
+                // Esperar a que se renderice
+                setTimeout(() => {
+                    showDOMStructure();
+                    showStatus('✅ Dashboard cargado', 'success');
+                }, 1000);
+                
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error cargando dashboard:', error);
+            }
+        }
+        
+        // Test 1: Mover AI al principio con JavaScript
+        function testMoveAI() {
+            const grid = document.querySelector('.dashboard-grid');
+            const aiComponent = document.querySelector('.ai-suggestions-container');
+            
+            if (!grid) {
+                showStatus('❌ No se encontró dashboard-grid', 'error');
+                return;
+            }
+            
+            if (!aiComponent) {
+                showStatus('❌ No se encontró componente AI', 'error');
+                return;
+            }
+            
+            // Mover al principio
+            grid.insertBefore(aiComponent, grid.firstChild);
+            
+            showStatus('✅ AI movido al principio con JavaScript', 'success');
+            showDOMStructure();
+        }
+        
+        // Test 2: Aplicar CSS fix
+        function testCSSFix() {
+            const style = document.createElement('style');
+            style.id = 'css-fix';
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: grid !important;
+                    grid-template-rows: auto auto auto !important;
+                }
+                
+                .ai-suggestions-container {
+                    grid-row: 1 !important;
+                    grid-column: 1 !important;
+                }
+                
+                .create-message {
+                    grid-row: 2 !important;
+                    grid-column: 1 !important;
+                }
+                
+                .controls-section {
+                    grid-row: 3 !important;
+                    grid-column: 1 !important;
+                }
+                
+                .recent-messages {
+                    grid-column: 2 !important;
+                    grid-row: 1 / 4 !important;
+                }
+            `;
+            
+            // Remover estilo anterior si existe
+            const oldStyle = document.getElementById('css-fix');
+            if (oldStyle) oldStyle.remove();
+            
+            document.head.appendChild(style);
+            
+            showStatus('✅ CSS Grid fix aplicado', 'success');
+            setTimeout(showDOMStructure, 100);
+        }
+        
+        // Test 3: Flexbox con order
+        function testFlexboxFix() {
+            const style = document.createElement('style');
+            style.id = 'flexbox-fix';
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: flex !important;
+                    flex-wrap: wrap !important;
+                }
+                
+                .dashboard-grid > * {
+                    flex: 1 1 calc(60% - 20px) !important;
+                    margin: 10px !important;
+                }
+                
+                .ai-suggestions-container {
+                    order: 1 !important;
+                }
+                
+                .create-message {
+                    order: 2 !important;
+                }
+                
+                .controls-section {
+                    order: 3 !important;
+                }
+                
+                .recent-messages {
+                    order: 4 !important;
+                    flex: 1 1 calc(40% - 20px) !important;
+                }
+            `;
+            
+            // Remover estilo anterior si existe
+            const oldStyle = document.getElementById('flexbox-fix');
+            if (oldStyle) oldStyle.remove();
+            
+            document.head.appendChild(style);
+            
+            showStatus('✅ Flexbox + Order aplicado', 'success');
+            setTimeout(showDOMStructure, 100);
+        }
+        
+        // Buscar componente AI
+        function findAIComponent() {
+            const aiSelectors = [
+                '.ai-suggestions-container',
+                '.ai-assistant-card',
+                '.ai-panel',
+                '[class*="ai-"]',
+                '[id*="ai"]'
+            ];
+            
+            let found = false;
+            let message = 'Buscando componente AI:<br>';
+            
+            aiSelectors.forEach(selector => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    found = true;
+                    message += `✅ Encontrado: ${selector}<br>`;
+                    element.classList.add('highlight-ai');
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    message += `❌ No encontrado: ${selector}<br>`;
+                }
+            });
+            
+            showStatus(message, found ? 'success' : 'error');
+            
+            if (found) {
+                setTimeout(() => {
+                    document.querySelectorAll('.highlight-ai').forEach(el => {
+                        el.classList.remove('highlight-ai');
+                    });
+                }, 3000);
+            }
+        }
+        
+        // Mostrar mensaje de estado
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusMessage');
+            let className = 'status-message';
+            
+            if (type === 'success') className += ' status-success';
+            else if (type === 'error') className += ' status-error';
+            else className += ' info-box';
+            
+            statusDiv.innerHTML = `<div class="${className}">${message}</div>`;
+        }
+        
+        // Auto-actualizar estructura cada 2 segundos
+        setInterval(() => {
+            if (document.querySelector('.dashboard-grid')) {
+                showDOMStructure();
+            }
+        }, 2000);
+        
+        // Intentar cargar dashboard automáticamente
+        window.addEventListener('load', () => {
+            setTimeout(loadDashboard, 500);
+        });
+    </script>
+</body>
+</html>

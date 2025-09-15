@@ -45,6 +45,9 @@ export default class DashboardV2Module {
         // Intervalo para actualizaciones
         this.messagesInterval = null;
         
+        // Módulo automático
+        this.automaticModule = null;
+        
         // Exponer para onclick handlers
         window.dashboardV2 = this;
     }
@@ -377,6 +380,7 @@ export default class DashboardV2Module {
                     action: 'generate',
                     text: text,
                     voice: this.state.selectedVoice,
+                    category: this.state.selectedCategory, // Agregar categoría para que se guarde en BD
                     options: jingleOptionsWithVoice
                 });
                 
@@ -386,7 +390,8 @@ export default class DashboardV2Module {
                     this.playAudio(audioUrl);
                     this.showSuccess(`¡Jingle generado! Duración: ${response.duration?.toFixed(1) || 'N/A'}s`);
                     
-                    // TODO: Guardar jingle en biblioteca si el usuario lo desea
+                    // Actualizar mensajes recientes para que aparezca el jingle
+                    await this.loadRecentMessages();
                 } else {
                     throw new Error(response.error || 'Error al generar jingle');
                 }
@@ -667,9 +672,61 @@ export default class DashboardV2Module {
     }
     
     /**
+     * Cambiar entre tabs
+     */
+    async switchTab(tabName) {
+        console.log('Switching to tab:', tabName);
+        
+        // Actualizar botones de tab
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // Cambiar contenido
+        if (tabName === 'manual') {
+            document.getElementById('manual-tab-content').style.display = 'block';
+            document.getElementById('automatic-tab-content').style.display = 'none';
+            
+            // Descargar módulo automático si está cargado
+            if (this.automaticModule) {
+                this.automaticModule.unload();
+                this.automaticModule = null;
+            }
+        } else if (tabName === 'automatic') {
+            document.getElementById('manual-tab-content').style.display = 'none';
+            const automaticContainer = document.getElementById('automatic-tab-content');
+            automaticContainer.style.display = 'block';
+            
+            // Cargar módulo automático si no está cargado
+            if (!this.automaticModule) {
+                try {
+                    // Mostrar mensaje de carga temporal
+                    automaticContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: #a6bdc9;">Cargando módulo automático...</div>';
+                    
+                    const { default: AutomaticModeModule } = await import('../automatic/index.js');
+                    this.automaticModule = new AutomaticModeModule();
+                    await this.automaticModule.load(automaticContainer);
+                } catch (error) {
+                    console.error('Error loading automatic module:', error);
+                    automaticContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: #ef4444;">Error al cargar el módulo automático. Por favor recarga la página.</div>';
+                }
+            }
+        }
+    }
+    
+    /**
      * Descarga el módulo
      */
     async unload() {
+        // Descargar módulo automático si está cargado
+        if (this.automaticModule) {
+            this.automaticModule.unload();
+            this.automaticModule = null;
+        }
+        
         // Limpiar estilos del módulo
         const moduleStyles = document.querySelectorAll(`link[data-module="${this.name}"]`);
         moduleStyles.forEach(link => link.remove());

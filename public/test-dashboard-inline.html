@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard Order - Casa Costanera</title>
+    <link rel="stylesheet" href="/styles-v5/main.css">
+    <style>
+        /* Banner de control super visible */
+        .test-control {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            z-index: 99999;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .test-control h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        
+        .test-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            background: white;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .test-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .test-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        /* Panel de información */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 99998;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            font-size: 16px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .component-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f5f5f5;
+            border-radius: 4px;
+            border-left: 4px solid #ddd;
+            font-size: 13px;
+        }
+        
+        .component-item.ai {
+            border-color: #ff4444;
+            background: #ffeeee;
+            font-weight: bold;
+        }
+        
+        .component-item.generator {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .component-item.controls {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        
+        .component-item.messages {
+            border-color: #9c27b0;
+            background: #f3e5f5;
+        }
+        
+        /* Ajuste para el banner */
+        body {
+            padding-top: 100px !important;
+        }
+        
+        /* Highlight AI */
+        .highlight-ai {
+            outline: 4px solid red !important;
+            outline-offset: 2px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            50% { outline-color: yellow; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Banner de Control -->
+    <div class="test-control">
+        <h2>🔴 TEST: REORDENAR COMPONENTES DEL DASHBOARD</h2>
+        <div class="test-buttons">
+            <button class="test-btn" onclick="checkStatus()">
+                1. Ver Estado Actual
+            </button>
+            <button class="test-btn" onclick="findAIComponent()">
+                2. Buscar Componente AI
+            </button>
+            <button class="test-btn" onclick="solution1()">
+                3. Aplicar Solución JS
+            </button>
+            <button class="test-btn" onclick="solution2()">
+                4. Aplicar Solución CSS
+            </button>
+            <button class="test-btn" onclick="solution3()">
+                5. Aplicar Solución Flex
+            </button>
+            <button class="test-btn" onclick="location.reload()">
+                🔄 Reiniciar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Panel de Información -->
+    <div class="info-panel">
+        <h3>📊 Estado del Dashboard</h3>
+        <div id="componentList">
+            <p>Esperando carga del dashboard...</p>
+        </div>
+        <div id="statusMessage" style="margin-top: 10px; padding: 10px; display: none;"></div>
+    </div>
+    
+    <!-- Dashboard va aquí -->
+    <div id="dashboard">
+        <p style="text-align: center; padding: 50px;">
+            Cargando dashboard manualmente...<br>
+            <button onclick="loadDashboardManual()" style="margin-top: 20px; padding: 10px 20px;">
+                Cargar Dashboard Ahora
+            </button>
+        </p>
+    </div>
+    
+    <script>
+        // Función para cargar el dashboard manualmente
+        function loadDashboardManual() {
+            // Crear estructura básica del dashboard
+            const dashboardHTML = `
+                <div class="dashboard-grid">
+                    <!-- Generador de Mensajes (actualmente primero) -->
+                    <div class="card create-message">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <span class="card-icon">🎙️</span>
+                                Generador de Mensajes
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <textarea placeholder="Escriba aquí el mensaje..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Controles de Voz -->
+                    <div class="card controls-section">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <span class="card-icon">🎛️</span>
+                                Controles de Voz
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            Controles aquí...
+                        </div>
+                    </div>
+                    
+                    <!-- Mensajes Recientes -->
+                    <div class="card recent-messages">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <span class="card-icon">📝</span>
+                                Mensajes Recientes
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            Lista de mensajes...
+                        </div>
+                    </div>
+                    
+                    <!-- Componente AI (se agrega al final por JavaScript) -->
+                    <div class="ai-suggestions-container">
+                        <div class="card ai-assistant-card">
+                            <div class="card-header">
+                                <h2 class="card-title">
+                                    <span class="card-icon">🤖</span>
+                                    Asistente de IA para Anuncios
+                                </h2>
+                            </div>
+                            <div class="card-body">
+                                Panel de sugerencias IA...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('dashboard').innerHTML = dashboardHTML;
+            
+            // Actualizar estado
+            setTimeout(checkStatus, 500);
+        }
+        
+        // Verificar estado actual
+        function checkStatus() {
+            const grid = document.querySelector('.dashboard-grid');
+            const listDiv = document.getElementById('componentList');
+            
+            if (!grid) {
+                listDiv.innerHTML = '<p style="color: red;">❌ No se encontró dashboard-grid</p>';
+                return;
+            }
+            
+            const children = Array.from(grid.children);
+            let html = '';
+            
+            children.forEach((child, index) => {
+                const title = child.querySelector('.card-title')?.textContent?.trim() || 'Sin título';
+                const classes = child.className;
+                
+                let type = '';
+                if (classes.includes('ai-') || title.includes('IA') || title.includes('Asistente')) {
+                    type = 'ai';
+                } else if (classes.includes('create-message') || title.includes('Generador')) {
+                    type = 'generator';
+                } else if (classes.includes('controls')) {
+                    type = 'controls';
+                } else if (classes.includes('recent') || title.includes('Recientes')) {
+                    type = 'messages';
+                }
+                
+                html += `
+                    <div class="component-item ${type}">
+                        <strong>${index + 1}.</strong> ${title}
+                        <br><small>Clases: ${classes}</small>
+                    </div>
+                `;
+            });
+            
+            listDiv.innerHTML = html;
+            
+            // Verificar si AI está primero
+            const firstChild = children[0];
+            if (firstChild && firstChild.className.includes('ai-')) {
+                showMessage('✅ ¡Éxito! El componente AI está primero', 'success');
+            } else {
+                showMessage('⚠️ El componente AI NO está primero', 'warning');
+            }
+        }
+        
+        // Buscar componente AI
+        function findAIComponent() {
+            // Limpiar highlights anteriores
+            document.querySelectorAll('.highlight-ai').forEach(el => {
+                el.classList.remove('highlight-ai');
+            });
+            
+            const ai = document.querySelector('.ai-suggestions-container, .ai-assistant-card, [class*="ai-"]');
+            
+            if (ai) {
+                ai.classList.add('highlight-ai');
+                ai.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showMessage('🎯 Componente AI encontrado y resaltado en rojo', 'success');
+                
+                // Info adicional
+                const parent = ai.parentElement;
+                const index = Array.from(parent.children).indexOf(ai);
+                showMessage(`Posición actual: ${index + 1} de ${parent.children.length}`, 'info');
+            } else {
+                showMessage('❌ No se encontró el componente AI', 'error');
+            }
+        }
+        
+        // Solución 1: JavaScript
+        function solution1() {
+            const grid = document.querySelector('.dashboard-grid');
+            const ai = document.querySelector('.ai-suggestions-container, .ai-assistant-card, [class*="ai-"]');
+            
+            if (grid && ai) {
+                // Mover al principio
+                grid.insertBefore(ai, grid.firstChild);
+                
+                showMessage('✅ Solución JavaScript aplicada', 'success');
+                checkStatus();
+            } else {
+                showMessage('❌ No se pudo aplicar la solución', 'error');
+            }
+        }
+        
+        // Solución 2: CSS Grid
+        function solution2() {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: grid !important;
+                }
+                .ai-suggestions-container,
+                .ai-assistant-card {
+                    grid-row: 1 !important;
+                    grid-column: 1 !important;
+                }
+                .create-message {
+                    grid-row: 2 !important;
+                    grid-column: 1 !important;
+                }
+                .controls-section {
+                    grid-row: 3 !important;
+                    grid-column: 1 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            showMessage('✅ Solución CSS Grid aplicada', 'success');
+            checkStatus();
+        }
+        
+        // Solución 3: Flexbox
+        function solution3() {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: flex !important;
+                    flex-direction: column !important;
+                }
+                .ai-suggestions-container,
+                .ai-assistant-card {
+                    order: -1 !important;
+                }
+                .create-message {
+                    order: 0 !important;
+                }
+                .controls-section {
+                    order: 1 !important;
+                }
+                .recent-messages {
+                    order: 2 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            showMessage('✅ Solución Flexbox aplicada', 'success');
+            checkStatus();
+        }
+        
+        // Mostrar mensaje
+        function showMessage(text, type) {
+            const msgDiv = document.getElementById('statusMessage');
+            msgDiv.textContent = text;
+            msgDiv.style.display = 'block';
+            msgDiv.style.padding = '10px';
+            msgDiv.style.borderRadius = '4px';
+            
+            if (type === 'success') {
+                msgDiv.style.background = '#c8e6c9';
+                msgDiv.style.color = '#1b5e20';
+            } else if (type === 'error') {
+                msgDiv.style.background = '#ffcdd2';
+                msgDiv.style.color = '#b71c1c';
+            } else if (type === 'warning') {
+                msgDiv.style.background = '#ffe0b2';
+                msgDiv.style.color = '#e65100';
+            } else {
+                msgDiv.style.background = '#bbdefb';
+                msgDiv.style.color = '#0d47a1';
+            }
+        }
+        
+        // Auto-cargar dashboard al inicio
+        window.addEventListener('load', () => {
+            setTimeout(loadDashboardManual, 1000);
+        });
+    </script>
+</body>
+</html>

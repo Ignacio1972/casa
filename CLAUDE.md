@@ -80,16 +80,6 @@ node server.js
 tail -f src/api/logs/tts-$(date +%Y-%m-%d).log
 ```
 
-## 📚 Documentación Adicional
-
-Para información detallada sobre cualquier componente, consulta la carpeta `/docs/`:
-
-- **Workflows**: `/docs/workflows/` - Flujos completos de trabajo
-- **Endpoints**: `/docs/endpoints/` - Documentación de APIs
-- **Components**: `/docs/components/` - Componentes del frontend
-- **Examples**: `/docs/examples/` - Ejemplos de uso
-- **Schemas**: `/docs/schemas/` - Estructura de base de datos
-
 ## ⚙️ Configuración
 
 ### Variables de Entorno (.env)
@@ -115,10 +105,18 @@ chown -R www-data:www-data src/api/temp/
 
 ## 💡 Tips
 
-- Los jingles ahora se guardan automáticamente en mensajes recientes
 - El modelo de IA se configura solo desde el servidor
 - Las voces se pueden activar/desactivar desde `/playground/voice-admin.php`
 - La configuración de jingles se ajusta desde `/playground/jingle-config.html`
 
----
-*Para documentación técnica detallada, consulta `/docs/`*
+## 📚 Documentación Adicional
+
+Para información detallada sobre cualquier componente, consulta la carpeta `/docs/`:
+
+- **Workflows**: `/docs/workflows/` - Flujos completos de trabajo
+- **Endpoints**: `/docs/endpoints/` - Documentación de APIs
+- **Components**: `/docs/components/` - Componentes del frontend
+- **Examples**: `/docs/examples/` - Ejemplos de uso
+- **Schemas**: `/docs/schemas/` - Estructura de base de datos
+
+

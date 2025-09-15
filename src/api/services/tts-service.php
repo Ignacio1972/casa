@@ -7,6 +7,13 @@
 // Incluir configuración
 require_once dirname(__DIR__) . '/config.php';
 
+// Función de logging
+if (!function_exists('logMessage')) {
+    function logMessage($message) {
+        error_log($message);
+    }
+}
+
 /**
 * Genera audio TTS con las voces nuevas
 */
@@ -60,10 +67,24 @@ function generateEnhancedTTS($text, $voice, $options = []) {
    $voiceSettings['style'] = max(0, min(1, floatval($voiceSettings['style'])));
    $voiceSettings['use_speaker_boost'] = (bool)$voiceSettings['use_speaker_boost'];
    
+   // Determinar modelo a usar (v2 o v3 alpha)
+   logMessage("DEBUG: Checking use_v3 - isset: " . (isset($options['use_v3']) ? 'true' : 'false') . ", value: " . json_encode($options['use_v3'] ?? 'not set'));
+   
+   // Si se solicita v3 alpha, usar el modelo turbo v2.5
+   if (isset($options['use_v3']) && $options['use_v3'] === true) {
+       $modelId = 'eleven_turbo_v2_5'; // Modelo más reciente y rápido de v3
+       logMessage("✅ Usando API v3 (alpha) con modelo turbo v2.5");
+   } else {
+       $modelId = $options['model_id'] ?? 'eleven_multilingual_v2';
+       logMessage("Usando modelo estándar: $modelId");
+   }
+   
+   logMessage("DEBUG: Modelo final seleccionado: $modelId");
+   
    // Datos para enviar - SOLO PARÁMETROS SOPORTADOS
    $data = [
        'text' => $text,
-       'model_id' => $options['model_id'] ?? 'eleven_multilingual_v2',
+       'model_id' => $modelId,
        'voice_settings' => $voiceSettings
    ];
    

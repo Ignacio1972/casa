@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Integración Claude AI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        
+        .test-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-section h2 {
+            color: #cbd5e1;
+            font-size: 1.2rem;
+            margin-top: 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .output {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .status {
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .status.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .status.info {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            background: #334155;
+            border: 1px solid #475569;
+            color: #f1f5f9;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-family: inherit;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Test de Integración Claude AI</h1>
+    
+    <!-- Test 1: Verificar API -->
+    <div class="test-section">
+        <h2>1. Verificar Conexión con API</h2>
+        <button id="testConnection">Probar Conexión</button>
+        <div id="connectionStatus" class="status" style="display:none;"></div>
+        <div id="connectionOutput" class="output"></div>
+    </div>
+    
+    <!-- Test 2: Generar Sugerencias -->
+    <div class="test-section">
+        <h2>2. Generar Sugerencias de Anuncios</h2>
+        
+        <div class="form-field">
+            <label>Contexto del anuncio:</label>
+            <textarea id="testContext" rows="3" placeholder="Ej: Promoción 2x1 en todos los restaurantes este fin de semana">Promoción especial de Black Friday con descuentos de hasta 50% en tiendas seleccionadas. Válido solo este viernes.</textarea>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-field">
+                <label>Categoría:</label>
+                <select id="testCategory">
+                    <option value="ofertas">Ofertas</option>
+                    <option value="eventos">Eventos</option>
+                    <option value="informacion">Información</option>
+                    <option value="servicios">Servicios</option>
+                    <option value="horarios">Horarios</option>
+                    <option value="emergencias">Emergencias</option>
+                </select>
+            </div>
+            
+            <div class="form-field">
+                <label>Tono:</label>
+                <select id="testTone">
+                    <option value="profesional">Profesional</option>
+                    <option value="entusiasta">Entusiasta</option>
+                    <option value="amigable">Amigable</option>
+                    <option value="urgente">Urgente</option>
+                    <option value="informativo">Informativo</option>
+                </select>
+            </div>
+        </div>
+        
+        <button id="generateSuggestions">Generar 3 Sugerencias</button>
+        <div id="generateStatus" class="status" style="display:none;"></div>
+        <div id="suggestionsOutput" class="output"></div>
+    </div>
+    
+    <!-- Test 3: Estadísticas de Uso -->
+    <div class="test-section">
+        <h2>3. Estadísticas de Uso</h2>
+        <button id="getStats">Obtener Estadísticas</button>
+        <div id="statsOutput" class="output"></div>
+    </div>
+    
+    <!-- Test 4: Test Completo de Integración -->
+    <div class="test-section">
+        <h2>4. Test Completo (Generar → Seleccionar → TTS)</h2>
+        <button id="fullTest">Ejecutar Test Completo</button>
+        <div id="fullTestStatus" class="status" style="display:none;"></div>
+        <div id="fullTestOutput" class="output"></div>
+    </div>
+
+    <script>
+        // Configuración
+        const API_BASE = '/api/claude-service.php';
+        
+        // Utilidades
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status ' + type;
+            element.style.display = 'block';
+        }
+        
+        function showOutput(elementId, content) {
+            const element = document.getElementById(elementId);
+            if (typeof content === 'object') {
+                element.textContent = JSON.stringify(content, null, 2);
+            } else {
+                element.textContent = content;
+            }
+        }
+        
+        // Test 1: Verificar conexión
+        document.getElementById('testConnection').addEventListener('click', async function() {
+            this.disabled = true;
+            showStatus('connectionStatus', 'Verificando conexión...', 'info');
+            showOutput('connectionOutput', '');
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'generate',
+                        context: 'Test de conexión',
+                        category: 'general'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('connectionStatus', '✅ Conexión exitosa con Claude API', 'success');
+                    showOutput('connectionOutput', `Modelo: ${data.model || 'claude-3-haiku'}\nSugerencias generadas: ${data.suggestions?.length || 0}`);
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                showStatus('connectionStatus', '❌ Error de conexión', 'error');
+                showOutput('connectionOutput', `Error: ${error.message}\n\nVerifica:\n1. Que hayas configurado CLAUDE_API_KEY en .env\n2. Que el servidor esté corriendo\n3. Que el archivo claude-service.php exista`);
+            } finally {
+                this.disabled = false;
+            }
+        });
+        
+        // Test 2: Generar sugerencias
+        document.getElementById('generateSuggestions').addEventListener('click', async function() {
+            this.disabled = true;
+            showStatus('generateStatus', 'Generando sugerencias con Claude...', 'info');
+            showOutput('suggestionsOutput', '');
+            
+            const context = document.getElementById('testContext').value;
+            const category = document.getElementById('testCategory').value;
+            const tone = document.getElementById('testTone').value;
+            
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        context: context,
+                        category: category,
+                        tone: tone,
+                        duration: 30,
+                        temperature: 0.8
+                    })
+                });
+                
+                const data = await response.json();
+                const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                if (data.success && data.suggestions) {
+                    showStatus('generateStatus', `✅ ${data.suggestions.length} sugerencias generadas en ${elapsed}s`, 'success');
+                    
+                    let output = `Modelo: ${data.model}\n`;
+                    output += `Tokens usados: ${data.tokens_used || 'N/A'}\n\n`;
+                    output += '=== SUGERENCIAS GENERADAS ===\n\n';
+                    
+                    data.suggestions.forEach((sug, index) => {
+                        output += `--- Sugerencia ${index + 1} ---\n`;
+                        output += `Texto: ${sug.text}\n`;
+                        output += `Palabras: ${sug.word_count} | Caracteres: ${sug.char_count}\n\n`;
+                    });
+                    
+                    showOutput('suggestionsOutput', output);
+                } else {
+                    throw new Error(data.error || 'No se generaron sugerencias');
+                }
+                
+            } catch (error) {
+                showStatus('generateStatus', '❌ Error al generar', 'error');
+                showOutput('suggestionsOutput', `Error: ${error.message}`);
+            } finally {
+                this.disabled = false;
+            }
+        });
+        
+        // Test 3: Obtener estadísticas
+        document.getElementById('getStats').addEventListener('click', async function() {
+            this.disabled = true;
+            showOutput('statsOutput', 'Obteniendo estadísticas...');
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'stats',
+                        days: 30
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let output = '=== ESTADÍSTICAS DE USO (Últimos 30 días) ===\n\n';
+                    
+                    if (data.stats && data.stats.length > 0) {
+                        let total = 0;
+                        data.stats.forEach(stat => {
+                            output += `Fecha: ${stat.date}\n`;
+                            output += `Generaciones: ${stat.generations}\n`;
+                            if (stat.metadata) {
+                                const meta = JSON.parse(stat.metadata);
+                                output += `Categoría: ${meta.category}\n`;
+                            }
+                            output += '---\n';
+                            total += parseInt(stat.generations);
+                        });
+                        output += `\nTOTAL: ${total} generaciones`;
+                    } else {
+                        output += 'No hay estadísticas disponibles aún.';
+                    }
+                    
+                    showOutput('statsOutput', output);
+                } else {
+                    throw new Error(data.error || 'Error obteniendo estadísticas');
+                }
+                
+            } catch (error) {
+                showOutput('statsOutput', `Error: ${error.message}`);
+            } finally {
+                this.disabled = false;
+            }
+        });
+        
+        // Test 4: Test completo
+        document.getElementById('fullTest').addEventListener('click', async function() {
+            this.disabled = true;
+            showStatus('fullTestStatus', '🚀 Iniciando test completo...', 'info');
+            let output = '';
+            
+            try {
+                // Paso 1: Generar sugerencias
+                output += '=== PASO 1: Generar Sugerencias ===\n';
+                showOutput('fullTestOutput', output);
+                
+                const genResponse = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        context: 'Anuncio de prueba: Nueva cafetería abierta en el segundo piso con café gratis la primera semana',
+                        category: 'ofertas',
+                        tone: 'entusiasta'
+                    })
+                });
+                
+                const genData = await genResponse.json();
+                
+                if (!genData.success) throw new Error('Fallo en generación');
+                
+                output += `✅ ${genData.suggestions.length} sugerencias generadas\n\n`;
+                
+                // Paso 2: Seleccionar una sugerencia
+                output += '=== PASO 2: Seleccionar Sugerencia ===\n';
+                const selected = genData.suggestions[0];
+                output += `Seleccionada: "${selected.text.substring(0, 100)}..."\n\n`;
+                
+                // Paso 3: Simular envío a TTS
+                output += '=== PASO 3: Preparar para TTS ===\n';
+                output += `Texto: ${selected.char_count} caracteres\n`;
+                output += `Duración estimada: ${Math.ceil(selected.word_count / 3)} segundos\n`;
+                output += `Categoría: ofertas\n`;
+                output += `Estado: Listo para generar audio\n\n`;
+                
+                output += '=== TEST COMPLETO EXITOSO ===\n';
+                output += 'El sistema está listo para usar:\n';
+                output += '1. Claude API: ✅ Funcionando\n';
+                output += '2. Generación: ✅ Funcionando\n';
+                output += '3. Integración: ✅ Lista\n';
+                
+                showStatus('fullTestStatus', '✅ Test completo exitoso', 'success');
+                showOutput('fullTestOutput', output);
+                
+            } catch (error) {
+                showStatus('fullTestStatus', '❌ Test fallido', 'error');
+                output += `\n❌ ERROR: ${error.message}`;
+                showOutput('fullTestOutput', output);
+            } finally {
+                this.disabled = false;
+            }
+        });
+        
+        // Test inicial automático
+        window.addEventListener('load', () => {
+            console.log('🤖 Test de integración Claude AI cargado');
+            console.log('📍 API Endpoint:', API_BASE);
+        });
+    </script>
+</body>
+</html>

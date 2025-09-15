@@ -1,0 +1,65 @@
+<!-- Automatic Mode Template -->
+<div class="automatic-container">
+
+    <!-- Recording Section -->
+    <div class="automatic-record-section">
+        <button id="record-button" class="automatic-record-btn">
+            <span id="record-icon" class="record-icon">🎤</span>
+            <span id="record-text" class="record-text">Grabar</span>
+        </button>
+        <div id="recording-timer" class="recording-timer"></div>
+        
+        <!-- Audio Visualizer Canvas -->
+        <canvas id="audio-visualizer" class="audio-visualizer" width="300" height="60"></canvas>
+    </div>
+
+    <!-- Status Message -->
+    <div id="status-message" class="status-message" style="display: none;"></div>
+
+    <!-- Voice Selection Section -->
+    <div id="voices-section" class="automatic-voices-section" style="display: none;">
+        <h3 class="voices-title">Selecciona una voz</h3>
+        <div id="voices-list" class="automatic-voices-grid">
+            <!-- Voice cards will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Audio Player Section -->
+    <div id="player-section" class="automatic-player-section" style="display: none;">
+        <div class="player-card">
+            <h3 class="player-title">Tu jingle está listo</h3>
+            
+            <!-- Audio Player -->
+            <div class="audio-player-wrapper">
+                <audio id="generated-audio" class="automatic-audio-player" controls>
+                    Tu navegador no soporta el elemento de audio.
+                </audio>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="player-actions">
+                <button id="regenerate-btn" class="btn btn-secondary automatic-action-btn">
+                    <span class="btn-icon">🔄</span>
+                    <span>Regenerar</span>
+                </button>
+                <button id="send-to-radio-btn" class="btn btn-primary automatic-action-btn">
+                    <span class="btn-icon">📻</span>
+                    <span>Enviar a la Radio</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Card -->
+    <div class="automatic-instructions">
+        <div class="instructions-card">
+            <h4 class="instructions-title">¿Cómo funciona?</h4>
+            <ol class="instructions-list">
+                <li>Presiona el botón de grabar y di tu mensaje (máximo 10 segundos)</li>
+                <li>Selecciona una voz de la lista</li>
+                <li>Escucha el jingle generado automáticamente</li>
+                <li>Envíalo a la radio o genera uno nuevo</li>
+            </ol>
+        </div>
+    </div>
+</div>

@@ -306,24 +306,10 @@ function validateMusicFile($musicPath) {
 /**
  * Obtener lista de música disponible
  */
-function getAvailableMusic() {
-    $musicDir = dirname(dirname(__DIR__)) . '/public/audio/music/';
-    $music = [];
-    
-    if (is_dir($musicDir)) {
-        $files = glob($musicDir . '*.{mp3,wav,ogg}', GLOB_BRACE);
-        foreach ($files as $file) {
-            $name = basename($file);
-            $music[] = [
-                'file' => $name,
-                'name' => pathinfo($name, PATHINFO_FILENAME),
-                'duration' => getDuration($file),
-                'size' => filesize($file)
-            ];
-        }
-    }
-    
-    return $music;
+function getAvailableMusicList() {
+    // Usar el servicio de música para obtener la lista con metadata
+    require_once __DIR__ . '/music-service.php';
+    return getAvailableMusic();
 }
 
 // Procesar requests si se llama directamente
@@ -355,12 +341,55 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
                 $result = generateJingle($text, $voice, $options);
                 
                 if ($result['success']) {
+                    // Guardar en la base de datos para que aparezca en mensajes recientes
+                    try {
+                        $dbPath = __DIR__ . '/../../database/casa.db';
+                        $db = new PDO("sqlite:$dbPath");
+                        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        
+                        // Generar nombre de archivo único
+                        $timestamp = date('Ymd_His');
+                        $filename = "jingle_{$timestamp}_{$voice}.mp3";
+                        
+                        // Guardar el archivo en el directorio temporal
+                        $tempPath = __DIR__ . '/temp/' . $filename;
+                        if (!file_exists(__DIR__ . '/temp')) {
+                            mkdir(__DIR__ . '/temp', 0777, true);
+                        }
+                        file_put_contents($tempPath, base64_decode(base64_encode($result['audio'])));
+                        
+                        // Preparar datos para la base de datos
+                        $words = explode(' ', $text);
+                        $displayName = implode(' ', array_slice($words, 0, 5));
+                        if (count($words) > 5) $displayName .= '...';
+                        
+                        // Insertar en la base de datos
+                        $stmt = $db->prepare("
+                            INSERT INTO audio_metadata 
+                            (filename, display_name, description, category, is_saved, saved_at, created_at, is_active) 
+                            VALUES (?, ?, ?, ?, 0, datetime('now'), datetime('now'), 1)
+                        ");
+                        
+                        $stmt->execute([
+                            $filename,
+                            $displayName,
+                            $text,
+                            $input['category'] ?? 'sin_categoria'
+                        ]);
+                        
+                        logMessage("[JingleService] Jingle guardado en BD: " . $filename);
+                    } catch (Exception $dbError) {
+                        // No fallar si hay error en DB, solo loguear
+                        logMessage("[JingleService] Error guardando en BD: " . $dbError->getMessage());
+                    }
+                    
                     // Devolver audio como base64
                     echo json_encode([
                         'success' => true,
                         'audio' => base64_encode($result['audio']),
                         'format' => $result['format'],
-                        'duration' => $result['duration']
+                        'duration' => $result['duration'],
+                        'filename' => isset($filename) ? $filename : null
                     ]);
                 } else {
                     throw new Exception($result['error']);
@@ -368,9 +397,10 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
                 break;
                 
             case 'list_music':
+                $musicList = getAvailableMusicList();
                 echo json_encode([
                     'success' => true,
-                    'music' => getAvailableMusic()
+                    'music' => $musicList
                 ]);
                 break;
                 

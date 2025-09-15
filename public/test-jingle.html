@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Generador de Jingles</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        textarea, select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus, select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .slider-group {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e1e8ed;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        .music-selector {
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .music-option {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .music-option:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .music-option.selected {
+            background: #667eea;
+            color: white;
+        }
+        
+        .music-option input[type="radio"] {
+            margin-right: 10px;
+            width: auto;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #e1e8ed;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d8dd;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f7f9fc;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result.active {
+            display: block;
+        }
+        
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e1e8ed;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .advanced-options {
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .advanced-options h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Generador de Jingles</h1>
+        <p class="subtitle">Crea jingles mezclando mensajes de voz con música de fondo</p>
+        
+        <div class="form-group">
+            <label for="message">Mensaje del Jingle</label>
+            <textarea id="message" placeholder="Escribe aquí el mensaje que se convertirá en voz...">¡Atención vecinos! Gran promoción especial este fin de semana en Mall Barrio Independencia. No te lo pierdas.</textarea>
+        </div>
+        
+        <div class="controls-grid">
+            <div class="form-group">
+                <label for="voice">Voz</label>
+                <select id="voice">
+                    <option value="juan_carlos">Juan Carlos (Masculina)</option>
+                    <option value="alejandro">Alejandro (Masculina)</option>
+                    <option value="jefry">Jefry (Masculina)</option>
+                    <option value="veronica">Verónica (Femenina)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="outputFormat">Formato de Salida</label>
+                <select id="outputFormat">
+                    <option value="mp3">MP3</option>
+                    <option value="wav">WAV</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="music-selector">
+            <label>🎵 Música de Fondo (Opcional)</label>
+            <div class="music-option">
+                <input type="radio" name="music" value="none" checked>
+                <span>Sin música (solo voz)</span>
+            </div>
+            <div class="music-option">
+                <input type="radio" name="music" value="upbeat.mp3">
+                <span>Upbeat - Alegre y energética</span>
+            </div>
+            <div class="music-option">
+                <input type="radio" name="music" value="corporate.mp3">
+                <span>Corporate - Profesional</span>
+            </div>
+            <div class="music-option">
+                <input type="radio" name="music" value="soft.mp3">
+                <span>Soft - Suave y relajante</span>
+            </div>
+        </div>
+        
+        <div class="advanced-options">
+            <h3>⚙️ Opciones Avanzadas</h3>
+            
+            <div class="slider-group">
+                <div class="slider-label">
+                    <label>Volumen de Música</label>
+                    <span id="musicVolumeValue">30%</span>
+                </div>
+                <input type="range" id="musicVolume" min="0" max="100" value="30">
+            </div>
+            
+            <div class="slider-group">
+                <div class="slider-label">
+                    <label>Volumen de Voz</label>
+                    <span id="voiceVolumeValue">100%</span>
+                </div>
+                <input type="range" id="voiceVolume" min="0" max="100" value="100">
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="musicDuck" checked>
+                <label for="musicDuck">Auto-ducking (reducir música cuando habla)</label>
+            </div>
+            
+            <div class="controls-grid">
+                <div class="form-group">
+                    <label for="fadeIn">Fade In (segundos)</label>
+                    <input type="number" id="fadeIn" min="0" max="10" value="2" step="0.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="fadeOut">Fade Out (segundos)</label>
+                    <input type="number" id="fadeOut" min="0" max="10" value="2" step="0.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="introSilence">Silencio Inicial (segundos)</label>
+                    <input type="number" id="introSilence" min="0" max="5" value="1" step="0.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="outroSilence">Silencio Final (segundos)</label>
+                    <input type="number" id="outroSilence" min="0" max="5" value="1" step="0.5">
+                </div>
+            </div>
+            
+            <div class="slider-group">
+                <div class="slider-label">
+                    <label>Estabilidad de Voz</label>
+                    <span id="stabilityValue">75%</span>
+                </div>
+                <input type="range" id="stability" min="0" max="100" value="75">
+            </div>
+            
+            <div class="slider-group">
+                <div class="slider-label">
+                    <label>Claridad de Voz</label>
+                    <span id="clarityValue">80%</span>
+                </div>
+                <input type="range" id="clarity" min="0" max="100" value="80">
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button class="btn btn-primary" onclick="generateJingle()">
+                🎵 Generar Jingle
+            </button>
+            <button class="btn btn-secondary" onclick="resetForm()">
+                Limpiar
+            </button>
+        </div>
+        
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Generando tu jingle...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <h3>🎵 Tu Jingle está Listo!</h3>
+            <audio id="audioPlayer" controls></audio>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-secondary" onclick="downloadJingle()">
+                    💾 Descargar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Variables globales
+        let currentAudioBlob = null;
+        let currentFormat = 'mp3';
+        
+        // Cargar lista de música al iniciar
+        window.addEventListener('DOMContentLoaded', loadMusicList);
+        
+        // Actualizar valores de sliders
+        document.getElementById('musicVolume').addEventListener('input', (e) => {
+            document.getElementById('musicVolumeValue').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('voiceVolume').addEventListener('input', (e) => {
+            document.getElementById('voiceVolumeValue').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('stability').addEventListener('input', (e) => {
+            document.getElementById('stabilityValue').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('clarity').addEventListener('input', (e) => {
+            document.getElementById('clarityValue').textContent = e.target.value + '%';
+        });
+        
+        // Selección de música
+        document.querySelectorAll('.music-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.music-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+        
+        async function generateJingle() {
+            const message = document.getElementById('message').value.trim();
+            if (!message) {
+                showError('Por favor, escribe un mensaje para el jingle');
+                return;
+            }
+            
+            // Obtener configuración
+            const selectedMusic = document.querySelector('input[name="music"]:checked').value;
+            const config = {
+                text: message,
+                voice: document.getElementById('voice').value,
+                action: 'generate',
+                options: {
+                    music_file: selectedMusic === 'none' ? null : selectedMusic,
+                    music_volume: document.getElementById('musicVolume').value / 100,
+                    voice_volume: document.getElementById('voiceVolume').value / 100,
+                    fade_in: parseFloat(document.getElementById('fadeIn').value),
+                    fade_out: parseFloat(document.getElementById('fadeOut').value),
+                    music_duck: document.getElementById('musicDuck').checked,
+                    intro_silence: parseFloat(document.getElementById('introSilence').value),
+                    outro_silence: parseFloat(document.getElementById('outroSilence').value),
+                    output_format: document.getElementById('outputFormat').value,
+                    voice_settings: {
+                        stability: document.getElementById('stability').value / 100,
+                        similarity_boost: document.getElementById('clarity').value / 100,
+                        style: 0.5,
+                        use_speaker_boost: true
+                    }
+                }
+            };
+            
+            // Mostrar loading
+            showLoading(true);
+            hideError();
+            hideResult();
+            
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Convertir base64 a blob
+                    const audioData = atob(data.audio);
+                    const audioArray = new Uint8Array(audioData.length);
+                    for (let i = 0; i < audioData.length; i++) {
+                        audioArray[i] = audioData.charCodeAt(i);
+                    }
+                    
+                    currentFormat = data.format;
+                    currentAudioBlob = new Blob([audioArray], { 
+                        type: `audio/${currentFormat}` 
+                    });
+                    
+                    // Reproducir audio
+                    const audioUrl = URL.createObjectURL(currentAudioBlob);
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    audioPlayer.src = audioUrl;
+                    
+                    showResult();
+                } else {
+                    showError(data.error || 'Error generando el jingle');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión. Por favor, intenta nuevamente.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function downloadJingle() {
+            if (!currentAudioBlob) return;
+            
+            const url = URL.createObjectURL(currentAudioBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `jingle_${Date.now()}.${currentFormat}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function resetForm() {
+            document.getElementById('message').value = '';
+            document.querySelector('input[name="music"][value="none"]').checked = true;
+            document.querySelectorAll('.music-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector('.music-option:first-child').classList.add('selected');
+            hideResult();
+            hideError();
+        }
+        
+        function showLoading(show) {
+            document.querySelector('.loading').classList.toggle('active', show);
+            document.querySelector('.btn-primary').disabled = show;
+        }
+        
+        function showResult() {
+            document.getElementById('result').classList.add('active');
+        }
+        
+        function hideResult() {
+            document.getElementById('result').classList.remove('active');
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.classList.add('active');
+        }
+        
+        function hideError() {
+            document.getElementById('error').classList.remove('active');
+        }
+        
+        async function loadMusicList() {
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'list_music' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.music.length > 0) {
+                    const musicSelector = document.querySelector('.music-selector');
+                    const existingOptions = musicSelector.innerHTML;
+                    
+                    // Agregar música disponible
+                    let musicHTML = '<label>🎵 Música de Fondo (Opcional)</label>';
+                    musicHTML += '<div class="music-option selected"><input type="radio" name="music" value="none" checked><span>Sin música (solo voz)</span></div>';
+                    
+                    data.music.forEach(music => {
+                        const duration = Math.floor(music.duration);
+                        const minutes = Math.floor(duration / 60);
+                        const seconds = duration % 60;
+                        musicHTML += `
+                            <div class="music-option">
+                                <input type="radio" name="music" value="${music.file}">
+                                <span>${music.name} (${minutes}:${seconds.toString().padStart(2, '0')})</span>
+                            </div>
+                        `;
+                    });
+                    
+                    musicSelector.innerHTML = musicHTML;
+                    
+                    // Re-aplicar event listeners
+                    document.querySelectorAll('.music-option').forEach(option => {
+                        option.addEventListener('click', function() {
+                            document.querySelectorAll('.music-option').forEach(o => o.classList.remove('selected'));
+                            this.classList.add('selected');
+                            this.querySelector('input[type="radio"]').checked = true;
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando lista de música:', error);
+            }
+        }
+    </script>
+</body>
+</html>

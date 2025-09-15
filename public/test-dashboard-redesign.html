@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard Redesign</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1c1b19;
+            color: #e9eff1;
+            padding: 2rem;
+            margin: 0;
+        }
+        h1 {
+            color: #387ade;
+            margin-bottom: 1.5rem;
+        }
+        button {
+            background: #387ade;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        button:hover {
+            background: #1f60c1;
+        }
+        .secondary {
+            background: #4B5563;
+        }
+        .secondary:hover {
+            background: #374151;
+        }
+        a {
+            color: #6196e5;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            background: #2f3236;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Test Dashboard Redesign</h1>
+    
+    <div class="note">
+        <strong>Nota:</strong> Debes mantener el parámetro ?access=corneta en la URL
+    </div>
+    
+    <p>Enlaces directos (con acceso):</p>
+    <ul>
+        <li><a href="/index.html?access=corneta#dashboard">Dashboard Actual (PRODUCCIÓN - NO TOCAR)</a></li>
+        <li><a href="/index.html?access=corneta#dashboard-new">Dashboard Redesign (NUEVO)</a></li>
+    </ul>
+    
+    <hr style="border-color: #2f3236; margin: 2rem 0;">
+    
+    <p>O usa estos botones:</p>
+    
+    <button onclick="window.location.href='/index.html?access=corneta#dashboard-new'">
+        ✨ Ir al Dashboard Redesign (NUEVO)
+    </button>
+    
+    <button class="secondary" onclick="window.location.href='/index.html?access=corneta#dashboard'">
+        Dashboard Actual (PRODUCCIÓN)
+    </button>
+    
+    <hr style="border-color: #2f3236; margin: 2rem 0;">
+    
+    <p style="color: #a6bdc9;">
+        <strong>URL del nuevo dashboard:</strong><br>
+        <code style="background: #2f3236; padding: 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.5rem;">
+            http://51.222.25.222:4000/?access=corneta#dashboard-new
+        </code>
+    </p>
+</body>
+</html>

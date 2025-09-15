@@ -1,0 +1,460 @@
+/**
+ * Automatic Mode Styles
+ * Sistema híbrido: reutiliza variables globales + componentes específicos
+ */
+
+/* ========================================
+   VARIABLES ESPECÍFICAS DEL MÓDULO
+   ======================================== */
+:root {
+  /* Tamaños específicos */
+  --automatic-record-size: 180px;
+  --automatic-record-size-mobile: 140px;
+  --automatic-voice-card-height: 100px;
+  --automatic-animation-duration: 0.6s;
+  
+  /* Colores específicos */
+  --automatic-record-bg: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  --automatic-record-hover: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  --automatic-recording-bg: linear-gradient(135deg, #ef4444, #f87171);
+  
+  /* Espaciados específicos */
+  --automatic-section-gap: 2.5rem;
+  --automatic-grid-gap: 1rem;
+}
+
+/* ========================================
+   CONTENEDOR PRINCIPAL
+   ======================================== */
+.automatic-container {
+  padding: var(--spacing-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 200px);
+}
+
+/* Header removido - usando tabs del dashboard */
+
+/* ========================================
+   SECCIÓN DE GRABACIÓN
+   ======================================== */
+.automatic-record-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: var(--automatic-section-gap);
+}
+
+/* Botón de grabación principal */
+.automatic-record-btn {
+  /* Heredar base de botones */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  /* Dimensiones */
+  width: var(--automatic-record-size);
+  height: var(--automatic-record-size);
+  
+  /* Estilo visual */
+  background: var(--automatic-record-bg);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  
+  /* Efectos */
+  box-shadow: 0 10px 30px rgba(56, 122, 222, 0.3);
+  transition: all var(--automatic-animation-duration) cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.automatic-record-btn:hover:not(.recording) {
+  background: var(--automatic-record-hover);
+  transform: scale(1.05);
+  box-shadow: 0 15px 40px rgba(56, 122, 222, 0.4);
+}
+
+.automatic-record-btn:active {
+  transform: scale(0.95);
+}
+
+/* Estado grabando */
+.automatic-record-btn.recording {
+  background: var(--automatic-recording-bg);
+  animation: pulse 1.5s infinite;
+}
+
+.automatic-record-btn.recording::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 1.5s infinite;
+}
+
+/* Iconos del botón */
+.record-icon {
+  font-size: 3rem;
+  display: block;
+}
+
+.record-text {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Timer de grabación */
+.recording-timer {
+  font-size: 1.25rem;
+  color: var(--color-danger);
+  font-weight: 600;
+  min-height: 1.5rem;
+}
+
+/* Visualizador de audio */
+.audio-visualizer {
+  width: 300px;
+  height: 60px;
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  opacity: 0.8;
+}
+
+/* ========================================
+   MENSAJES DE ESTADO
+   ======================================== */
+.status-message {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  font-weight: 500;
+  margin: var(--spacing-lg) auto;
+  max-width: 500px;
+  animation: slideUp 0.3s ease;
+}
+
+.status-message.info {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--color-gray-700);
+}
+
+.status-message.processing {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  color: white;
+  animation: shimmer 2s infinite;
+}
+
+.status-message.success {
+  background: var(--color-success);
+  color: white;
+}
+
+.status-message.error {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* ========================================
+   SECCIÓN DE VOCES
+   ======================================== */
+.automatic-voices-section {
+  margin-bottom: var(--automatic-section-gap);
+  animation: fadeIn 0.5s ease;
+}
+
+.voices-title {
+  text-align: center;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.automatic-voices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--automatic-grid-gap);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Tarjetas de voz */
+.voice-card {
+  background: var(--bg-tertiary);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  height: var(--automatic-voice-card-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.voice-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.voice-card.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary-light);
+  color: white;
+}
+
+.voice-icon {
+  font-size: 2rem;
+}
+
+.voice-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ========================================
+   SECCIÓN DEL REPRODUCTOR
+   ======================================== */
+.automatic-player-section {
+  margin-bottom: var(--automatic-section-gap);
+  animation: slideUp 0.5s ease;
+}
+
+.player-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.player-title {
+  text-align: center;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+/* Wrapper del reproductor de audio */
+.audio-player-wrapper {
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: 1.5rem;
+}
+
+.automatic-audio-player {
+  width: 100%;
+  filter: invert(0.8);
+}
+
+/* Botones de acción */
+.player-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.automatic-action-btn {
+  /* Heredar de .btn base */
+  min-width: 160px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: 1rem;
+}
+
+.btn-icon {
+  font-size: 1.25rem;
+}
+
+/* ========================================
+   TARJETA DE INSTRUCCIONES
+   ======================================== */
+.automatic-instructions {
+  margin-top: var(--automatic-section-gap);
+}
+
+.instructions-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.instructions-title {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.instructions-list {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  padding-left: 1.5rem;
+}
+
+.instructions-list li {
+  margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Animación de éxito al enviar a radio */
+.success-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 5rem;
+  z-index: 9999;
+  animation: successPop 2s ease;
+  pointer-events: none;
+}
+
+@keyframes successPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .automatic-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .automatic-title {
+    font-size: 1.5rem;
+  }
+  
+  .automatic-record-btn {
+    width: var(--automatic-record-size-mobile);
+    height: var(--automatic-record-size-mobile);
+  }
+  
+  .record-icon {
+    font-size: 2.5rem;
+  }
+  
+  .record-text {
+    font-size: 0.9rem;
+  }
+  
+  .automatic-voices-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .player-actions {
+    flex-direction: column;
+  }
+  
+  .automatic-action-btn {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   UTILIDADES
+   ======================================== */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+/* Mejorar apariencia del audio nativo en dark mode */
+audio::-webkit-media-controls-panel {
+  background: var(--bg-tertiary);
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: var(--text-primary);
+}

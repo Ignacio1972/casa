@@ -73,26 +73,32 @@ class PlaygroundApp {
     
     async updateQuota() {
         try {
-            const response = await fetch('/playground/api/quota.php');
+            const response = await fetch('/playground/api/quota-tracker.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get_quota' })
+            });
             const data = await response.json();
             
-            this.quotaInfo = data;
-            
-            const quotaDisplay = document.getElementById('quota-display');
-            if (quotaDisplay) {
-                const percentage = (data.used / data.limit * 100).toFixed(1);
+            if (data.success) {
+                this.quotaInfo = data.quota;
                 
-                quotaDisplay.innerHTML = `
-                    📊 ${data.used.toLocaleString()} / ${data.limit.toLocaleString()} chars (${percentage}%)
-                `;
-                
-                // Cambiar color según uso
-                if (percentage > 90) {
-                    quotaDisplay.style.background = 'rgba(239, 68, 68, 0.2)';
-                } else if (percentage > 70) {
-                    quotaDisplay.style.background = 'rgba(245, 158, 11, 0.2)';
-                } else {
-                    quotaDisplay.style.background = 'rgba(16, 185, 129, 0.2)';
+                const quotaDisplay = document.getElementById('quota-display');
+                if (quotaDisplay) {
+                    const percentage = this.quotaInfo.percentage;
+                    
+                    quotaDisplay.innerHTML = `
+                        📊 ${this.quotaInfo.used.toLocaleString()} / ${this.quotaInfo.limit.toLocaleString()} chars (${percentage}%)
+                    `;
+                    
+                    // Cambiar color según uso
+                    if (percentage > 90) {
+                        quotaDisplay.style.background = 'rgba(239, 68, 68, 0.2)';
+                    } else if (percentage > 70) {
+                        quotaDisplay.style.background = 'rgba(245, 158, 11, 0.2)';
+                    } else {
+                        quotaDisplay.style.background = 'rgba(16, 185, 129, 0.2)';
+                    }
                 }
             }
             
@@ -223,6 +229,7 @@ class PlaygroundApp {
             
             const data = await response.json();
             const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+            this.lastGenerationTime = parseFloat(elapsed);
             
             if (data.success) {
                 // Mostrar audio
@@ -255,6 +262,9 @@ class PlaygroundApp {
                 `;
                 
                 this.addLog(`TTS generated successfully in ${elapsed}s`, 'success');
+                
+                // Trackear uso de caracteres
+                await this.trackUsage(text.length, voice, true);
                 
                 // Actualizar quota
                 await this.updateQuota();
@@ -472,108 +482,72 @@ class PlaygroundApp {
     
     
     initTools() {
-        // Voice Manager
-        const addVoiceBtn = document.getElementById("add-voice-btn");
-        if (addVoiceBtn) {
-            addVoiceBtn.addEventListener("click", () => this.addCustomVoice());
+        // LEGACY SYSTEM REMOVED: Voice Manager buttons no longer needed
+        // Users should use "Admin Voces" menu for voice management
+        
+        // API Config - PRESERVED: This functionality is still needed
+        const saveApiConfigBtn = document.getElementById("save-api-config");
+        if (saveApiConfigBtn) {
+            saveApiConfigBtn.addEventListener("click", () => this.saveApiConfig());
         }
         
-        // Cargar voces personalizadas
-        this.loadCustomVoices();
+        // Cargar configuración de API al iniciar
+        this.loadApiConfig();
+        
+        // LEGACY: loadCustomVoices removed - handled by Admin Voces
     }
     
-    async addCustomVoice() {
-        const voiceId = document.getElementById("new-voice-id").value.trim();
-        const voiceName = document.getElementById("new-voice-name").value.trim();
-        const voiceGender = document.getElementById("new-voice-gender").value;
-        
-        if (!voiceId || !voiceName) {
-            this.showNotification("Por favor completa todos los campos", "error");
-            return;
+    // LEGACY FUNCTIONS REMOVED
+    // Voice management functionality has been moved to Admin Voces section
+    // These functions are no longer needed:
+    // - addCustomVoice()
+    // - loadCustomVoices()  
+    // - deleteCustomVoice()
+    // Users should use the "Admin Voces" menu option for all voice management
+    async loadApiConfig() {
+        try {
+            const response = await fetch('/playground/api/voice-manager.php?action=get_config');
+            const data = await response.json();
+            
+            if (data.success && data.config) {
+                const checkbox = document.getElementById('elevenlabs-v3-api');
+                if (checkbox) {
+                    checkbox.checked = data.config.use_v3_api || false;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading API config:', error);
         }
+    }
+    
+    async saveApiConfig() {
+        const checkbox = document.getElementById('elevenlabs-v3-api');
+        const useV3 = checkbox ? checkbox.checked : false;
         
         try {
-            const response = await fetch("/playground/api/voice-manager.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const response = await fetch('/playground/api/voice-manager.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: "add",
-                    voice_id: voiceId,
-                    voice_name: voiceName,
-                    voice_gender: voiceGender
+                    action: 'save_config',
+                    config: {
+                        use_v3_api: useV3
+                    }
                 })
             });
             
             const data = await response.json();
             
             if (data.success) {
-                this.showNotification("✅ Voz agregada exitosamente", "success");
-                
-                // Limpiar campos
-                document.getElementById("new-voice-id").value = "";
-                document.getElementById("new-voice-name").value = "";
-                
-                // Recargar voces
-                await this.loadVoices();
-                await this.loadCustomVoices();
-                
-                // Actualizar grid si estamos en Voice Explorer
-                if (this.currentSection === "voice-explorer") {
-                    this.renderVoicesGrid();
-                }
+                this.showNotification('✅ Configuración guardada', 'success');
             } else {
-                throw new Error(data.error);
+                throw new Error(data.error || 'Error al guardar configuración');
             }
         } catch (error) {
-            this.showNotification("Error: " + error.message, "error");
+            this.showNotification('Error: ' + error.message, 'error');
         }
     }
     
-    async loadCustomVoices() {
-        try {
-            const response = await fetch("/playground/api/voice-manager.php?action=list");
-            const data = await response.json();
-            
-            const listDiv = document.getElementById("custom-voices-list");
-            if (listDiv && data.voices) {
-                if (Object.keys(data.voices).length === 0) {
-                    listDiv.innerHTML = "<p style=\"color: var(--text-secondary);\">No hay voces personalizadas</p>";
-                } else {
-                    listDiv.innerHTML = Object.entries(data.voices).map(([key, voice]) => `
-                        <div class="custom-voice-item" style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--bg-primary); margin: 0.5rem 0; border-radius: 0.25rem;">
-                            <span>${voice.label} (${voice.gender})</span>
-                            <button onclick="playground.deleteCustomVoice(\"${key}\")" class="btn-small" style="background: var(--error); color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer;">🗑️</button>
-                        </div>
-                    `).join("");
-                }
-            }
-        } catch (error) {
-            console.error("Error loading custom voices:", error);
-        }
-    }
-    
-    async deleteCustomVoice(voiceKey) {
-        if (!confirm("¿Eliminar esta voz?")) return;
-        
-        try {
-            const response = await fetch("/playground/api/voice-manager.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "delete",
-                    voice_key: voiceKey
-                })
-            });
-            
-            if (response.ok) {
-                this.showNotification("Voz eliminada", "success");
-                await this.loadVoices();
-                await this.loadCustomVoices();
-            }
-        } catch (error) {
-            this.showNotification("Error: " + error.message, "error");
-        }
-    }
     showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
@@ -591,7 +565,59 @@ class PlaygroundApp {
         }, 3000);
     }
     
+    async trackUsage(characters, voice, success = true) {
+        try {
+            const response = await fetch('/playground/api/quota-tracker.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'track_usage',
+                    characters: characters,
+                    voice: voice,
+                    success: success
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (!this.generationHistory) {
+                this.generationHistory = [];
+            }
+            
+            // Agregar al historial local para monitors
+            this.generationHistory.unshift({
+                text: document.getElementById('tts-text').value,
+                voice: voice,
+                time: new Date().toLocaleTimeString(),
+                success: success,
+                duration: this.lastGenerationTime || 0,
+                characters: characters
+            });
+            
+            // Mantener solo últimas 50 generaciones
+            this.generationHistory = this.generationHistory.slice(0, 50);
+            
+            // Actualizar performance data
+            if (!this.performanceData) {
+                this.performanceData = [];
+            }
+            if (this.lastGenerationTime) {
+                this.performanceData.push(this.lastGenerationTime);
+                // Mantener solo últimos 20 tiempos
+                this.performanceData = this.performanceData.slice(-20);
+            }
+            
+            console.log('Usage tracked:', data);
+            
+        } catch (error) {
+            console.error('Error tracking usage:', error);
+        }
+    }
+    
     startMonitoring() {
+        // Inicializar tiempo de sesión
+        window.sessionStart = Date.now();
+        
         // Actualizar quota cada minuto
         setInterval(() => this.updateQuota(), 60000);
         

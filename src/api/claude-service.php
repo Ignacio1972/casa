@@ -81,10 +81,12 @@ class ClaudeService {
                 if (isset($config['clients'][$activeClientId])) {
                     $basePrompt = $config['clients'][$activeClientId]['context'] . " ";
                 } else {
-                    $basePrompt = "Eres un experto creando anuncios para Casa Costanera, un moderno centro comercial en Chile. ";
+                    // Usar fallback genérico cuando no se encuentra el cliente
+                    $basePrompt = "Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales. ";
                 }
             } else {
-                $basePrompt = "Eres un experto creando anuncios para Casa Costanera, un moderno centro comercial en Chile. ";
+                // Usar fallback genérico cuando no se puede cargar la configuración
+                $basePrompt = "Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales. ";
             }
         }
         
@@ -110,6 +112,27 @@ class ClaudeService {
      * Construir prompt del usuario con contexto
      */
     private function buildUserPrompt($params) {
+        // Modo automático: Una sola sugerencia de 15-35 palabras
+        if (isset($params['mode']) && $params['mode'] === 'automatic') {
+            // Obtener el nombre del cliente activo de forma dinámica
+            $clientName = 'el negocio'; // Fallback genérico
+            $clientsFile = __DIR__ . '/data/clients-config.json';
+            if (file_exists($clientsFile)) {
+                $config = json_decode(file_get_contents($clientsFile), true);
+                $activeClientId = $config['active_client'] ?? null;
+                if ($activeClientId && isset($config['clients'][$activeClientId]['name'])) {
+                    $clientName = $config['clients'][$activeClientId]['name'];
+                }
+            }
+            
+            $prompt = "Mejora este mensaje para un anuncio de radio de {$clientName}:\n\n";
+            $prompt .= "Mensaje original: " . $params['context'] . "\n\n";
+            $prompt .= "IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio mejorado de EXACTAMENTE entre 15 y 35 palabras. ";
+            $prompt .= "Sé claro, directo y atractivo. No incluyas explicaciones, solo el texto del anuncio.";
+            return $prompt;
+        }
+        
+        // Modo normal: 3 opciones
         $prompt = "Genera 3 opciones diferentes de anuncios para lo siguiente:\n\n";
         
         if (!empty($params['context'])) {

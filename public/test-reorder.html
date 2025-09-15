@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Reorder Dashboard - Casa Costanera</title>
+    <link rel="stylesheet" href="/styles-v5/main.css">
+    <style>
+        /* Banner superior muy visible */
+        .test-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            z-index: 99999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .test-banner h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .test-btn {
+            background: white;
+            color: #333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .test-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        .test-btn.primary {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .test-btn.warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .test-btn.danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        /* Panel flotante de resultados */
+        .test-results {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid #333;
+            padding: 15px;
+            z-index: 99998;
+            width: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .test-results h3 {
+            margin-top: 0;
+            font-size: 16px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .dom-item {
+            margin: 5px 0;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            font-size: 12px;
+            border-left: 4px solid #ddd;
+        }
+        
+        .dom-item.ai {
+            border-color: #f44336;
+            background: #ffebee;
+            font-weight: bold;
+        }
+        
+        .dom-item.generator {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .dom-item.controls {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        
+        /* Ajustar contenido para el banner */
+        body {
+            padding-top: 80px !important;
+        }
+        
+        /* Highlight para componente AI */
+        .highlight-ai {
+            outline: 4px solid red !important;
+            outline-offset: 2px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { outline-color: red; }
+            50% { outline-color: yellow; }
+            100% { outline-color: red; }
+        }
+        
+        /* Status messages */
+        .status-msg {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 4px;
+            font-weight: bold;
+            z-index: 99999;
+            display: none;
+        }
+        
+        .status-msg.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { top: 80px; opacity: 0; }
+            to { top: 100px; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- BANNER SUPERIOR MUY VISIBLE -->
+    <div class="test-banner">
+        <h2>🔧 TEST: Reordenar Dashboard</h2>
+        
+        <button class="test-btn" onclick="inspectDOM()">
+            🔍 Ver Orden Actual
+        </button>
+        
+        <button class="test-btn primary" onclick="moveAI()">
+            ✅ Solución 1: Mover AI
+        </button>
+        
+        <button class="test-btn primary" onclick="applyCSSFix()">
+            ✅ Solución 2: CSS Fix
+        </button>
+        
+        <button class="test-btn primary" onclick="applyFlexbox()">
+            ✅ Solución 3: Flexbox
+        </button>
+        
+        <button class="test-btn warning" onclick="findAI()">
+            🎯 Buscar AI
+        </button>
+        
+        <button class="test-btn danger" onclick="location.reload()">
+            🔄 Reset
+        </button>
+    </div>
+    
+    <!-- Panel de resultados -->
+    <div class="test-results">
+        <h3>📋 Orden de Componentes</h3>
+        <div id="domInspector">
+            Esperando dashboard...
+        </div>
+    </div>
+    
+    <!-- Mensaje de estado -->
+    <div id="statusMsg" class="status-msg"></div>
+    
+    <!-- Dashboard Container -->
+    <div id="app" class="container"></div>
+    
+    <!-- Scripts -->
+    <script type="module">
+        import { eventBus } from '/src/core/event-bus.js';
+        import { apiClient } from '/src/core/api-client.js';
+        import { moduleLoader } from '/src/core/module-loader.js';
+        
+        window.eventBus = eventBus;
+        window.apiClient = apiClient;
+        window.moduleLoader = moduleLoader;
+        
+        // Cargar dashboard
+        async function loadDashboard() {
+            try {
+                await moduleLoader.loadModule('dashboard');
+                setTimeout(() => {
+                    window.inspectDOM();
+                    showStatus('Dashboard cargado - Usa los botones superiores', 'info');
+                }, 1500);
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error cargando dashboard', 'error');
+            }
+        }
+        
+        loadDashboard();
+    </script>
+    
+    <script>
+        // Inspeccionar DOM
+        function inspectDOM() {
+            const grid = document.querySelector('.dashboard-grid');
+            const inspector = document.getElementById('domInspector');
+            
+            if (!grid) {
+                inspector.innerHTML = '<div style="color: red;">❌ No hay dashboard-grid</div>';
+                
+                // Buscar en app
+                const app = document.getElementById('app');
+                if (app) {
+                    const content = app.innerHTML.substring(0, 200);
+                    inspector.innerHTML += `<br>App content: ${content}...`;
+                }
+                return;
+            }
+            
+            let html = '';
+            const children = Array.from(grid.children);
+            
+            children.forEach((child, i) => {
+                const classes = child.className;
+                let title = 'Desconocido';
+                let type = '';
+                
+                // Buscar título
+                const titleEl = child.querySelector('.card-title, h2, h3');
+                if (titleEl) title = titleEl.textContent.trim();
+                
+                // Determinar tipo
+                if (classes.includes('ai-') || title.includes('IA') || title.includes('Asistente')) {
+                    type = 'ai';
+                } else if (classes.includes('create-message') || title.includes('Generador')) {
+                    type = 'generator';
+                } else if (classes.includes('controls')) {
+                    type = 'controls';
+                }
+                
+                html += `<div class="dom-item ${type}">
+                    ${i + 1}. ${title}
+                    <br><small>${classes}</small>
+                </div>`;
+            });
+            
+            inspector.innerHTML = html || '<div>Dashboard vacío</div>';
+        }
+        
+        // Solución 1: Mover AI
+        function moveAI() {
+            const grid = document.querySelector('.dashboard-grid');
+            const ai = document.querySelector('.ai-suggestions-container, [class*="ai-"]');
+            
+            if (grid && ai) {
+                grid.insertBefore(ai, grid.firstChild);
+                showStatus('✅ AI movido al principio', 'success');
+                inspectDOM();
+            } else {
+                showStatus('❌ No se encontró grid o AI', 'error');
+            }
+        }
+        
+        // Solución 2: CSS Fix
+        function applyCSSFix() {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .ai-suggestions-container {
+                    grid-row: 1 !important;
+                    grid-column: 1 !important;
+                }
+                .create-message {
+                    grid-row: 2 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            showStatus('✅ CSS aplicado', 'success');
+            inspectDOM();
+        }
+        
+        // Solución 3: Flexbox
+        function applyFlexbox() {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .dashboard-grid {
+                    display: flex !important;
+                    flex-direction: column !important;
+                }
+                .ai-suggestions-container {
+                    order: -1 !important;
+                }
+            `;
+            document.head.appendChild(style);
+            showStatus('✅ Flexbox aplicado', 'success');
+            inspectDOM();
+        }
+        
+        // Buscar AI
+        function findAI() {
+            const ai = document.querySelector('.ai-suggestions-container, [class*="ai-"], #aiPanel');
+            if (ai) {
+                ai.classList.add('highlight-ai');
+                ai.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                showStatus('🎯 AI encontrado y resaltado', 'success');
+            } else {
+                showStatus('❌ No se encontró componente AI', 'error');
+            }
+        }
+        
+        // Mostrar status
+        function showStatus(msg, type) {
+            const statusDiv = document.getElementById('statusMsg');
+            statusDiv.textContent = msg;
+            statusDiv.className = 'status-msg show';
+            
+            if (type === 'error') {
+                statusDiv.style.background = '#f44336';
+            } else if (type === 'success') {
+                statusDiv.style.background = '#4CAF50';
+            } else {
+                statusDiv.style.background = '#2196F3';
+            }
+            
+            setTimeout(() => {
+                statusDiv.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Auto-inspect cada 3 segundos
+        setInterval(() => {
+            if (document.querySelector('.dashboard-grid')) {
+                inspectDOM();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

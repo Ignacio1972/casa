@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Selector de Música</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .music-list {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .music-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 3px;
+            border-left: 3px solid #667eea;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Test Selector de Música para Jingles</h1>
+        
+        <label for="musicSelect">Selecciona una canción:</label>
+        <select id="musicSelect">
+            <option value="">Cargando música...</option>
+        </select>
+        
+        <button onclick="loadMusic()">🔄 Recargar Lista</button>
+        <button onclick="testPlay()">▶️ Preview (10s)</button>
+        
+        <div id="status"></div>
+        
+        <div class="music-list">
+            <h3>Música disponible en la carpeta:</h3>
+            <div id="musicList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar música al iniciar
+        window.addEventListener('DOMContentLoaded', loadMusic);
+
+        async function loadMusic() {
+            const status = document.getElementById('status');
+            status.className = 'status';
+            status.textContent = 'Cargando música...';
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list_music' })
+                });
+
+                const data = await response.json();
+                console.log('Respuesta del servidor:', data);
+
+                if (data.success && data.music) {
+                    updateMusicSelector(data.music);
+                    displayMusicList(data.music);
+                    status.className = 'status success';
+                    status.textContent = `✅ ${data.music.length} canciones encontradas`;
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                status.className = 'status error';
+                status.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        function updateMusicSelector(musicList) {
+            const select = document.getElementById('musicSelect');
+            
+            select.innerHTML = `
+                <option value="">-- Seleccionar música --</option>
+                ${musicList.map(music => {
+                    // Mostrar el nombre del archivo sin extensión
+                    const displayName = music.file.replace(/\.(mp3|wav|ogg)$/i, '');
+                    return `<option value="${music.file}">${displayName}</option>`;
+                }).join('')}
+            `;
+
+            console.log(`Selector actualizado con ${musicList.length} canciones`);
+        }
+
+        function displayMusicList(musicList) {
+            const listDiv = document.getElementById('musicList');
+            
+            listDiv.innerHTML = musicList.map((music, index) => `
+                <div class="music-item">
+                    <strong>${index + 1}.</strong> ${music.file}
+                    ${music.duration ? ` (${formatDuration(music.duration)})` : ''}
+                </div>
+            `).join('');
+        }
+
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function testPlay() {
+            const select = document.getElementById('musicSelect');
+            const file = select.value;
+            
+            if (!file) {
+                alert('Por favor selecciona una canción primero');
+                return;
+            }
+
+            const audio = new Audio(`/audio/music/${file}`);
+            audio.volume = 0.3;
+            audio.play();
+
+            const status = document.getElementById('status');
+            status.className = 'status success';
+            status.textContent = `▶️ Reproduciendo preview de: ${file}`;
+
+            // Detener después de 10 segundos
+            setTimeout(() => {
+                audio.pause();
+                status.textContent = '⏸️ Preview detenido';
+            }, 10000);
+        }
+    </script>
+</body>
+</html>

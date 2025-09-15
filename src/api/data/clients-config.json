@@ -1,10 +1,10 @@
 {
-    "active_client": "casa_costanera",
+    "active_client": "custom_1757645735",
     "clients": {
         "casa_costanera": {
             "id": "casa_costanera",
             "name": "Casa Costanera",
-            "context": "Eres un experto creando anuncios para Casa Costanera, un moderno centro comercial en Chile con más de 100 tiendas, restaurantes de primera clase y entretenimiento familiar. Casa Costanera es reconocido por su arquitectura moderna, amplios espacios, zona de food court premium y eventos especiales durante todo el año.",
+            "context": "Eres un experto creando anuncios para Casa Costanera, un moderno centro comercial en Chile con m\u00e1s de 100 tiendas, restaurantes de primera clase y entretenimiento familiar. Casa Costanera es reconocido por su arquitectura moderna, amplios espacios, zona de food court premium y eventos especiales durante todo el a\u00f1o.",
             "category": "centro_comercial",
             "active": true,
             "created_at": "2025-01-01T00:00:00Z"
@@ -12,7 +12,7 @@
         "mall_independencia": {
             "id": "mall_independencia",
             "name": "Mall Independencia",
-            "context": "Eres un experto creando anuncios para Mall Independencia, un centro comercial tradicional y familiar ubicado en el corazón de Independencia. Con más de 80 tiendas, cine, patio de comidas y supermercado, es el punto de encuentro favorito de las familias de la zona norte de Santiago.",
+            "context": "Eres un experto creando anuncios para Mall Independencia, un centro comercial tradicional y familiar ubicado en el coraz\u00f3n de Independencia. Con m\u00e1s de 80 tiendas, cine, patio de comidas y supermercado, es el punto de encuentro favorito de las familias de la zona norte de Santiago.",
             "category": "centro_comercial",
             "active": true,
             "created_at": "2025-01-15T00:00:00Z"
@@ -20,7 +20,7 @@
         "mall_plaza": {
             "id": "mall_plaza",
             "name": "Mall Plaza",
-            "context": "Eres un experto creando anuncios para Mall Plaza, la cadena de centros comerciales más grande de Chile. Con una experiencia de compra premium, tiendas exclusivas, restaurantes de alta gama y servicios VIP. Mall Plaza se distingue por su elegancia y atención personalizada.",
+            "context": "Eres un experto creando anuncios para Mall Plaza, la cadena de centros comerciales m\u00e1s grande de Chile. Con una experiencia de compra premium, tiendas exclusivas, restaurantes de alta gama y servicios VIP. Mall Plaza se distingue por su elegancia y atenci\u00f3n personalizada.",
             "category": "centro_comercial",
             "active": true,
             "created_at": "2025-01-20T00:00:00Z",
@@ -29,18 +29,27 @@
         "restaurante_pepita": {
             "id": "restaurante_pepita",
             "name": "Restaurante La Pepita",
-            "context": "Eres un experto creando anuncios para Restaurante La Pepita, un restaurante familiar de comida italiana con 15 años de tradición. Conocido por sus pizzas artesanales en horno de leña, pastas caseras y ambiente acogedor. La Pepita es el lugar perfecto para celebraciones familiares.",
+            "context": "Eres un experto creando anuncios para Restaurante La Pepita, un restaurante familiar de comida italiana con 15 a\u00f1os de tradici\u00f3n. Conocido por sus pizzas artesanales en horno de le\u00f1a, pastas caseras y ambiente acogedor. La Pepita es el lugar perfecto para celebraciones familiares.",
             "category": "restaurante",
             "active": true,
             "created_at": "2025-02-01T00:00:00Z"
         },
         "generic": {
             "id": "generic",
-            "name": "Cliente Genérico",
+            "name": "Cliente Gen\u00e9rico",
             "context": "Eres un experto en crear anuncios comerciales efectivos y atractivos para negocios locales.",
             "category": "generico",
             "active": true,
             "created_at": "2025-01-01T00:00:00Z"
+        },
+        "custom_1757645735": {
+            "name": "Supermercado Lider",
+            "context": "Eres un experto creando anuncios para supermercados Lider. Es un supermercado con miles de sucursales en Chile. Tiene buenas promociones. Poductos de buena calidad a precios razonables. Su lema es \u201cPrecios Bajos Todos los D\u00edas\u201d.\nDestaca la variedad de productos: alimentos, hogar, tecnolog\u00eda y m\u00e1s.\nEnfatiza el ahorro familiar y la conveniencia de encontrar todo en un solo lugar.\nUsa un tono cercano, confiable y familiar, dirigido a familias chilenas de nivel socioecon\u00f3mico medio.\nEl anuncio debe transmitir rapidez y conveniencia (compra en tienda o online).\nIncluye un llamado a la acci\u00f3n claro, como \u201cAprovecha hoy en tu L\u00edder m\u00e1s cercano o compra online\u201d.\nMant\u00e9n el mensaje breve, directo y atractivo, con enfoque en la experiencia de compra.",
+            "category": "custom",
+            "active": true,
+            "id": "custom_1757645735",
+            "created_at": "2025-09-11T23:55:35Z",
+            "updated_at": "2025-09-12T16:01:41Z"
         }
     }
 }

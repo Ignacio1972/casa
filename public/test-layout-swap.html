@@ -412,6 +412,24 @@
                     #aiContext,
                     .ai-context-input {
                         margin-bottom: 5px !important;
+                        outline: none !important; /* Quitar outline del textarea */
+                    }
+                    
+                    /* Estilo de focus para el wrapper unificado */
+                    .unified-textarea-wrapper:focus-within {
+                        border-color: rgba(107, 114, 128, 0.5) !important; /* Borde gris sutil al hacer focus */
+                        transition: border-color 0.2s ease !important;
+                    }
+                    
+                    /* Asegurar que no haya líneas divisorias */
+                    .unified-textarea-wrapper * {
+                        border-top: none !important;
+                        border-bottom: none !important;
+                    }
+                    
+                    .custom-button-row {
+                        border: none !important;
+                        outline: none !important;
                     }
                 `;
                 document.head.appendChild(style);
@@ -472,6 +490,8 @@
                             textarea.style.cssText = `
                                 width: 100% !important;
                                 border: none !important;
+                                outline: none !important;
+                                box-shadow: none !important;
                                 border-radius: 0 !important;
                                 background: transparent !important;
                                 padding: 12px !important;
@@ -494,7 +514,10 @@
                                 height: 45px !important;
                                 padding: 0 12px 8px 12px !important;
                                 background: transparent !important;
-                                margin-top: -5px !important;
+                                margin-top: -8px !important;
+                                border: none !important;
+                                outline: none !important;
+                                box-shadow: none !important;
                             `;
                             
                             // Agregar la fila del botón al wrapper

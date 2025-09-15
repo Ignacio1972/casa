@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ Configuración de Jingles - Playground</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .config-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .config-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .config-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .config-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .label-text {
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .label-value {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .highlight-group {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #667eea30;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: #555;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .music-selector {
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f7ff;
+        }
+
+        .btn-danger {
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #fff5f5;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .timeline-bar {
+            height: 50px;
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .timeline-segment {
+            position: absolute;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .timeline-intro {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+        }
+
+        .timeline-voice {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .timeline-outro {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+
+        .info-box-text {
+            color: #424242;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <div class="config-header">
+            <h1 class="config-title">
+                <span>⚙️</span> Configuración Global de Jingles
+            </h1>
+            <p class="config-subtitle">Define los valores por defecto que se usarán en el Dashboard para todos los usuarios</p>
+        </div>
+
+        <div class="config-grid">
+            <!-- Panel de Tiempos -->
+            <div class="panel">
+                <h2 class="panel-title">⏱️ Control de Tiempos</h2>
+                
+                <div class="highlight-group">
+                    <div class="highlight-title">🎵 Música antes y después de la voz</div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Segundos de música ANTES de la voz:</span>
+                            <span class="label-value" id="introValue">2s</span>
+                        </div>
+                        <input type="range" id="introSilence" min="0" max="15" value="2" step="0.5">
+                        <div class="help-text">La música sonará sola durante este tiempo antes de que empiece a hablar</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Segundos de música DESPUÉS de la voz:</span>
+                            <span class="label-value" id="outroValue">4s</span>
+                        </div>
+                        <input type="range" id="outroSilence" min="0" max="20" value="4" step="0.5">
+                        <div class="help-text">La música continuará sonando este tiempo después de que termine de hablar</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Fade In (entrada gradual):</span>
+                        <span class="label-value" id="fadeInValue">2s</span>
+                    </div>
+                    <input type="range" id="fadeIn" min="0" max="5" value="2" step="0.5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Fade Out (salida gradual):</span>
+                        <span class="label-value" id="fadeOutValue">2s</span>
+                    </div>
+                    <input type="range" id="fadeOut" min="0" max="5" value="2" step="0.5">
+                </div>
+            </div>
+
+            <!-- Panel de Volúmenes y Ducking -->
+            <div class="panel">
+                <h2 class="panel-title">🎛️ Volúmenes y Auto-Ducking</h2>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Volumen de Música:</span>
+                        <span class="label-value" id="musicVolumeValue">30%</span>
+                    </div>
+                    <input type="range" id="musicVolume" min="0" max="100" value="30" step="5">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Volumen de Voz:</span>
+                        <span class="label-value" id="voiceVolumeValue">100%</span>
+                    </div>
+                    <input type="range" id="voiceVolume" min="0" max="200" value="100" step="10">
+                </div>
+
+                <div class="highlight-group">
+                    <div class="highlight-title">🎚️ Auto-Ducking</div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="duckingEnabled" checked>
+                        <label for="duckingEnabled" class="checkbox-label">
+                            Activar Auto-Ducking (reduce música cuando habla la voz)
+                        </label>
+                    </div>
+
+                    <div class="control-group" id="duckLevelGroup">
+                        <div class="control-label">
+                            <span class="label-text">Nivel de reducción:</span>
+                            <span class="label-value" id="duckLevelValue">20%</span>
+                        </div>
+                        <input type="range" id="duckLevel" min="0" max="100" value="20" step="5">
+                        <div class="help-text">La música bajará a este porcentaje cuando hable la voz</div>
+                    </div>
+                </div>
+
+                <div class="music-selector">
+                    <label class="label-text" style="display: block; margin-bottom: 10px;">Música por defecto:</label>
+                    <select id="defaultMusic">
+                        <option value="">Cargando música...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Voice Settings -->
+        <div class="panel">
+            <h2 class="panel-title">🎤 Configuración de Voz</h2>
+            
+            <div class="info-box" style="margin-bottom: 20px;">
+                <div class="info-box-title">ℹ️ Calidad de Voz</div>
+                <div class="info-box-text">
+                    Estos valores controlan cómo suena la voz generada por TTS (Text-to-Speech).
+                    Ajústalos para obtener la mejor calidad en todos los jingles.
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">
+                    <span class="label-text">Estilo de voz (expresividad):</span>
+                    <span class="label-value" id="styleValue">50%</span>
+                </div>
+                <input type="range" id="voiceStyle" min="0" max="100" value="50" step="5">
+                <div class="help-text">Más bajo = más neutral y consistente | Más alto = más expresivo y variado</div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span class="label-text">Estabilidad de voz:</span>
+                    <span class="label-value" id="stabilityValue">75%</span>
+                </div>
+                <input type="range" id="voiceStability" min="0" max="100" value="75" step="5">
+                <div class="help-text">Controla qué tan consistente suena la voz (recomendado: 70-80%)</div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span class="label-text">Claridad/Similitud de voz:</span>
+                    <span class="label-value" id="similarityValue">80%</span>
+                </div>
+                <input type="range" id="voiceSimilarity" min="0" max="100" value="80" step="5">
+                <div class="help-text">Qué tan clara y similar a la voz original suena (recomendado: 75-85%)</div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="speakerBoost" checked>
+                <label for="speakerBoost" class="checkbox-label">
+                    Activar Speaker Boost (mejora la calidad general de la voz)
+                </label>
+            </div>
+
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                <label class="label-text" style="display: block; margin-bottom: 10px;">Voz para pruebas:</label>
+                <select id="testVoice" style="margin-bottom: 15px;">
+                    <option value="mateo">Mateo (Masculino, Joven)</option>
+                    <option value="juan_carlos">Juan Carlos (Masculino, Maduro)</option>
+                    <option value="sofia">Sofía (Femenino, Joven)</option>
+                    <option value="maria">María (Femenino, Maduro)</option>
+                    <option value="carlos">Carlos (Masculino, Profesional)</option>
+                    <option value="laura">Laura (Femenino, Amigable)</option>
+                </select>
+                <div class="help-text">Selecciona una voz para probar los voice settings con el botón de prueba</div>
+            </div>
+        </div>
+
+        <!-- Preview Visual -->
+        <div class="panel">
+            <h2 class="panel-title">👁️ Vista Previa del Timeline</h2>
+            
+            <div class="preview-section">
+                <div class="preview-title">Así sonará el jingle con esta configuración:</div>
+                <div class="timeline-bar">
+                    <div class="timeline-intro timeline-segment" id="timelineIntro">Música sola</div>
+                    <div class="timeline-voice timeline-segment" id="timelineVoice">Voz + Música</div>
+                    <div class="timeline-outro timeline-segment" id="timelineOutro">Música sola</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.85rem; color: #666;">
+                    <span>0s</span>
+                    <span id="totalDuration">10s total</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">ℹ️ Importante</div>
+                <div class="info-box-text">
+                    Estos valores se aplicarán automáticamente en el Dashboard cuando los usuarios activen "Convertir en Jingle".
+                    Los usuarios no necesitarán ajustar ningún parámetro.
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveConfig()">
+                    <span>💾</span> Guardar Configuración
+                </button>
+                <button class="btn btn-secondary" onclick="testConfig()">
+                    <span>🎤</span> Probar con Voz Real
+                </button>
+                <button class="btn btn-danger" onclick="resetConfig()">
+                    <span>🔄</span> Restaurar Valores por Defecto
+                </button>
+            </div>
+
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = null;
+        let musicList = [];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentConfig();
+            loadMusicList();
+            initializeSliders();
+            updateTimeline();
+        });
+
+        // Cargar configuración actual
+        async function loadCurrentConfig() {
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-config-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfig = data.config;
+                    applyConfigToUI(currentConfig.jingle_defaults);
+                    showStatus('Configuración cargada', 'success');
+                }
+            } catch (error) {
+                console.error('Error cargando configuración:', error);
+                showStatus('Error cargando configuración', 'error');
+            }
+        }
+
+        // Aplicar configuración a la UI
+        function applyConfigToUI(config) {
+            document.getElementById('introSilence').value = config.intro_silence;
+            document.getElementById('introValue').textContent = config.intro_silence + 's';
+            
+            document.getElementById('outroSilence').value = config.outro_silence;
+            document.getElementById('outroValue').textContent = config.outro_silence + 's';
+            
+            document.getElementById('musicVolume').value = config.music_volume * 100;
+            document.getElementById('musicVolumeValue').textContent = Math.round(config.music_volume * 100) + '%';
+            
+            document.getElementById('voiceVolume').value = config.voice_volume * 100;
+            document.getElementById('voiceVolumeValue').textContent = Math.round(config.voice_volume * 100) + '%';
+            
+            document.getElementById('fadeIn').value = config.fade_in;
+            document.getElementById('fadeInValue').textContent = config.fade_in + 's';
+            
+            document.getElementById('fadeOut').value = config.fade_out;
+            document.getElementById('fadeOutValue').textContent = config.fade_out + 's';
+            
+            document.getElementById('duckingEnabled').checked = config.ducking_enabled;
+            
+            document.getElementById('duckLevel').value = config.duck_level * 100;
+            document.getElementById('duckLevelValue').textContent = Math.round(config.duck_level * 100) + '%';
+            
+            // Voice settings
+            if (config.voice_settings) {
+                document.getElementById('voiceStyle').value = (config.voice_settings.style || 0.5) * 100;
+                document.getElementById('styleValue').textContent = Math.round((config.voice_settings.style || 0.5) * 100) + '%';
+                
+                document.getElementById('voiceStability').value = (config.voice_settings.stability || 0.75) * 100;
+                document.getElementById('stabilityValue').textContent = Math.round((config.voice_settings.stability || 0.75) * 100) + '%';
+                
+                document.getElementById('voiceSimilarity').value = (config.voice_settings.similarity_boost || 0.8) * 100;
+                document.getElementById('similarityValue').textContent = Math.round((config.voice_settings.similarity_boost || 0.8) * 100) + '%';
+                
+                document.getElementById('speakerBoost').checked = config.voice_settings.use_speaker_boost !== false;
+            }
+            
+            // Toggle ducking controls
+            document.getElementById('duckLevelGroup').style.display = config.ducking_enabled ? 'block' : 'none';
+            
+            updateTimeline();
+        }
+
+        // Cargar lista de música
+        async function loadMusicList() {
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list_music' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.music) {
+                    musicList = data.music;
+                    updateMusicSelector();
+                }
+            } catch (error) {
+                console.error('Error cargando música:', error);
+            }
+        }
+
+        // Actualizar selector de música
+        function updateMusicSelector() {
+            const select = document.getElementById('defaultMusic');
+            
+            select.innerHTML = musicList.map(music => {
+                const displayName = music.file.replace(/\.(mp3|wav|ogg)$/i, '');
+                const selected = currentConfig && currentConfig.jingle_defaults.default_music === music.file ? 'selected' : '';
+                return `<option value="${music.file}" ${selected}>${displayName}</option>`;
+            }).join('');
+        }
+
+        // Inicializar sliders
+        function initializeSliders() {
+            const sliders = [
+                { id: 'introSilence', valueId: 'introValue', suffix: 's', callback: updateTimeline },
+                { id: 'outroSilence', valueId: 'outroValue', suffix: 's', callback: updateTimeline },
+                { id: 'musicVolume', valueId: 'musicVolumeValue', suffix: '%' },
+                { id: 'voiceVolume', valueId: 'voiceVolumeValue', suffix: '%' },
+                { id: 'fadeIn', valueId: 'fadeInValue', suffix: 's' },
+                { id: 'fadeOut', valueId: 'fadeOutValue', suffix: 's' },
+                { id: 'duckLevel', valueId: 'duckLevelValue', suffix: '%' },
+                { id: 'voiceStyle', valueId: 'styleValue', suffix: '%' },
+                { id: 'voiceStability', valueId: 'stabilityValue', suffix: '%' },
+                { id: 'voiceSimilarity', valueId: 'similarityValue', suffix: '%' }
+            ];
+
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider.id);
+                if (element) {
+                    element.addEventListener('input', (e) => {
+                        let value = e.target.value;
+                        if (slider.suffix === '%') {
+                            value = Math.round(value);
+                        }
+                        document.getElementById(slider.valueId).textContent = value + slider.suffix;
+                        if (slider.callback) slider.callback();
+                    });
+                }
+            });
+
+            // Toggle ducking
+            document.getElementById('duckingEnabled').addEventListener('change', (e) => {
+                document.getElementById('duckLevelGroup').style.display = e.target.checked ? 'block' : 'none';
+            });
+        }
+
+        // Actualizar timeline visual
+        function updateTimeline() {
+            const intro = parseFloat(document.getElementById('introSilence').value);
+            const outro = parseFloat(document.getElementById('outroSilence').value);
+            const voiceDuration = 4; // Duración estimada de la voz
+
+            const total = intro + voiceDuration + outro;
+
+            const introBar = document.getElementById('timelineIntro');
+            const voiceBar = document.getElementById('timelineVoice');
+            const outroBar = document.getElementById('timelineOutro');
+
+            introBar.style.width = (intro / total * 100) + '%';
+            introBar.style.left = '0';
+            introBar.textContent = intro > 0.5 ? `Música ${intro}s` : '';
+
+            voiceBar.style.width = (voiceDuration / total * 100) + '%';
+            voiceBar.style.left = (intro / total * 100) + '%';
+            voiceBar.textContent = `Voz + Música`;
+
+            outroBar.style.width = (outro / total * 100) + '%';
+            outroBar.style.left = ((intro + voiceDuration) / total * 100) + '%';
+            outroBar.textContent = outro > 0.5 ? `Música ${outro}s` : '';
+
+            document.getElementById('totalDuration').textContent = `${total.toFixed(1)}s total`;
+        }
+
+        // Guardar configuración
+        async function saveConfig() {
+            const config = {
+                jingle_defaults: {
+                    enabled_by_default: currentConfig?.jingle_defaults?.enabled_by_default || false,
+                    intro_silence: parseFloat(document.getElementById('introSilence').value),
+                    outro_silence: parseFloat(document.getElementById('outroSilence').value),
+                    music_volume: parseFloat(document.getElementById('musicVolume').value) / 100,
+                    voice_volume: parseFloat(document.getElementById('voiceVolume').value) / 100,
+                    fade_in: parseFloat(document.getElementById('fadeIn').value),
+                    fade_out: parseFloat(document.getElementById('fadeOut').value),
+                    ducking_enabled: document.getElementById('duckingEnabled').checked,
+                    duck_level: parseFloat(document.getElementById('duckLevel').value) / 100,
+                    default_music: document.getElementById('defaultMusic').value,
+                    voice_settings: {
+                        style: parseFloat(document.getElementById('voiceStyle').value) / 100,
+                        stability: parseFloat(document.getElementById('voiceStability').value) / 100,
+                        similarity_boost: parseFloat(document.getElementById('voiceSimilarity').value) / 100,
+                        use_speaker_boost: document.getElementById('speakerBoost').checked
+                    }
+                },
+                allowed_music: currentConfig?.allowed_music || 'all',
+                user_can_override: currentConfig?.user_can_override || false
+            };
+
+            try {
+                showStatus('Guardando configuración...', 'info');
+                
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-config-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'save',
+                        config: config
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfig = config;
+                    showStatus('✅ Configuración guardada exitosamente', 'success');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Probar configuración
+        async function testConfig() {
+            const musicFile = document.getElementById('defaultMusic').value;
+            if (!musicFile) {
+                showStatus('Selecciona una música primero', 'error');
+                return;
+            }
+
+            showStatus('Generando jingle de prueba con voz real...', 'info');
+
+            // Obtener voice settings actuales
+            const voiceSettings = {
+                style: parseFloat(document.getElementById('voiceStyle').value) / 100,
+                stability: parseFloat(document.getElementById('voiceStability').value) / 100,
+                similarity_boost: parseFloat(document.getElementById('voiceSimilarity').value) / 100,
+                use_speaker_boost: document.getElementById('speakerBoost').checked
+            };
+
+            const options = {
+                music_file: musicFile,
+                music_volume: parseFloat(document.getElementById('musicVolume').value) / 100,
+                voice_volume: parseFloat(document.getElementById('voiceVolume').value) / 100,
+                fade_in: parseFloat(document.getElementById('fadeIn').value),
+                fade_out: parseFloat(document.getElementById('fadeOut').value),
+                music_duck: document.getElementById('duckingEnabled').checked,
+                duck_level: parseFloat(document.getElementById('duckLevel').value) / 100,
+                intro_silence: parseFloat(document.getElementById('introSilence').value),
+                outro_silence: parseFloat(document.getElementById('outroSilence').value),
+                voice_settings: voiceSettings
+            };
+
+            // Usar voz real en lugar de sintética
+            const testVoice = document.getElementById('testVoice').value;
+            const testText = "Este es un mensaje de prueba para verificar la configuración de voz y música del jingle.";
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        text: testText,
+                        voice: testVoice,
+                        options: options
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.audio) {
+                    showStatus(`🎵 Reproduciendo jingle de prueba con ${testVoice} (${data.duration?.toFixed(1)}s)`, 'success');
+                    
+                    const audio = new Audio('data:audio/mp3;base64,' + data.audio);
+                    audio.play();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Restaurar configuración
+        async function resetConfig() {
+            if (!confirm('¿Estás seguro de restaurar los valores por defecto?')) return;
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-config-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reset' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfig = data.config;
+                    applyConfigToUI(currentConfig.jingle_defaults);
+                    showStatus('🔄 Configuración restaurada a valores por defecto', 'success');
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Mostrar estado
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+
+            if (type !== 'info') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

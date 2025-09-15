@@ -211,17 +211,55 @@ export class ScheduleService {
         
         if (schedule.schedule_days) {
             try {
-                const days = JSON.parse(schedule.schedule_days);
+                let days = schedule.schedule_days;
+                
+                // Si es string, intentar parsearlo
+                if (typeof days === 'string') {
+                    days = JSON.parse(days);
+                }
+                
                 const dayNames = {
                     0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 
                     4: 'Jue', 5: 'Vie', 6: 'Sáb'
                 };
                 
+                // También soportar nombres en inglés por compatibilidad
+                const englishDayMapping = {
+                    'sunday': 0,
+                    'monday': 1,
+                    'tuesday': 2,
+                    'wednesday': 3,
+                    'thursday': 4,
+                    'friday': 5,
+                    'saturday': 6
+                };
+                
                 if (Array.isArray(days)) {
-                    return days.map(d => dayNames[d]).join(', ');
+                    // Convertir días a números si vienen como strings
+                    const dayNumbers = days.map(d => {
+                        if (typeof d === 'number') {
+                            return d;
+                        } else if (typeof d === 'string') {
+                            const lowerDay = d.toLowerCase();
+                            if (englishDayMapping.hasOwnProperty(lowerDay)) {
+                                return englishDayMapping[lowerDay];
+                            }
+                            // Intentar convertir si es un número en string
+                            const num = parseInt(d);
+                            if (!isNaN(num)) {
+                                return num;
+                            }
+                        }
+                        return null;
+                    }).filter(d => d !== null);
+                    
+                    // Ordenar días para mostrarlos en orden correcto
+                    dayNumbers.sort((a, b) => a - b);
+                    
+                    return dayNumbers.map(d => dayNames[d]).join(', ');
                 }
             } catch (e) {
-                console.error('[ScheduleService] Error parsing schedule_days:', e);
+                console.error('[ScheduleService] Error parsing schedule_days:', e, schedule.schedule_days);
             }
         }
         return 'Todos los días';

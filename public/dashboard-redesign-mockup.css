@@ -1,0 +1,1051 @@
+/**
+ * Dashboard Redesign Mockup CSS
+ * ==============================
+ * Arquitectura CSS limpia y modular
+ * Completamente aislada del dashboard en producción
+ */
+
+/* ========================================
+   1. VARIABLES Y RESET
+   ======================================== */
+
+:root {
+    /* Colores copiados del dashboard de producción */
+    --primary-color: #10B981;
+    --secondary-color: #387ade;
+    
+    /* Fondos dark mode - Eerie Black Theme (del dashboard actual) */
+    --background-dark: #1c1b19;
+    --surface-dark: #2f3236;
+    --surface-light: #3f4348;
+    --surface-elevated: #4d5359;
+    
+    /* Texto (del dashboard actual) */
+    --text-primary: #e9eff1;
+    --text-secondary: #a6bdc9;
+    --text-muted: #6e767f;
+    
+    /* Bordes */
+    --border-color: rgba(255, 255, 255, 0.1);
+    
+    /* Espaciados */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Bordes */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+    
+    /* Transiciones */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+}
+
+/* Reset específico para el mockup */
+.mockup-container * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ========================================
+   2. LAYOUT BASE
+   ======================================== */
+
+body {
+    background: var(--background-dark);
+    color: var(--text-primary);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+}
+
+/* Header styles */
+.header {
+    background: var(--surface-dark);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.header-nav {
+    display: flex;
+    gap: var(--spacing-xl);
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mockup-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+/* ========================================
+   3. ESTRUCTURA DE FASES
+   ======================================== */
+
+.phase-section {
+    margin-bottom: calc(var(--spacing-xl) * 2);
+}
+
+/* Card header similar al dashboard actual */
+.card-header {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.card-icon {
+    font-size: 1.5rem;
+}
+
+.phase-separator {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    margin: calc(var(--spacing-xl) * 2) 0;
+}
+
+/* ========================================
+   4. LAYOUT DE DOS COLUMNAS
+   ======================================== */
+
+.two-column-layout {
+    display: grid;
+    grid-template-columns: 30% 70%;
+    gap: 0; /* Sin espacio entre columnas */
+    min-height: 500px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.left-column {
+    background: var(--surface-dark);
+    border-radius: 0; /* Sin bordes redondeados */
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--spacing-md);
+    min-height: 600px; /* Altura mínima para alinear con input */
+}
+
+.right-column {
+    background: var(--surface-dark);
+    border-radius: 0; /* Sin bordes redondeados */
+    padding: var(--spacing-lg);
+    padding-bottom: 80px; /* Espacio para el input fijo */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    min-height: 100%;
+}
+
+.column-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.column-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.column-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* ========================================
+   5. COMPONENTES DE MENSAJES RECIENTES
+   ======================================== */
+
+.search-bar {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-input {
+    width: 100%;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    overflow-y: auto;
+    flex: 1;
+    padding: var(--spacing-md);
+    padding-bottom: var(--spacing-lg);
+}
+
+.message-item {
+    background: var(--surface-light);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.message-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+    gap: var(--spacing-sm);
+}
+
+.message-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%; /* Usar todo el ancho disponible sin badges */
+}
+
+/* Badges eliminados según solicitud */
+
+.message-preview {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: var(--spacing-sm);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.message-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.btn-save:hover {
+    color: var(--primary-color);
+}
+
+.btn-delete:hover {
+    color: #ef4444;
+}
+
+.pagination {
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.btn-page {
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-page:hover:not(:disabled) {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: var(--primary-color);
+}
+
+.page-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   6. ÁREA DE SUGERENCIAS
+   ======================================== */
+
+.suggestions-area {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: var(--spacing-sm);
+    margin-bottom: 80px; /* Espacio para el input fijo en la parte inferior */
+    max-height: calc(100vh - 300px); /* Más espacio para sugerencias */
+}
+
+/* Conversación continua sin cards separados */
+.conversation-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.suggestion-message {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    transition: background var(--transition-fast);
+}
+
+.suggestion-message:last-child {
+    border-bottom: none;
+}
+
+.suggestion-message:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Removido - ya no usamos cards */
+
+/* Phase headers eliminados según solicitud */
+
+.card-number {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.message-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--spacing-md);
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+}
+
+.suggestion-message:hover .message-actions {
+    opacity: 1;
+}
+
+.btn-icon-action {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: var(--spacing-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+}
+
+.btn-icon-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-regenerate:hover {
+    color: var(--secondary-color);
+}
+
+.btn-use {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+}
+
+.btn-use:hover {
+    color: var(--primary-color);
+}
+
+.icon-svg {
+    width: 18px;
+    height: 18px;
+    filter: invert(1);
+    opacity: 0.6;
+}
+
+.btn-icon-action:hover .icon-svg {
+    opacity: 1;
+}
+
+.suggestion-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+    outline: none;
+    transition: all var(--transition-fast);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+}
+
+.suggestion-text:focus {
+    background: rgba(0, 255, 136, 0.05);
+}
+
+/* Badges eliminados según solicitud */
+
+/* Botón eliminado según solicitud */
+
+.generating-state,
+.generating-audio-state {
+    padding: calc(var(--spacing-xl) * 2);
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   7. INPUT PRINCIPAL
+   ======================================== */
+
+.input-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-lg);
+    background: var(--surface-dark);
+    z-index: 10;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center; /* Centrar verticalmente */
+    gap: var(--spacing-md);
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md); /* Menos padding vertical */
+}
+
+.input-controls {
+    display: flex;
+    flex-direction: row; /* Iconos lado a lado */
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+}
+
+.control-dropdown {
+    position: relative;
+}
+
+.control-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.dropdown-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: var(--surface-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+    display: none;
+    min-width: 150px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.control-dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.dropdown-item:hover {
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.dropdown-item.selected {
+    background: rgba(0, 255, 136, 0.2);
+    color: var(--primary-color);
+}
+
+.main-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    resize: none;
+    outline: none;
+    min-height: 40px; /* Más delgado */
+    max-height: 40px;
+    font-family: inherit;
+    line-height: 1.4;
+    padding-top: 8px;
+}
+
+.main-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.btn-send {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-full);
+    background: #6b7280; /* Gris neutro */
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+}
+
+.btn-send:hover {
+    background: #4b5563; /* Gris más oscuro */
+    transform: scale(1.1);
+}
+
+.send-icon {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+}
+
+/* ========================================
+   8. GENERADOR DE AUDIO
+   ======================================== */
+
+.audio-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
+
+.audio-group {
+    margin-bottom: var(--spacing-md);
+    background: var(--surface-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.group-header {
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.group-header:hover {
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.group-title {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.group-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: var(--surface-dark);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+}
+
+.group-items {
+    display: none;
+    border-top: 1px solid var(--border-color);
+}
+
+.audio-group.expanded .group-items {
+    display: block;
+}
+
+.audio-item {
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.audio-item:hover {
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.audio-item.active {
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.audio-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.audio-voice {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.audio-music {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.audio-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.text-editor {
+    margin-bottom: var(--spacing-lg);
+}
+
+.editor-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.audio-text-input {
+    width: 100%;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.audio-controls {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    align-items: flex-end;
+}
+
+.control-group {
+    flex: 1;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.control-select {
+    width: 100%;
+    background: var(--surface-light);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.btn-generate-audio {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-generate-audio:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   9. PLAYER DE AUDIO
+   ======================================== */
+
+.audio-player-section {
+    background: var(--surface-light);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+}
+
+.player-container {
+    margin-bottom: var(--spacing-lg);
+}
+
+.waveform-placeholder {
+    background: var(--surface-dark);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.waveform-bars {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 100%;
+}
+
+.waveform-bars span {
+    width: 3px;
+    background: var(--primary-color);
+    opacity: 0.5;
+    border-radius: var(--radius-full);
+    animation: wave 1s ease-in-out infinite;
+}
+
+.waveform-bars span:nth-child(odd) {
+    height: 40%;
+    animation-delay: 0.1s;
+}
+
+.waveform-bars span:nth-child(even) {
+    height: 60%;
+    animation-delay: 0.2s;
+}
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.5); }
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.btn-play {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background: var(--primary-color);
+    border: none;
+    color: var(--background-dark);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-play:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
+.time-display {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.time-current,
+.time-total {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    min-width: 35px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface-dark);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 30%;
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: var(--radius-full);
+}
+
+.player-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.btn-action {
+    flex: 1;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--surface-dark);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+}
+
+.btn-radio:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.btn-save:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-schedule:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+/* ========================================
+   10. ESTADOS Y ANIMACIONES
+   ======================================== */
+
+.empty-state {
+    padding: calc(var(--spacing-xl) * 2);
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.3;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: var(--radius-full);
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--spacing-md);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   11. TOAST NOTIFICATIONS
+   ======================================== */
+
+.toast-container {
+    position: fixed;
+    bottom: var(--spacing-xl);
+    right: var(--spacing-xl);
+    z-index: 1000;
+}
+
+.toast {
+    background: var(--surface-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    min-width: 300px;
+    animation: slideIn 0.3s ease;
+}
+
+.toast-success {
+    border-color: var(--primary-color);
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.toast-success i {
+    color: var(--primary-color);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ========================================
+   12. UTILIDADES
+   ======================================== */
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    transition: color var(--transition-fast);
+}
+
+.btn-icon:hover {
+    color: var(--primary-color);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--surface-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--surface-light);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* ========================================
+   13. RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .two-column-layout {
+        grid-template-columns: 35% 65%;
+    }
+}
+
+@media (max-width: 768px) {
+    .two-column-layout {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .left-column {
+        max-height: 300px;
+    }
+    
+    .mockup-container {
+        padding: var(--spacing-md);
+    }
+}

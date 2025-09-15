@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Web Speech API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1c1b19;
+            color: #e9eff1;
+        }
+        
+        .container {
+            background: #2f3236;
+            padding: 2rem;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #387ade;
+            margin-bottom: 1rem;
+        }
+        
+        .status {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            background: #3f4348;
+        }
+        
+        .status.success {
+            background: #22c55e20;
+            color: #22c55e;
+            border: 1px solid #22c55e40;
+        }
+        
+        .status.error {
+            background: #ef444420;
+            color: #ef4444;
+            border: 1px solid #ef444440;
+        }
+        
+        .status.warning {
+            background: #f59e0b20;
+            color: #f59e0b;
+            border: 1px solid #f59e0b40;
+        }
+        
+        button {
+            background: #387ade;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+        }
+        
+        button:hover {
+            background: #1f60c1;
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        button.recording {
+            background: #ef4444;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .transcript {
+            background: #1c1b19;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .info-card {
+            background: #3f4348;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        
+        .info-card h3 {
+            margin-top: 0;
+            color: #387ade;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        
+        .info-card p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .test-result {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        .test-result .icon {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Test Web Speech API</h1>
+        
+        <div id="contextStatus" class="status">
+            Verificando contexto...
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Información del Navegador</h3>
+                <p id="browserInfo">Detectando...</p>
+                <p id="protocolInfo">Protocolo: <span id="protocol"></span></p>
+                <p id="secureContext">Contexto seguro: <span id="secure"></span></p>
+            </div>
+            
+            <div class="info-card">
+                <h3>APIs Disponibles</h3>
+                <div id="apiChecks"></div>
+            </div>
+        </div>
+        
+        <div style="margin: 2rem 0;">
+            <button id="startBtn" onclick="startRecording()">🎤 Iniciar Grabación</button>
+            <button id="stopBtn" onclick="stopRecording()" disabled>⏹ Detener</button>
+            <button id="testMicBtn" onclick="testMicrophone()">🎧 Probar Micrófono</button>
+        </div>
+        
+        <div class="transcript">
+            <strong>Transcripción:</strong>
+            <div id="finalTranscript" style="color: #22c55e; margin-top: 0.5rem;"></div>
+            <div id="interimTranscript" style="color: #a6bdc9; font-style: italic; margin-top: 0.5rem;"></div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <a href="/automatic-mode.html" style="color: #387ade;">← Volver al Modo Automático</a>
+        </div>
+    </div>
+    
+    <script>
+        let recognition = null;
+        let isRecording = false;
+        
+        // Verificar el contexto al cargar
+        window.addEventListener('DOMContentLoaded', () => {
+            checkEnvironment();
+        });
+        
+        function checkEnvironment() {
+            const contextStatus = document.getElementById('contextStatus');
+            const results = [];
+            
+            // Información del navegador
+            const userAgent = navigator.userAgent;
+            document.getElementById('browserInfo').textContent = userAgent.substring(0, 50) + '...';
+            
+            // Protocolo
+            const protocol = window.location.protocol;
+            document.getElementById('protocol').textContent = protocol;
+            
+            // Contexto seguro
+            const isSecure = window.isSecureContext;
+            document.getElementById('secure').textContent = isSecure ? '✅ Sí' : '❌ No';
+            
+            // Verificar APIs
+            const apiChecks = [];
+            
+            // MediaDevices API
+            if (navigator.mediaDevices) {
+                apiChecks.push({
+                    name: 'MediaDevices',
+                    available: true
+                });
+                
+                if (navigator.mediaDevices.getUserMedia) {
+                    apiChecks.push({
+                        name: 'getUserMedia',
+                        available: true
+                    });
+                } else {
+                    apiChecks.push({
+                        name: 'getUserMedia',
+                        available: false
+                    });
+                }
+            } else {
+                apiChecks.push({
+                    name: 'MediaDevices',
+                    available: false
+                });
+            }
+            
+            // Web Speech API
+            const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+            apiChecks.push({
+                name: 'Speech Recognition',
+                available: hasSpeechRecognition
+            });
+            
+            // Mostrar resultados de APIs
+            const apiChecksDiv = document.getElementById('apiChecks');
+            apiChecksDiv.innerHTML = apiChecks.map(check => `
+                <div class="test-result">
+                    <span class="icon">${check.available ? '✅' : '❌'}</span>
+                    <span>${check.name}</span>
+                </div>
+            `).join('');
+            
+            // Estado general
+            if (!isSecure && protocol !== 'https:') {
+                contextStatus.className = 'status error';
+                contextStatus.innerHTML = `
+                    <strong>⚠️ Contexto no seguro</strong><br>
+                    Se requiere HTTPS para usar Web Speech API y acceso al micrófono.<br>
+                    <br>
+                    <strong>Solución:</strong> Accede usando:<br>
+                    <a href="https://51.222.25.222:4443/test-web-speech.html" style="color: #22c55e;">https://51.222.25.222:4443/test-web-speech.html</a><br>
+                    <small style="color: #f59e0b;">Nota: El navegador mostrará una advertencia de seguridad. Acepta continuar.</small>
+                `;
+            } else if (!hasSpeechRecognition) {
+                contextStatus.className = 'status warning';
+                contextStatus.innerHTML = `
+                    <strong>⚠️ Web Speech API no disponible</strong><br>
+                    Tu navegador no soporta reconocimiento de voz.<br>
+                    Recomendamos usar Chrome, Edge o Safari.
+                `;
+            } else {
+                contextStatus.className = 'status success';
+                contextStatus.innerHTML = `
+                    <strong>✅ Todo listo</strong><br>
+                    El navegador soporta todas las características necesarias.
+                `;
+            }
+        }
+        
+        function startRecording() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                alert('Tu navegador no soporta Web Speech API');
+                return;
+            }
+            
+            recognition = new SpeechRecognition();
+            
+            // Configuración
+            recognition.lang = 'es-CL'; // Español de Chile
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+            
+            let finalTranscript = '';
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('startBtn').className = 'recording';
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('finalTranscript').textContent = '';
+                document.getElementById('interimTranscript').textContent = 'Escuchando...';
+            };
+            
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                        document.getElementById('finalTranscript').textContent = finalTranscript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                document.getElementById('interimTranscript').textContent = 
+                    interimTranscript || 'Escuchando...';
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Error:', event.error);
+                let errorMessage = 'Error: ' + event.error;
+                
+                if (event.error === 'not-allowed') {
+                    errorMessage = 'Permiso denegado. Por favor permite el acceso al micrófono.';
+                } else if (event.error === 'no-speech') {
+                    errorMessage = 'No se detectó voz. Intenta hablar más cerca del micrófono.';
+                } else if (event.error === 'network') {
+                    errorMessage = 'Error de red. Verifica tu conexión a internet.';
+                }
+                
+                document.getElementById('interimTranscript').textContent = errorMessage;
+                stopRecording();
+            };
+            
+            recognition.onend = () => {
+                if (isRecording) {
+                    stopRecording();
+                }
+            };
+            
+            // Iniciar
+            recognition.start();
+        }
+        
+        function stopRecording() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+            
+            isRecording = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').className = '';
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('interimTranscript').textContent = '';
+        }
+        
+        async function testMicrophone() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Crear un analizador de audio para verificar que hay señal
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                microphone.connect(analyser);
+                
+                // Verificar niveles de audio por 3 segundos
+                let maxLevel = 0;
+                const checkInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    const level = Math.max(...dataArray);
+                    if (level > maxLevel) maxLevel = level;
+                }, 100);
+                
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    stream.getTracks().forEach(track => track.stop());
+                    audioContext.close();
+                    
+                    if (maxLevel > 10) {
+                        alert('✅ Micrófono funcionando correctamente!\nNivel máximo detectado: ' + maxLevel);
+                    } else {
+                        alert('⚠️ Micrófono conectado pero no se detectó audio.\nAsegúrate de que no esté silenciado.');
+                    }
+                }, 3000);
+                
+                alert('Habla durante los próximos 3 segundos para probar el micrófono...');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                let message = 'Error al acceder al micrófono: ' + error.message;
+                
+                if (error.name === 'NotAllowedError') {
+                    message = 'Permiso denegado. Por favor permite el acceso al micrófono en tu navegador.';
+                } else if (error.name === 'NotFoundError') {
+                    message = 'No se encontró ningún micrófono. Verifica que esté conectado.';
+                } else if (error.name === 'NotReadableError') {
+                    message = 'El micrófono está siendo usado por otra aplicación.';
+                }
+                
+                alert('❌ ' + message);
+            }
+        }
+    </script>
+</body>
+</html>

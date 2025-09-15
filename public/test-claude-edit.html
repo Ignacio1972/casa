@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Claude Edit</title>
+</head>
+<body>
+    <h1>Test de Edición de Contexto</h1>
+    <button onclick="testEdit()">Test Edit Modal</button>
+    <div id="result"></div>
+
+    <script>
+        async function testEdit() {
+            const result = document.getElementById('result');
+            
+            // Test 1: Verificar que el modal existe
+            const response = await fetch('/playground/claude.html');
+            const html = await response.text();
+            const hasModal = html.includes('contextModal');
+            result.innerHTML += `<p>Modal exists: ${hasModal}</p>`;
+            
+            // Test 2: Probar la API de clientes
+            const apiResponse = await fetch('/api/clients-service.php?action=list');
+            const data = await apiResponse.json();
+            result.innerHTML += `<p>API works: ${data.success}</p>`;
+            result.innerHTML += `<p>Active client: ${data.active_client}</p>`;
+            
+            // Test 3: Abrir claude.html en iframe para probar
+            const iframe = document.createElement('iframe');
+            iframe.src = '/playground/claude.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '600px';
+            document.body.appendChild(iframe);
+            
+            // Esperar a que cargue y simular click
+            setTimeout(() => {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const editBtn = iframeDoc.querySelector('button[onclick="editContext()"]');
+                    if (editBtn) {
+                        result.innerHTML += `<p>Edit button found!</p>`;
+                        // Verificar si el modal se muestra
+                        editBtn.click();
+                        setTimeout(() => {
+                            const modal = iframeDoc.getElementById('contextModal');
+                            result.innerHTML += `<p>Modal display: ${modal ? modal.style.display : 'not found'}</p>`;
+                        }, 500);
+                    } else {
+                        result.innerHTML += `<p>Edit button NOT found</p>`;
+                    }
+                } catch (e) {
+                    result.innerHTML += `<p>Error: ${e.message}</p>`;
+                }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Automático - Casa Costanera</title>
+    
+    <!-- Estilos del módulo automático -->
+    <style>
+        /* Variables copiadas del sistema */
+        :root {
+            --color-primary: #387ade;
+            --color-primary-dark: #1f60c1;
+            --color-primary-light: #6196e5;
+            --text-primary: #e9eff1;
+            --text-secondary: #a6bdc9;
+            --bg-primary: #1c1b19;
+            --bg-secondary: #2f3236;
+            --bg-tertiary: #3f4348;
+            --bg-elevated: #4d5359;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --border-radius-md: 0.375rem;
+            --border-radius-lg: 0.5rem;
+        }
+    </style>
+    <link rel="stylesheet" href="/src/modules/automatic/styles/automatic.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1c1b19;
+            color: #e9eff1;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .page-header {
+            background: #2f3236;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e9eff1;
+        }
+        
+        .back-button {
+            padding: 0.5rem 1rem;
+            background: #387ade;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background: #1f60c1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header simple -->
+    <div class="page-header">
+        <h1 class="page-title">🎤 Modo Automático - Casa Costanera</h1>
+        <a href="javascript:history.back()" class="back-button">← Volver</a>
+    </div>
+    
+    <!-- Contenedor del módulo -->
+    <div id="automatic-container"></div>
+    
+    <!-- Aviso de HTTPS si es necesario -->
+    <script>
+        if (!window.isSecureContext && window.location.protocol !== 'https:') {
+            // Mantener parámetros de la URL
+            const params = new URLSearchParams(window.location.search);
+            const httpsUrl = `https://51.222.25.222:4443/automatic-mode.html${params.toString() ? '?' + params.toString() : ''}`;
+            
+            document.getElementById('automatic-container').innerHTML = `
+                <div style="max-width: 600px; margin: 3rem auto; padding: 2rem; background: #ef444420; border: 1px solid #ef4444; border-radius: 8px; color: #ef4444; text-align: center;">
+                    <h2 style="margin-top: 0;">⚠️ Se requiere HTTPS</h2>
+                    <p>Para usar el reconocimiento de voz, necesitas acceder con HTTPS.</p>
+                    <p style="margin: 2rem 0;">
+                        <a href="${httpsUrl}" 
+                           style="display: inline-block; padding: 1rem 2rem; background: #22c55e; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                            Acceder con HTTPS →
+                        </a>
+                    </p>
+                    <p style="font-size: 0.9rem; color: #f59e0b;">
+                        Nota: El navegador mostrará una advertencia de seguridad.<br>
+                        Acepta continuar para usar el modo automático.
+                    </p>
+                </div>
+            `;
+        }
+    </script>
+    
+    <!-- Scripts necesarios -->
+    <script>
+        // Simular event bus y API client para que el módulo funcione
+        window.eventBus = {
+            emit: () => {},
+            on: () => {},
+            off: () => {}
+        };
+        
+        window.apiClient = {
+            post: (url, data) => fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(r => r.json())
+        };
+        
+        // Exponer para handlers onclick
+        window.automaticMode = null;
+    </script>
+    
+    <!-- Cargar el módulo -->
+    <script type="module">
+        import AutomaticModeModule from '/src/modules/automatic/index.js';
+        
+        async function initModule() {
+            try {
+                const automaticModule = new AutomaticModeModule();
+                window.automaticMode = automaticModule;
+                await automaticModule.load(document.getElementById('automatic-container'));
+                console.log('Módulo automático cargado exitosamente');
+            } catch (error) {
+                console.error('Error cargando módulo:', error);
+                document.getElementById('automatic-container').innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #ef4444;">
+                        Error al cargar el módulo automático: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Iniciar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initModule);
+        } else {
+            initModule();
+        }
+    </script>
+</body>
+</html>
