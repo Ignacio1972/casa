@@ -450,7 +450,7 @@ export class ScheduleModal {
             const result = await response.json();
             
             if (result.success) {
-                this.showNotification('✅ Programación creada exitosamente', 'success');
+                this.showNotification('✅ Tu mensaje ha sido programado', 'success');
                 this.hide();
                 
                 // Emitir evento para actualizar calendario
@@ -475,15 +475,40 @@ export class ScheduleModal {
     }
     
     showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
+        // Crear toast notification con estilos inline como en el dashboard
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.className = `toast toast-${type}`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            font-weight: 500;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        `;
         
-        setTimeout(() => notification.classList.add('show'), 10);
+        document.body.appendChild(toast);
+        
+        // Animar entrada
         setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
+            toast.style.transform = 'translateX(0)';
+        }, 10);
+        
+        // Animar salida y remover
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
         }, 3000);
     }
 }
