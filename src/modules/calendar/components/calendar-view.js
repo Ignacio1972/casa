@@ -224,11 +224,40 @@ export class CalendarView {
         };
         
         const fcView = viewMap[viewName] || viewName;
+        
+        // Limpiar tooltips antes de cambiar vista
+        this.cleanupTooltips();
+        
         this.calendar.changeView(fcView);
         this.currentView = fcView;
         
         // Re-aplicar estilos después del cambio de vista
         this.applyHeaderStyles();
+    }
+    
+    cleanupTooltips() {
+        // Limpiar todos los tooltips existentes en el DOM
+        document.querySelectorAll('.event-tooltip').forEach(tooltip => {
+            tooltip.remove();
+        });
+        
+        // Limpiar referencias en eventos
+        document.querySelectorAll('.fc-event').forEach(element => {
+            if (element._tooltip) {
+                if (element._tooltip.parentNode) {
+                    element._tooltip.remove();
+                }
+                delete element._tooltip;
+            }
+            if (element._tooltipShowHandler) {
+                element.removeEventListener('mouseenter', element._tooltipShowHandler);
+                delete element._tooltipShowHandler;
+            }
+            if (element._tooltipHideHandler) {
+                element.removeEventListener('mouseleave', element._tooltipHideHandler);
+                delete element._tooltipHideHandler;
+            }
+        });
     }
     
     handleEventClick(info) {
@@ -293,8 +322,17 @@ export class CalendarView {
     }
     
     addEventTooltip(element, event) {
+        // Limpiar cualquier tooltip existente para prevenir duplicados
+        const existingTooltip = element._tooltip;
+        if (existingTooltip && existingTooltip.parentNode) {
+            existingTooltip.remove();
+        }
+        
         const tooltip = document.createElement('div');
         tooltip.className = 'event-tooltip';
+        
+        // Guardar referencia al tooltip en el elemento
+        element._tooltip = tooltip;
         
         // Obtener información de categoría
         const category = event.extendedProps.category || 'sin_categoria';
@@ -313,16 +351,6 @@ export class CalendarView {
         
         // Para eventos recurrentes, usar startTime; para eventos únicos, usar start
         let displayTime = '';
-        
-        // Debug: mostrar toda la información disponible
-        console.log('[CalendarView] Tooltip time debug:', {
-            eventTitle: event.title,
-            eventStart: event.start,
-            eventStartTime: event.startTime,
-            extendedProps: event.extendedProps,
-            originalTime: event.extendedProps?.originalTime,
-            schedule_times: event.extendedProps?.schedule_times
-        });
         
         // Primero verificar si hay originalTime en extendedProps (más directo)
         if (event.extendedProps && event.extendedProps.originalTime) {
@@ -362,15 +390,39 @@ export class CalendarView {
                          'Evento';
         tooltipContent += '<p><strong>Tipo:</strong> ' + eventType + '</p>';
         
+        // Extraer las notas reales del JSON si es necesario
         if (event.extendedProps && event.extendedProps.notes) {
-            tooltipContent += '<p><strong>Notas:</strong> ' + event.extendedProps.notes + '</p>';
+            let notesText = '';
+            
+            // Verificar si notes es un string JSON
+            if (typeof event.extendedProps.notes === 'string' && event.extendedProps.notes.startsWith('{')) {
+                try {
+                    const notesData = JSON.parse(event.extendedProps.notes);
+                    // Extraer solo el campo 'notes' del objeto, ignorar type, interval_hours, etc.
+                    notesText = notesData.notes || '';
+                } catch (e) {
+                    // Si no se puede parsear, usar el texto tal cual
+                    notesText = event.extendedProps.notes;
+                }
+            } else {
+                notesText = event.extendedProps.notes;
+            }
+            
+            // Solo mostrar el campo de Notas si hay contenido real
+            if (notesText && notesText.trim() !== '') {
+                tooltipContent += '<p><strong>Notas:</strong> ' + notesText + '</p>';
+            }
         }
         
         tooltipContent += '</div>';
         tooltip.innerHTML = tooltipContent;
         
-        element.addEventListener('mouseenter', (e) => {
-            document.body.appendChild(tooltip);
+        // Crear función para mostrar tooltip
+        const showTooltip = (e) => {
+            // Verificar si el tooltip ya está en el DOM
+            if (!tooltip.parentNode) {
+                document.body.appendChild(tooltip);
+            }
             
             const rect = element.getBoundingClientRect();
             
@@ -381,27 +433,56 @@ export class CalendarView {
             tooltip.style.position = 'absolute';
             tooltip.style.left = (rect.left + scrollLeft) + 'px';
             tooltip.style.top = (rect.bottom + scrollTop + 5) + 'px';
-            tooltip.style.zIndex = '9999';
+            tooltip.style.zIndex = '10000';
+            
+            // Forzar reflow antes de medir
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.display = 'block';
             
             const tooltipRect = tooltip.getBoundingClientRect();
             
             // Ajustar si se sale por la derecha
-            if (tooltipRect.right > window.innerWidth) {
+            if (tooltipRect.right > window.innerWidth - 10) {
                 tooltip.style.left = (window.innerWidth - tooltipRect.width - 10 + scrollLeft) + 'px';
             }
             
             // Ajustar si se sale por abajo (mostrar arriba del elemento)
-            if (tooltipRect.bottom > window.innerHeight) {
+            if (tooltipRect.bottom > window.innerHeight - 10) {
                 tooltip.style.top = (rect.top + scrollTop - tooltipRect.height - 5) + 'px';
                 tooltip.classList.add('tooltip-above');
+            } else {
+                tooltip.classList.remove('tooltip-above');
             }
-        });
+            
+            // Hacer visible
+            tooltip.style.visibility = 'visible';
+        };
         
-        element.addEventListener('mouseleave', () => {
-            if (tooltip.parentNode) {
+        // Crear función para ocultar tooltip
+        const hideTooltip = () => {
+            if (tooltip && tooltip.parentNode) {
                 tooltip.remove();
             }
-        });
+        };
+        
+        // Limpiar listeners previos si existen
+        if (element._tooltipShowHandler) {
+            element.removeEventListener('mouseenter', element._tooltipShowHandler);
+        }
+        if (element._tooltipHideHandler) {
+            element.removeEventListener('mouseleave', element._tooltipHideHandler);
+        }
+        
+        // Guardar referencias a los handlers
+        element._tooltipShowHandler = showTooltip;
+        element._tooltipHideHandler = hideTooltip;
+        
+        // Agregar nuevos listeners
+        element.addEventListener('mouseenter', showTooltip);
+        element.addEventListener('mouseleave', hideTooltip);
+        
+        // Limpiar tooltip si el elemento es eliminado
+        element.addEventListener('remove', hideTooltip);
     }
     
     setEvents(events) {
@@ -1034,6 +1115,9 @@ export class CalendarView {
     }
     
     destroy() {
+        // Limpiar todos los tooltips antes de destruir
+        this.cleanupTooltips();
+        
         if (this.calendar) {
             this.calendar.destroy();
         }

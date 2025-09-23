@@ -34,7 +34,7 @@
             "id": "pXOYlNbO024q13bfqrw0",
             "label": "jefry",
             "gender": "M",
-            "active": true,
+            "active": false,
             "category": "custom",
             "added_date": "2025-08-24 04:57:42",
             "is_default": false,
@@ -84,7 +84,7 @@
             "id": "g10k86KeEUyBqW9lcKYg",
             "label": "Lizy",
             "gender": "F",
-            "active": true,
+            "active": false,
             "category": "custom",
             "added_date": "2025-09-04 00:52:16",
             "is_default": false,
@@ -104,7 +104,7 @@
             "id": "uYXf8XasLslADfZ2MB4u",
             "label": "Hope",
             "gender": "F",
-            "active": true,
+            "active": false,
             "category": "custom",
             "added_date": "2025-09-11 18:30:34",
             "is_default": false,
@@ -113,7 +113,7 @@
     },
     "settings": {
         "default_voice": "juan_carlos",
-        "last_updated": "2025-09-14T19:15:13-03:00",
+        "last_updated": "2025-09-22T16:19:17-03:00",
         "version": "2.0"
     }
 }

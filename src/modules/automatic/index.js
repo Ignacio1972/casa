@@ -144,8 +144,8 @@ export default class AutomaticModeModule {
             durationEl: document.getElementById('duration'),
             advancedToggle: document.getElementById('advanced-toggle'),
             advancedOptions: document.getElementById('advanced-options'),
-            voiceManualSelect: document.getElementById('voice-manual-select'),
-            musicSelect: document.getElementById('music-select')
+            musicSelect: document.getElementById('music-select'),
+            durationSelect: document.getElementById('duration-select')
         };
         
         // Verificar elementos críticos y loguear los que faltan
@@ -216,17 +216,12 @@ export default class AutomaticModeModule {
     }
     
     /**
-     * Popular select de voces manual
+     * Popular select de voces manual - DEPRECADO
      */
     populateVoiceSelect() {
-        if (!this.elements.voiceManualSelect) return;
-        
-        this.elements.voiceManualSelect.innerHTML = `
-            <option value="">Usar selección visual</option>
-            ${this.state.voices.map(voice => `
-                <option value="${voice.key}" data-voice-id="${voice.id}">${voice.label}</option>
-            `).join('')}
-        `;
+        // Función mantenida por compatibilidad pero ya no se usa
+        // El selector de voz manual fue removido del template
+        return;
     }
     
     /**
@@ -249,7 +244,7 @@ export default class AutomaticModeModule {
      */
     getDefaultMusicName() {
         // Intentar obtener de la configuración
-        return 'Cool.mp3';
+        return 'Uplift.mp3';
     }
     
     /**
@@ -302,6 +297,16 @@ export default class AutomaticModeModule {
         // Player controls
         if (this.elements.playPauseBtn) {
             this.elements.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+        }
+        
+        // Canvas del visualizador - clickeable para play/pause
+        if (this.elements.playerVisualizer) {
+            this.elements.playerVisualizer.addEventListener('click', () => this.togglePlayPause());
+            // También para touch en móviles
+            this.elements.playerVisualizer.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.togglePlayPause();
+            }, { passive: false });
         }
         
         if (this.elements.progressBar) {
@@ -458,7 +463,7 @@ export default class AutomaticModeModule {
             this.elements.recordIcon.textContent = '⏹';
             this.elements.recordText.textContent = 'Detener';
             
-            // Iniciar timer (máximo 10 segundos)
+            // Iniciar timer (máximo 20 segundos)
             this.startTimer();
             
             // Mostrar indicador de que está escuchando
@@ -516,8 +521,8 @@ export default class AutomaticModeModule {
             this.state.recordingSeconds++;
             this.elements.timer.textContent = `${this.state.recordingSeconds}s`;
             
-            // Detener automáticamente a los 10 segundos
-            if (this.state.recordingSeconds >= 10) {
+            // Detener automáticamente a los 20 segundos
+            if (this.state.recordingSeconds >= 20) {
                 this.stopRecording();
             }
         }, 1000);
@@ -570,7 +575,17 @@ export default class AutomaticModeModule {
         if (!this.state.transcribedText || !this.state.selectedVoice) return;
         
         this.state.isProcessing = true;
-        this.showStatus('Haciendo la magia... ✨', 'processing');
+        const statusMsg = (this.state.selectedMusic === 'none') 
+            ? 'Generando mensaje sin música... 🎙️' 
+            : 'Haciendo la magia... ✨';
+        this.showStatus(statusMsg, 'processing');
+        
+        // Auto-ocultar el mensaje después de 3 segundos
+        setTimeout(() => {
+            if (this.state.isProcessing) {
+                this.hideStatus();
+            }
+        }, 3000);
         
         try {
             // Enviar texto directamente (Web Speech API ya lo transcribió)
@@ -580,10 +595,19 @@ export default class AutomaticModeModule {
                 voice_id: this.state.selectedVoice  // Enviamos el key (juan_carlos, etc.)
             };
             
-            // Si hay música seleccionada, agregarla
+            // Manejar música: siempre enviar el campo para que el backend sepa qué hacer
             if (this.state.selectedMusic) {
-                requestData.music_file = this.state.selectedMusic === 'none' ? null : this.state.selectedMusic;
+                // Enviar el valor tal cual (incluyendo "none" si es sin música)
+                requestData.music_file = this.state.selectedMusic;
             }
+            // Si no hay selección (valor vacío ""), no enviar nada y usará default
+            
+            // Agregar duración seleccionada
+            if (this.elements.durationSelect) {
+                requestData.target_duration = parseInt(this.elements.durationSelect.value) || 20;
+            }
+            
+            console.log('[Automatic] Enviando request con música:', requestData.music_file || 'DEFAULT', 'y duración:', requestData.target_duration || 20);
             
             const response = await fetch('/api/automatic-jingle-service.php', {
                 method: 'POST',
@@ -596,7 +620,7 @@ export default class AutomaticModeModule {
             if (data.success) {
                 this.state.generatedAudio = data;
                 this.playGeneratedAudio(data.audio_url);
-                this.showStatus('¡Jingle generado exitosamente!', 'success');
+                // No mostrar mensaje, ir directo al audio
             } else {
                 // Manejo de errores específicos
                 if (data.error_type === 'audio_quality') {
@@ -619,6 +643,9 @@ export default class AutomaticModeModule {
      * Reproducir audio generado
      */
     playGeneratedAudio(audioUrl) {
+        // Ocultar cualquier mensaje de estado
+        this.hideStatus();
+        
         // Mostrar reproductor
         this.elements.playerSection.style.display = 'block';
         
@@ -925,6 +952,15 @@ export default class AutomaticModeModule {
     }
     
     /**
+     * Ocultar mensaje de estado
+     */
+    hideStatus() {
+        if (this.elements.statusMessage) {
+            this.elements.statusMessage.style.display = 'none';
+        }
+    }
+    
+    /**
      * Resetear estado
      */
     resetState() {
@@ -969,22 +1005,15 @@ export default class AutomaticModeModule {
             this.state.advancedMode = !isExpanded;
         });
         
-        // Voice manual select
-        if (this.elements.voiceManualSelect) {
-            this.elements.voiceManualSelect.addEventListener('change', (e) => {
-                if (e.target.value) {
-                    const option = e.target.selectedOptions[0];
-                    const voiceId = option.dataset.voiceId;
-                    this.selectVoice(e.target.value, voiceId);
-                }
-            });
-        }
+        // Voice manual select - REMOVIDO
+        // El selector manual de voz fue eliminado del template
         
         // Music select
         if (this.elements.musicSelect) {
             this.elements.musicSelect.addEventListener('change', (e) => {
                 this.state.selectedMusic = e.target.value;
                 console.log('Música seleccionada:', this.state.selectedMusic);
+                console.log('Valor exacto:', e.target.value === 'none' ? 'SIN MÚSICA' : e.target.value || 'DEFAULT');
             });
         }
     }
@@ -999,16 +1028,49 @@ export default class AutomaticModeModule {
             const voiceKey = card.dataset.voiceKey;
             const voiceId = card.dataset.voice;
             
-            // Click event
-            card.addEventListener('click', () => {
-                this.selectVoice(voiceKey, voiceId);
-            });
+            // Flag para prevenir doble disparo
+            let touchHandled = false;
+            let touchStartTime = 0;
+            let touchStartX = 0;
+            let touchStartY = 0;
             
-            // Touch event para mejor respuesta
+            // Touch start - registrar tiempo y posición
+            card.addEventListener('touchstart', (e) => {
+                touchStartTime = Date.now();
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchHandled = false;
+            }, { passive: true });
+            
+            // Touch end - manejar solo si fue un tap sin movimiento significativo
             card.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.selectVoice(voiceKey, voiceId);
+                const touchDuration = Date.now() - touchStartTime;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const touchDistance = Math.sqrt(
+                    Math.pow(touchEndX - touchStartX, 2) + 
+                    Math.pow(touchEndY - touchStartY, 2)
+                );
+                
+                // Solo procesar si fue un tap rápido (menos de 500ms) 
+                // y sin mucho movimiento (menos de 10px)
+                if (touchDuration < 500 && touchDistance < 10 && !touchHandled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    touchHandled = true;
+                    this.selectVoice(voiceKey, voiceId);
+                }
             }, { passive: false });
+            
+            // Click event - solo para desktop
+            card.addEventListener('click', (e) => {
+                // Ignorar clicks si fue manejado por touch
+                if (!touchHandled) {
+                    this.selectVoice(voiceKey, voiceId);
+                }
+                // Reset flag después de un tiempo
+                setTimeout(() => { touchHandled = false; }, 100);
+            });
             
             // Keyboard support
             card.addEventListener('keydown', (e) => {

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Simple - Modo Automático</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat .label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .refresh {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .refresh:hover {
+            background: #5a67d8;
+        }
+        .token-filter {
+            margin-bottom: 20px;
+        }
+        .token-filter select {
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .loading {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Monitor Simple - Modo Automático</h1>
+    
+    <div class="card">
+        <div class="token-filter">
+            <label>Filtrar por token: </label>
+            <select id="tokenFilter" onchange="loadData()">
+                <option value="">Todos</option>
+                <option value="demo">demo</option>
+                <option value="corneta">corneta</option>
+                <option value="direct">Acceso directo</option>
+            </select>
+            
+            <label style="margin-left: 20px;">Período: </label>
+            <select id="daysFilter" onchange="loadData()">
+                <option value="1">Hoy</option>
+                <option value="7" selected>7 días</option>
+                <option value="30">30 días</option>
+            </select>
+            
+            <button class="refresh" onclick="loadData()" style="float: right;">🔄 Actualizar</button>
+        </div>
+    </div>
+
+    <div class="stats" id="statsContainer">
+        <div class="card stat">
+            <div class="value" id="totalStat">-</div>
+            <div class="label">Total Generaciones</div>
+        </div>
+        <div class="card stat">
+            <div class="value" id="ipsStat">-</div>
+            <div class="label">IPs Únicas</div>
+        </div>
+        <div class="card stat">
+            <div class="value" id="daysStat">-</div>
+            <div class="label">Días Activo</div>
+        </div>
+        <div class="card stat">
+            <div class="value" id="lastUseStat">-</div>
+            <div class="label">Última Actividad</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📝 Últimos Mensajes Generados</h2>
+        <div id="messagesTable" class="loading">Cargando...</div>
+    </div>
+
+    <div class="card">
+        <h2>🔍 Detalle de Uso por Token</h2>
+        <div id="tokensTable" class="loading">Cargando...</div>
+    </div>
+
+    <script>
+        function loadData() {
+            const token = document.getElementById('tokenFilter').value;
+            const days = document.getElementById('daysFilter').value;
+            
+            // Cargar estadísticas generales
+            fetch(`/src/api/automatic-usage-simple.php?token=${token}&days=${days}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalStat').textContent = data.total || 0;
+                    document.getElementById('ipsStat').textContent = data.unique_ips || 0;
+                    document.getElementById('daysStat').textContent = data.days_active || 0;
+                    
+                    if (data.last_use) {
+                        const lastUse = new Date(data.last_use);
+                        const now = new Date();
+                        const diff = Math.floor((now - lastUse) / (1000 * 60));
+                        
+                        if (diff < 60) {
+                            document.getElementById('lastUseStat').textContent = `Hace ${diff}m`;
+                        } else if (diff < 1440) {
+                            document.getElementById('lastUseStat').textContent = `Hace ${Math.floor(diff/60)}h`;
+                        } else {
+                            document.getElementById('lastUseStat').textContent = `Hace ${Math.floor(diff/1440)}d`;
+                        }
+                    } else {
+                        document.getElementById('lastUseStat').textContent = 'Nunca';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            
+            // Cargar últimos mensajes con SQLite directamente
+            loadMessages();
+            loadTokenStats();
+        }
+        
+        function loadMessages() {
+            const token = document.getElementById('tokenFilter').value;
+            const days = document.getElementById('daysFilter').value;
+            
+            fetch(`/src/api/automatic-messages-list.php?token=${token}&days=${days}&limit=20`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.messages && data.messages.length > 0) {
+                        let tableHTML = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th width="120">Cuándo</th>
+                                        <th width="80">Token</th>
+                                        <th width="120">IP</th>
+                                        <th>Texto Original</th>
+                                        <th>Texto Generado</th>
+                                        <th width="80">Voz</th>
+                                        <th width="60">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        data.messages.forEach(msg => {
+                            const statusIcon = msg.success ? '✅' : '❌';
+                            const originalText = msg.texto_original || '-';
+                            const improvedText = msg.texto_mejorado || '-';
+                            
+                            tableHTML += `
+                                <tr>
+                                    <td style="font-size: 12px; color: #666;">${msg.time_ago}</td>
+                                    <td><code style="font-size: 11px;">${msg.access_token}</code></td>
+                                    <td style="font-size: 11px;">${msg.ip_address}</td>
+                                    <td style="color: #999; font-size: 12px;">${originalText.substring(0, 50)}${originalText.length > 50 ? '...' : ''}</td>
+                                    <td style="font-weight: 500; font-size: 13px;">${improvedText.substring(0, 100)}${improvedText.length > 100 ? '...' : ''}</td>
+                                    <td style="font-size: 12px;">${msg.voice_used}</td>
+                                    <td style="text-align: center;">${statusIcon}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHTML += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        document.getElementById('messagesTable').innerHTML = tableHTML;
+                    } else {
+                        document.getElementById('messagesTable').innerHTML = `
+                            <p style="text-align: center; color: #999; padding: 20px;">
+                                No hay mensajes en el período seleccionado
+                            </p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('messagesTable').innerHTML = `
+                        <p style="text-align: center; color: #ff4444; padding: 20px;">
+                            Error cargando mensajes
+                        </p>
+                    `;
+                });
+        }
+        
+        function loadTokenStats() {
+            // Estadísticas por token
+            const tokens = ['demo', 'corneta', 'direct'];
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Generaciones</th>
+                            <th>IPs Únicas</th>
+                            <th>Última Actividad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            tokens.forEach(token => {
+                fetch(`/src/api/automatic-usage-simple.php?token=${token}&days=30`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.total > 0) {
+                            const row = `
+                                <tr>
+                                    <td><code>${token}</code></td>
+                                    <td>${data.total}</td>
+                                    <td>${data.unique_ips}</td>
+                                    <td>${data.last_use ? new Date(data.last_use).toLocaleString('es') : '-'}</td>
+                                </tr>
+                            `;
+                            document.querySelector('#tokensTable tbody').innerHTML += row;
+                        }
+                    });
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('tokensTable').innerHTML = tableHTML;
+        }
+        
+        // Cargar datos al iniciar
+        loadData();
+        
+        // Auto-refresh cada 30 segundos
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

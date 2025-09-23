@@ -1,46 +1,9 @@
 {
     "current_month": "2025-09",
     "usage": {
-        "characters": 1516,
-        "requests": 6,
-        "generations": [
-            {
-                "timestamp": "2025-09-04T21:25:33-03:00",
-                "characters": 157,
-                "voice": "veronica",
-                "success": true
-            },
-            {
-                "timestamp": "2025-09-04T21:25:33-03:00",
-                "characters": 174,
-                "voice": "veronica",
-                "success": true
-            },
-            {
-                "timestamp": "2025-09-04T21:25:33-03:00",
-                "characters": 283,
-                "voice": "veronica",
-                "success": true
-            },
-            {
-                "timestamp": "2025-09-04T21:25:33-03:00",
-                "characters": 540,
-                "voice": "veronica",
-                "success": true
-            },
-            {
-                "timestamp": "2025-09-04T21:25:33-03:00",
-                "characters": 212,
-                "voice": "veronica",
-                "success": true
-            },
-            {
-                "timestamp": "2025-09-04T21:25:19-03:00",
-                "characters": 150,
-                "voice": "veronica",
-                "success": true
-            }
-        ]
+        "characters": 0,
+        "requests": 0,
+        "generations": []
     },
-    "last_updated": "2025-09-04T21:25:33-03:00"
+    "last_updated": "2025-09-15T20:25:42-03:00"
 }

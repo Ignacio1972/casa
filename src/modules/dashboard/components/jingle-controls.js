@@ -6,7 +6,7 @@
 export class JingleControls {
     constructor(container) {
         this.container = container;
-        this.enabled = true;
+        this.enabled = false;  // Desactivado por defecto hasta que se seleccione música
         this.selectedMusic = null;
         this.musicList = [];
         this.config = null;
@@ -19,13 +19,25 @@ export class JingleControls {
         await this.loadConfig();
         await this.loadMusicList();
         this.attachEventListeners();
+        
+        // Recargar configuración cada vez que la ventana obtiene el foco
+        // para asegurar que siempre tenga los valores más recientes
+        window.addEventListener('focus', () => {
+            console.log('[JingleControls] Ventana obtuvo foco, recargando configuración...');
+            this.loadConfig();
+        });
     }
     
     async loadConfig() {
         try {
-            const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-config-service.php', {
+            // Agregar timestamp para evitar caché
+            const timestamp = Date.now();
+            const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-config-service.php?t=' + timestamp, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache'
+                },
                 body: JSON.stringify({ action: 'get' })
             });
 
@@ -33,11 +45,18 @@ export class JingleControls {
             
             if (data.success && data.config) {
                 this.config = data.config.jingle_defaults;
-                console.log('[JingleControls] Configuración cargada:', this.config);
+                console.log('[JingleControls] Configuración cargada exitosamente:');
+                console.log('  - intro_silence:', this.config.intro_silence, 'segundos');
+                console.log('  - outro_silence:', this.config.outro_silence, 'segundos');
+                console.log('  - Configuración completa:', this.config);
                 this.updatePresetInfo();
+            } else {
+                console.warn('[JingleControls] Respuesta sin config válida:', data);
+                throw new Error('Configuración no válida');
             }
         } catch (error) {
             console.error('[JingleControls] Error cargando configuración:', error);
+            console.warn('[JingleControls] Usando valores por defecto');
             // Usar valores por defecto si falla
             this.config = {
                 intro_silence: 2,
@@ -57,7 +76,13 @@ export class JingleControls {
             <div class="jingle-controls">
                 <div class="jingle-header">
                     <span class="toggle-label">🎵 Jingle</span>
-                    <span class="jingle-info" title="Agrega música de fondo a tu mensaje">ℹ️</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="jingle-info" id="configInfo" style="font-size: 0.85rem; color: #666;"></span>
+                        <button type="button" class="reload-btn" id="reloadConfig" title="Recargar configuración" style="background: transparent; border: none; cursor: pointer; font-size: 1.1rem;">
+                            🔄
+                        </button>
+                        <span class="jingle-info" title="Agrega música de fondo a tu mensaje">ℹ️</span>
+                    </div>
                 </div>
                 
                 <div class="jingle-options" id="jingleOptions" style="display: block;">
@@ -100,6 +125,12 @@ export class JingleControls {
         const select = document.getElementById('musicSelect');
         if (!select) return;
 
+        // Si el select ya tiene opciones (fue llenado por el dashboard), no hacer nada
+        if (select.options.length > 1) {
+            console.log('[JingleControls] Selector de música ya configurado por dashboard, no modificar');
+            return;
+        }
+
         select.innerHTML = `
             <option value="">-- Seleccionar música --</option>
             ${this.musicList.map(music => {
@@ -109,21 +140,13 @@ export class JingleControls {
             }).join('')}
         `;
 
-        // Seleccionar la primera música por defecto
-        if (this.musicList.length > 0) {
-            select.value = this.musicList[0].file;
-            this.selectedMusic = this.musicList[0].file;
-        }
+        // NO seleccionar música por defecto - dejar vacío
+        this.selectedMusic = null;
     }
 
     attachEventListeners() {
-        // Ya no necesitamos el toggle, siempre está habilitado
-        this.enabled = true;
-        
-        // Disparar evento para notificar al dashboard que está habilitado
-        this.container.dispatchEvent(new CustomEvent('jingle-toggle', {
-            detail: { enabled: true }
-        }));
+        // NO activar automáticamente - esperar a que el usuario seleccione música
+        // this.enabled se mantiene como false hasta que se seleccione música
 
         // Selector de música
         const musicSelect = document.getElementById('musicSelect');
@@ -171,6 +194,12 @@ export class JingleControls {
         if (details && this.config) {
             details.textContent = `${this.config.intro_silence}s intro • Voz clara • ${this.config.outro_silence}s outro`;
         }
+        
+        // Actualizar también el texto informativo si existe
+        const configInfo = document.getElementById('configInfo');
+        if (configInfo && this.config) {
+            configInfo.textContent = `${this.config.intro_silence}s/${this.config.outro_silence}s`;
+        }
     }
 
     getJingleOptions() {
@@ -194,22 +223,22 @@ export class JingleControls {
             options.voice_settings = this.config.voice_settings;
         }
         
+        console.log('[JingleControls] getJingleOptions devolviendo:');
+        console.log('  - intro_silence:', options.intro_silence, 'segundos');
+        console.log('  - outro_silence:', options.outro_silence, 'segundos');
+        console.log('  - Opciones completas:', options);
+        
         return options;
     }
 
     reset() {
-        // Mantener siempre habilitado
-        this.enabled = true;
+        // Reset a estado inicial
+        this.enabled = false;
+        this.selectedMusic = null;
         
         const options = document.getElementById('jingleOptions');
         if (options) {
             options.style.display = 'block';
-        }
-
-        const musicSelect = document.getElementById('musicSelect');
-        if (musicSelect && this.musicList.length > 0) {
-            musicSelect.value = this.musicList[0].file;
-            this.selectedMusic = this.musicList[0].file;
         }
     }
 }

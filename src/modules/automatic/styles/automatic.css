@@ -205,29 +205,31 @@ html {
   width: calc(100% - var(--spacing-xl));
   max-width: 500px;
   margin: var(--spacing-md) auto;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
   border-radius: var(--border-radius-lg);
   text-align: center;
-  font-size: var(--text-base);
-  font-weight: 500;
-  animation: slideUp 0.3s ease;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  animation: fadeInScale 0.3s ease;
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--spacing-lg));
+  top: 35%;
   left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
-  box-shadow: var(--shadow-lg);
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 .status-message.info {
-  background: var(--bg-tertiary);
+  background: rgba(47, 50, 54, 0.95);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--color-primary);
 }
 
 .status-message.processing {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  background: linear-gradient(135deg, rgba(56, 122, 222, 0.95), rgba(97, 150, 229, 0.95));
   color: white;
+  border: 2px solid transparent;
 }
 
 .status-message.success {
@@ -273,7 +275,7 @@ html {
   display: none;
 }
 
-/* Tarjetas de voz - Optimizadas para touch */
+/* Tarjetas de voz - Optimizadas para touch con menor sensibilidad */
 .voice-card {
   flex: 0 0 auto;
   width: 120px;
@@ -288,15 +290,20 @@ html {
   justify-content: center;
   gap: var(--spacing-sm);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-base);
+  transition-delay: 50ms; /* Retraso para evitar activación accidental */
   scroll-snap-align: center;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* Optimización para touch */
   position: relative;
 }
 
+/* Efecto active más sutil y con menos transformación */
 .voice-card:active {
-  transform: scale(0.95);
+  transition-delay: 0ms;
+  transform: scale(0.98); /* Reducido para menos feedback */
   background: var(--bg-elevated);
 }
 
@@ -380,6 +387,12 @@ html {
   height: 80px;
   display: block;
   background: transparent;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.player-visualizer:active {
+  opacity: 0.8;
 }
 
 /* Play/Pause Button */
@@ -614,63 +627,9 @@ html {
 }
 
 /* ========================================
-   INSTRUCCIONES - COLLAPSIBLE EN MÓVIL
+   INSTRUCCIONES - LEGACY (REMOVIDO)
    ======================================== */
-.automatic-instructions {
-  margin-top: var(--spacing-xl);
-  padding: 0 var(--spacing-md);
-}
-
-.instructions-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-}
-
-.instructions-title {
-  color: var(--text-primary);
-  font-size: var(--text-base);
-  padding: var(--spacing-md);
-  margin: 0;
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--bg-secondary);
-}
-
-.instructions-title::after {
-  content: '▼';
-  font-size: 0.8rem;
-  transition: transform var(--transition-fast);
-}
-
-.instructions-title.collapsed::after {
-  transform: rotate(-90deg);
-}
-
-.instructions-list {
-  color: var(--text-secondary);
-  line-height: 1.8;
-  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-md) var(--spacing-xl);
-  margin: 0;
-  font-size: var(--text-sm);
-  transition: max-height var(--transition-base);
-  max-height: 500px;
-  overflow: hidden;
-}
-
-.instructions-list.collapsed {
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.instructions-list li {
-  margin-bottom: var(--spacing-sm);
-}
+/* Código de instrucciones removido - no se usa en el diseño actual */
 
 /* ========================================
    ANIMACIONES OPTIMIZADAS PARA MÓVIL
@@ -709,6 +668,17 @@ html {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes fadeInScale {
+  from { 
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 /* Animación de éxito */
@@ -752,15 +722,9 @@ html {
     height: 240px;
   }
   
-  /* Mostrar visualizador */
+  /* Visualizador de grabación - mantener siempre oculto */
   .audio-visualizer {
-    display: block;
-    width: 100%;
-    max-width: 400px;
-    height: 80px;
-    background: var(--bg-tertiary);
-    border-radius: var(--border-radius-md);
-    opacity: 0.9;
+    display: none !important;  /* Nunca mostrar el visualizador de grabación */
   }
   
   /* Grid de voces en lugar de scroll */
@@ -791,10 +755,11 @@ html {
   
   /* Status message relativo */
   .status-message {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    transform: none;
+    /* Mantener centrado también en tablet */
+    position: fixed;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
   
   /* Player card más angosto */

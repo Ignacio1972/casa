@@ -8,6 +8,7 @@ require_once 'config.php';
 require_once 'whisper-service.php';
 require_once 'claude-service.php';
 require_once 'jingle-service.php';
+require_once 'automatic-usage-simple.php'; // Tracking simple sin rate limiting
 
 class AutomaticJingleService {
     private $whisperService;
@@ -19,6 +20,28 @@ class AutomaticJingleService {
         $this->claudeService = new ClaudeService();
         // jingle-service.php usa funciones, no clases
         $this->logFile = __DIR__ . '/logs/automatic-' . date('Y-m-d') . '.log';
+    }
+    
+    /**
+     * Determinar límites de palabras según duración objetivo en segundos
+     */
+    private function getWordLimits($targetDuration) {
+        // Aproximadamente 2-3 palabras por segundo en español hablado normal
+        // Haciendo rangos más distintivos para notar la diferencia
+        switch($targetDuration) {
+            case 5:
+                return [5, 8];   // Muy corto - solo lo esencial
+            case 10:
+                return [10, 15]; // Corto - mensaje breve
+            case 15:
+                return [15, 20]; // Medio - mensaje estándar
+            case 20:
+                return [20, 30]; // Normal - mensaje completo
+            case 25:
+                return [30, 40]; // Largo - mensaje detallado
+            default:
+                return [20, 30]; // Por defecto, duración normal
+        }
     }
     
     private function log($message, $level = 'INFO') {
@@ -86,7 +109,7 @@ class AutomaticJingleService {
     /**
      * Proceso completo: Texto → Mejora → Jingle
      */
-    public function processAutomatic($textOrAudio, $voiceId, $isText = false, $musicFile = null) {
+    public function processAutomatic($textOrAudio, $voiceId, $isText = false, $musicFile = null, $targetDuration = 20) {
         try {
             $this->log("=== Iniciando proceso automático ===");
             $this->log("Voz seleccionada: $voiceId");
@@ -128,14 +151,22 @@ class AutomaticJingleService {
             }
             $this->log("Transcripción: $originalText");
             
-            // Paso 2: Mejorar texto con Claude (15-35 palabras)
+            // Paso 2: Mejorar texto con Claude (palabras según duración objetivo)
             $this->log("Paso 2: Mejorando texto con IA...");
+            
+            // Determinar límites de palabras según duración objetivo
+            $wordLimits = $this->getWordLimits($targetDuration);
+            $this->log("Duración objetivo: {$targetDuration} segundos, límites de palabras: {$wordLimits[0]}-{$wordLimits[1]}");
+            
             $claudeParams = [
                 'context' => $originalText,
                 'category' => 'automatic',
                 'mode' => 'automatic',
-                'word_limit' => [15, 35]
+                'word_limit' => $wordLimits,
+                'duration_seconds' => $targetDuration  // Agregar duración explícita
             ];
+            
+            $this->log("Parámetros enviados a Claude: " . json_encode($claudeParams));
             
             $claudeResult = $this->claudeService->generateAnnouncements($claudeParams);
             
@@ -145,7 +176,9 @@ class AutomaticJingleService {
             
             // Tomar la primera sugerencia
             $improvedText = $claudeResult['suggestions'][0]['text'] ?? $originalText;
-            $this->log("Texto mejorado: $improvedText");
+            $wordCount = str_word_count($improvedText);
+            $this->log("Texto mejorado ({$wordCount} palabras): $improvedText");
+            $this->log("Verificación - Límite solicitado: {$wordLimits[0]}-{$wordLimits[1]}, Palabras recibidas: {$wordCount}");
             
             // Paso 3: Generar jingle con configuración completa
             $this->log("Paso 3: Generando jingle con configuración del sistema...");
@@ -252,6 +285,53 @@ class AutomaticJingleService {
             $this->log("Error guardando en BD: " . $e->getMessage(), 'WARNING');
         }
     }
+    
+    /**
+     * Registrar uso en tabla de tracking
+     */
+    private function trackUsage($clientId, $accessToken, $text, $voiceId, $musicFile = null, $duration = null, $success = true, $error = null) {
+        try {
+            $db = new SQLite3('/var/www/casa/database/casa.db');
+            
+            // Obtener información de IP
+            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+            
+            // Generar session ID si no existe
+            if (!isset($_SESSION)) {
+                session_start();
+            }
+            $sessionId = session_id();
+            
+            $stmt = $db->prepare("
+                INSERT INTO automatic_usage_tracking 
+                (client_id, access_token, ip_address, user_agent, audio_text, 
+                 voice_used, music_file, duration_seconds, success, error_message, 
+                 session_id, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ");
+            
+            $stmt->bindValue(1, $clientId, SQLITE3_TEXT);
+            $stmt->bindValue(2, $accessToken, SQLITE3_TEXT);
+            $stmt->bindValue(3, $ipAddress, SQLITE3_TEXT);
+            $stmt->bindValue(4, $userAgent, SQLITE3_TEXT);
+            $stmt->bindValue(5, substr($text, 0, 500), SQLITE3_TEXT); // Limitar texto a 500 chars
+            $stmt->bindValue(6, $voiceId, SQLITE3_TEXT);
+            $stmt->bindValue(7, $musicFile, SQLITE3_TEXT);
+            $stmt->bindValue(8, $duration, SQLITE3_INTEGER);
+            $stmt->bindValue(9, $success ? 1 : 0, SQLITE3_INTEGER);
+            $stmt->bindValue(10, $error, SQLITE3_TEXT);
+            $stmt->bindValue(11, $sessionId, SQLITE3_TEXT);
+            
+            $stmt->execute();
+            $db->close();
+            
+            $this->log("Uso registrado para cliente: $clientId desde IP: $ipAddress");
+            
+        } catch (Exception $e) {
+            $this->log("Error en tracking: " . $e->getMessage(), 'WARNING');
+        }
+    }
 }
 
 // Si se llama directamente como API
@@ -267,6 +347,10 @@ if (basename(__FILE__) == basename($_SERVER['PHP_SELF'])) {
     }
     
     try {
+        // TEMPORALMENTE DESHABILITADO - Rate limiting
+        // $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // $limiter = new AutomaticRateLimiter();
+        
         // Obtener parámetros
         $input = json_decode(file_get_contents('php://input'), true);
         
@@ -275,22 +359,57 @@ if (basename(__FILE__) == basename($_SERVER['PHP_SELF'])) {
         }
         
         $voiceId = $input['voice_id'];
+        
+        // Obtener access token para tracking (sin rate limiting por ahora)
+        $accessToken = isset($input['access_token']) ? $input['access_token'] : $_GET['access'] ?? 'direct';
+        
         $service = new AutomaticJingleService();
         
         // Obtener música si se especificó
         $musicFile = isset($input['music_file']) ? $input['music_file'] : null;
         
+        // Obtener duración objetivo (por defecto 20 segundos)
+        $targetDuration = isset($input['target_duration']) ? intval($input['target_duration']) : 20;
+        
+        // TEMPORALMENTE DESHABILITADO - tracking variables
+        // $clientId = isset($input['client_id']) ? $input['client_id'] : 'unknown';
+        // $accessToken = isset($input['access_token']) ? $input['access_token'] : $_GET['access'] ?? 'direct';
+        // $trackingText = '';
+        
         // Verificar si es texto directo o audio
+        $trackingText = '';
         if (isset($input['text'])) {
             // Modo texto directo (Web Speech API)
-            $result = $service->processAutomatic($input['text'], $voiceId, true, $musicFile);
+            $trackingText = $input['text'];
+            $result = $service->processAutomatic($input['text'], $voiceId, true, $musicFile, $targetDuration);
         } elseif (isset($input['audio'])) {
             // Modo audio (Whisper)
+            $trackingText = 'Audio input';
             $audioData = base64_decode($input['audio']);
-            $result = $service->processAutomatic($audioData, $voiceId, false, $musicFile);
+            $result = $service->processAutomatic($audioData, $voiceId, false, $musicFile, $targetDuration);
         } else {
             throw new Exception('Debe proporcionar texto o audio');
         }
+        
+        // Registrar uso con tracking simple
+        SimpleUsageTracker::track(
+            $trackingText,
+            $voiceId,
+            $result['success'],
+            $result['success'] ? null : ($result['error'] ?? null)
+        );
+        
+        // TEMPORALMENTE DESHABILITADO - Registrar uso complejo
+        // $service->trackUsage(
+        //     $clientId, 
+        //     $accessToken, 
+        //     $trackingText,
+        //     $voiceId,
+        //     $musicFile,
+        //     $targetDuration,
+        //     $result['success'],
+        //     $result['success'] ? null : ($result['error'] ?? null)
+        // );
         
         echo json_encode($result);
         

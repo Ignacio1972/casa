@@ -112,7 +112,7 @@ class ClaudeService {
      * Construir prompt del usuario con contexto
      */
     private function buildUserPrompt($params) {
-        // Modo automático: Una sola sugerencia de 15-35 palabras
+        // Modo automático: Una sola sugerencia con límite de palabras dinámico
         if (isset($params['mode']) && $params['mode'] === 'automatic') {
             // Obtener el nombre del cliente activo de forma dinámica
             $clientName = 'el negocio'; // Fallback genérico
@@ -125,10 +125,37 @@ class ClaudeService {
                 }
             }
             
+            // Obtener límites de palabras desde los parámetros
+            $minWords = 15;
+            $maxWords = 35;
+            if (isset($params['word_limit']) && is_array($params['word_limit'])) {
+                $minWords = $params['word_limit'][0];
+                $maxWords = $params['word_limit'][1];
+            }
+            
             $prompt = "Mejora este mensaje para un anuncio de radio de {$clientName}:\n\n";
             $prompt .= "Mensaje original: " . $params['context'] . "\n\n";
-            $prompt .= "IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio mejorado de EXACTAMENTE entre 15 y 35 palabras. ";
-            $prompt .= "Sé claro, directo y atractivo. No incluyas explicaciones, solo el texto del anuncio.";
+            
+            // Instrucciones más específicas según la duración
+            if ($maxWords <= 8) {
+                $prompt .= "IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio MUY BREVE de EXACTAMENTE entre {$minWords} y {$maxWords} palabras. ";
+                $prompt .= "Sé extremadamente conciso, solo lo esencial. ";
+            } elseif ($maxWords <= 15) {
+                $prompt .= "IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio CORTO de EXACTAMENTE entre {$minWords} y {$maxWords} palabras. ";
+                $prompt .= "Sé breve y directo, sin detalles extras. ";
+            } elseif ($maxWords <= 30) {
+                $prompt .= "IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio mejorado de EXACTAMENTE entre {$minWords} y {$maxWords} palabras. ";
+                $prompt .= "Sé claro, directo y atractivo. ";
+            } else {
+                $prompt .= "IMPORTANTE: Tu respuesta debe ser UN SOLO anuncio DETALLADO de EXACTAMENTE entre {$minWords} y {$maxWords} palabras. ";
+                $prompt .= "Incluye detalles relevantes y hazlo atractivo. ";
+            }
+            
+            $prompt .= "No incluyas explicaciones, solo el texto del anuncio. ";
+            $prompt .= "CUENTA LAS PALABRAS y asegúrate de cumplir el límite.";
+            
+            $this->log("Prompt para modo automático con límites: {$minWords}-{$maxWords} palabras");
+            
             return $prompt;
         }
         

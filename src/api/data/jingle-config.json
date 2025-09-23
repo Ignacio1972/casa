@@ -1,30 +1,21 @@
 {
     "jingle_defaults": {
         "enabled_by_default": false,
-        "intro_silence": 8,
-        "outro_silence": 13.5,
-        "music_volume": 0.3,
-        "voice_volume": 0.4,
+        "intro_silence": 3,
+        "outro_silence": 4.5,
+        "music_volume": 0.45,
+        "voice_volume": 0.8,
         "fade_in": 3.5,
         "fade_out": 3.5,
         "ducking_enabled": true,
         "duck_level": 0.2,
-        "default_music": "Charly Garc\u00eda - Pasajera en Trance.mp3",
+        "default_music": "Uplift.mp3",
         "voice_settings": {
             "style": 0.15,
             "stability": 1,
             "similarity_boost": 0.5,
             "use_speaker_boost": true
         }
-    },
-    "automatic_mode": {
-        "default_music": "Uplift.mp3",
-        "music_volume": 0.3,
-        "voice_volume": 0.7,
-        "intro_silence": 2,
-        "outro_silence": 3,
-        "fade_in": 1,
-        "fade_out": 2
     },
     "allowed_music": "all",
     "user_can_override": false

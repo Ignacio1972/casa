@@ -50,23 +50,27 @@
                  class="advanced-options"
                  style="display: none;">
                 
-                <!-- Manual Voice Selection -->
-                <div class="option-group">
-                    <label for="voice-manual-select" class="option-label">
-                        🎭 Seleccionar voz manualmente:
-                    </label>
-                    <select id="voice-manual-select" class="option-select">
-                        <option value="">Usar selección visual</option>
-                    </select>
-                </div>
-                
                 <!-- Music Selection -->
                 <div class="option-group">
                     <label for="music-select" class="option-label">
-                        🎵 Música de fondo:
+                        🎵 Selecciona la música:
                     </label>
                     <select id="music-select" class="option-select">
-                        <option value="">Por defecto</option>
+                        <option value="">Por defecto (Uplift)</option>
+                    </select>
+                </div>
+                
+                <!-- Duration Selection -->
+                <div class="option-group">
+                    <label for="duration-select" class="option-label">
+                        ⏱️ Duración del anuncio:
+                    </label>
+                    <select id="duration-select" class="option-select">
+                        <option value="5">5 segundos</option>
+                        <option value="10">10 segundos</option>
+                        <option value="15">15 segundos</option>
+                        <option value="20" selected>20 segundos</option>
+                        <option value="25">25 segundos</option>
                     </select>
                 </div>
             </div>
@@ -93,11 +97,11 @@
                 
                 <!-- Visual Audio Player -->
                 <div class="custom-audio-player">
-                    <!-- Visualizer Canvas -->
-                    <canvas id="player-visualizer" class="player-visualizer" width="300" height="120"></canvas>
+                    <!-- Visualizer Canvas - Clickeable para play/pause -->
+                    <canvas id="player-visualizer" class="player-visualizer" width="300" height="120" style="cursor: pointer;"></canvas>
                     
-                    <!-- Play/Pause Button Overlay -->
-                    <button id="play-pause-btn" class="play-pause-btn" aria-label="Reproducir">
+                    <!-- Play/Pause Button Hidden - Mantenemos funcionalidad pero oculto -->
+                    <button id="play-pause-btn" class="play-pause-btn" aria-label="Reproducir" style="display: none;">
                         <span class="play-icon">▶</span>
                         <span class="pause-icon" style="display: none;">⏸</span>
                     </button>
@@ -120,7 +124,6 @@
                         class="btn btn-primary automatic-action-btn full-width"
                         type="button"
                         aria-label="Enviar jingle a la radio">
-                    <span class="btn-icon" aria-hidden="true">📻</span>
                     <span>Enviar a Radio</span>
                 </button>
             </div>

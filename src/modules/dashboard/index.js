@@ -31,11 +31,12 @@ export default class DashboardV2Module {
             selectedVoice: 'juan_carlos',
             selectedCategory: localStorage.getItem('mbi_selectedCategory') || 'sin_categoria',
             voiceSettings: {
-                style: 0.5,
-                stability: 0.75,
-                similarity_boost: 0.8,
-                use_speaker_boost: true
+                style: 0.5,  // Valor por defecto: balanceado (como sistema automático)
+                stability: 0.75,  // Valor por defecto: natural (como sistema automático)
+                similarity_boost: 0.8,  // Valor por defecto: expresivo (como sistema automático)
+                use_speaker_boost: true  // Siempre activo
             },
+            useDefaultValues: true,  // Estado del toggle de valores por defecto
             recentMessages: []
         };
         
@@ -158,6 +159,9 @@ export default class DashboardV2Module {
             clarityValue: document.getElementById('clarityValue'),
             clarityTrack: document.getElementById('clarityTrack'),
             
+            // Toggle de valores por defecto
+            defaultValuesToggle: document.getElementById('defaultValuesToggle'),
+            
             // Quota chart eliminado - ya no se usa
             // quotaProgressCircle: document.getElementById('quotaProgressCircle'),
             // quotaPercentage: document.getElementById('quotaPercentage'),
@@ -268,10 +272,12 @@ export default class DashboardV2Module {
      * Inicializa los controles de jingle
      */
     initializeJingleControls() {
-        // Ya no necesitamos mostrar el componente JingleControls
-        // porque el selector de música está integrado en el formulario principal
-        // Solo mantenemos una referencia nula
-        this.jingleControls = null;
+        // Crear una instancia del componente JingleControls pero sin renderizarlo
+        // Solo lo necesitamos para cargar y gestionar la configuración
+        const hiddenContainer = document.createElement('div');
+        hiddenContainer.style.display = 'none';
+        this.jingleControls = new JingleControls(hiddenContainer);
+        console.log('[Dashboard] JingleControls inicializado para gestión de configuración');
     }
     
     /**
@@ -282,6 +288,13 @@ export default class DashboardV2Module {
         this.elements.generateBtn.addEventListener('click', () => this.handleGenerate());
         
         // Controles de voz reactivados
+        
+        // Toggle de valores por defecto
+        if (this.elements.defaultValuesToggle) {
+            this.elements.defaultValuesToggle.addEventListener('change', (e) => {
+                this.handleDefaultValuesToggle(e.target.checked);
+            });
+        }
         
         // Sliders
         this.setupSlider('style', 'Style', value => this.state.voiceSettings.style = value / 100);
@@ -304,6 +317,42 @@ export default class DashboardV2Module {
     }
     
     /**
+     * Maneja el toggle de valores por defecto
+     */
+    handleDefaultValuesToggle(isChecked) {
+        this.state.useDefaultValues = isChecked;
+        
+        if (isChecked) {
+            // Resetear a valores por defecto (mismo que sistema automático)
+            const defaults = {
+                style: 50,      // 50% como sistema automático
+                stability: 75,  // 75% como sistema automático
+                similarity: 80  // 80% como sistema automático
+            };
+            
+            // Actualizar sliders
+            this.elements.styleSlider.value = defaults.style;
+            this.elements.styleValue.textContent = defaults.style + '%';
+            this.elements.styleTrack.style.width = defaults.style + '%';
+            
+            this.elements.stabilitySlider.value = defaults.stability;
+            this.elements.stabilityValue.textContent = defaults.stability + '%';
+            this.elements.stabilityTrack.style.width = defaults.stability + '%';
+            
+            this.elements.claritySlider.value = defaults.similarity;
+            this.elements.clarityValue.textContent = defaults.similarity + '%';
+            this.elements.clarityTrack.style.width = defaults.similarity + '%';
+            
+            // Actualizar estado
+            this.state.voiceSettings.style = 0.5;
+            this.state.voiceSettings.stability = 0.75;
+            this.state.voiceSettings.similarity_boost = 0.8;
+            
+            console.log('[Dashboard v2] Valores reseteados a default');
+        }
+    }
+    
+    /**
      * Configura un slider
      */
     setupSlider(name, setting, callback) {
@@ -316,6 +365,12 @@ export default class DashboardV2Module {
             value.textContent = val + '%';
             track.style.width = val + '%';
             callback(val);
+            
+            // Desactivar toggle de valores por defecto al cambiar un slider
+            if (this.state.useDefaultValues && this.elements.defaultValuesToggle) {
+                this.state.useDefaultValues = false;
+                this.elements.defaultValuesToggle.checked = false;
+            }
         });
     }
     
@@ -338,13 +393,24 @@ export default class DashboardV2Module {
         try {
             // Verificar si se debe generar un jingle - ahora verificamos el selector de música directamente
             const selectedMusic = this.elements.musicSelect ? this.elements.musicSelect.value : '';
-            const jingleOptions = this.jingleControls ? this.jingleControls.getJingleOptions() : null;
+            
+            // Si hay música seleccionada, actualizar el jingleControls
+            if (selectedMusic && this.jingleControls) {
+                this.jingleControls.selectedMusic = selectedMusic;
+                this.jingleControls.enabled = true;
+            } else if (this.jingleControls) {
+                // Si no hay música, desactivar jingle
+                this.jingleControls.selectedMusic = null;
+                this.jingleControls.enabled = false;
+            }
+            
+            const jingleOptions = (selectedMusic && this.jingleControls) ? this.jingleControls.getJingleOptions() : null;
             
             // Si hay música seleccionada o jingle controls está activo
             if (selectedMusic || jingleOptions) {
                 // Generar jingle
                 
-                // Crear opciones del jingle combinando selector de música y controles
+                // Usar las opciones del jingleControls si existen, sino usar valores por defecto
                 const finalJingleOptions = jingleOptions || {
                     music_volume: 0.3,
                     voice_volume: 1.0,
@@ -356,8 +422,8 @@ export default class DashboardV2Module {
                     outro_silence: 4
                 };
                 
-                // Si hay música seleccionada en el dropdown, usarla
-                if (selectedMusic) {
+                // Si hay música seleccionada en el dropdown y no viene del jingleControls, usarla
+                if (selectedMusic && !jingleOptions) {
                     finalJingleOptions.music_file = selectedMusic;
                 }
                 
@@ -456,9 +522,15 @@ export default class DashboardV2Module {
             playerContainer.style.marginTop = '1rem';
             playerContainer.innerHTML = `
                 <audio id="audioPlayer" controls class="audio-player" style="width: 100%;"></audio>
-                <div class="player-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
-                    <button type="button" id="saveToLibraryBtn" class="btn btn-secondary">
+                <div class="player-actions" style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center; justify-content: flex-end;">
+                    <button type="button" id="saveToLibraryBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
                         💾 Guardar en Biblioteca
+                    </button>
+                    <button type="button" id="sendToRadioBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="currentColor">
+                            <path d="M480-120q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM254-346l-84-86q59-59 138.5-93.5T480-560q92 0 171.5 35T790-430l-84 84q-44-44-102-69t-124-25q-66 0-124 25t-102 69ZM84-516 0-600q92-94 215-147t265-53q142 0 265 53t215 147l-84 84q-77-77-178.5-120.5T480-680q-116 0-217.5 43.5T84-516Z"/>
+                        </svg>
+                        Enviar a la Radio
                     </button>
                 </div>
             `;
