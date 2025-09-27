@@ -43,12 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
     
-    // Validar filename - ACTUALIZADO PARA PERMITIR TTS, JINGLES Y ARCHIVOS EXTERNOS
-    $isTTSFile = preg_match('/^tts\d+(_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+)?\.mp3$/', $filename);
+    // Validar filename - ACTUALIZADO PARA PERMITIR MENSAJES, TTS LEGACY, JINGLES Y ARCHIVOS EXTERNOS
+    $isTTSFile = preg_match('/^tts\d+(_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+)?\.mp3$/', $filename); // Legacy TTS
+    $isMessageFile = preg_match('/^mensaje_.*\.mp3$/', $filename); // Nuevos mensajes descriptivos
     $isJingleFile = preg_match('/^jingle_\d+_\d+_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+\.mp3$/', $filename);
     $isExternalFile = preg_match('/^[a-zA-Z0-9._\-ñÑáéíóúÁÉÍÓÚ]+\.(mp3|wav|flac|aac|ogg|m4a|opus)$/i', $filename);
     
-    if (!$isTTSFile && !$isJingleFile && !$isExternalFile) {
+    if (!$isTTSFile && !$isMessageFile && !$isJingleFile && !$isExternalFile) {
         header('Content-Type: application/json');
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'Archivo inválido']);
@@ -195,7 +196,8 @@ function listLibraryFiles() {
     
     try {
         // Método 1: Usar find con -printf para obtener toda la info de una vez
-        $findCommand = 'sudo docker exec azuracast find /var/azuracast/stations/test/media/Grabaciones/ -name "tts*.mp3" -printf "%f|%s|%T@\n" 2>/dev/null';
+        // Buscar tanto archivos legacy tts* como nuevos mensaje_*
+        $findCommand = 'sudo docker exec azuracast find /var/azuracast/stations/test/media/Grabaciones/ \( -name "tts*.mp3" -o -name "mensaje_*.mp3" \) -printf "%f|%s|%T@\n" 2>/dev/null';
         $output = shell_exec($findCommand);
         
         if (!$output) {
@@ -318,40 +320,35 @@ function deleteLibraryFile($input) {
 function sendLibraryToRadio($input) {
     $filename = $input['filename'] ?? '';
     
-    // ACTUALIZADO PARA PERMITIR DESCRIPCIONES
-    if (empty($filename) || !preg_match('/^tts\d+(_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+)?\.mp3$/', $filename)) {
-        throw new Exception('Nombre de archivo inválido');
+    // Validación mínima - solo verificar que hay un nombre de archivo
+    if (empty($filename)) {
+        throw new Exception('Nombre de archivo no especificado');
     }
     
     logMessage("Enviando archivo de biblioteca a radio: $filename");
     
     try {
-        // Verificar que existe en Docker
-        $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
-        $checkCommand = sprintf(
-            'sudo docker exec azuracast test -f %s && echo "EXISTS" || echo "NOT_FOUND" 2>&1',
-            escapeshellarg($dockerPath)
-        );
-        $exists = trim(shell_exec($checkCommand));
+        // La función interruptRadio ya maneja todo:
+        // - Busca el archivo en múltiples ubicaciones locales
+        // - Lo sube a AzuraCast si no existe ahí
+        // - Ejecuta la interrupción
         
-        if ($exists !== 'EXISTS') {
-            throw new Exception('Archivo no encontrado en biblioteca');
-        }
+        logMessage("Delegando a interruptRadio para manejar: $filename");
         
-        // Usar la función existente de radio-service.php
         $success = interruptRadio($filename);
         
         if ($success) {
-            logMessage("Archivo de biblioteca enviado exitosamente: $filename");
+            logMessage("Archivo enviado exitosamente a radio: $filename");
             echo json_encode([
                 'success' => true,
                 'message' => 'Anuncio reproduciéndose en Radio OVH'
             ]);
         } else {
-            throw new Exception('Error al interrumpir la radio');
+            throw new Exception('No se pudo interrumpir la radio');
         }
         
     } catch (Exception $e) {
+        logMessage("Error en sendLibraryToRadio: " . $e->getMessage());
         throw new Exception('Error al enviar a radio: ' . $e->getMessage());
     }
 }

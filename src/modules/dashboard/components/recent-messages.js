@@ -559,9 +559,11 @@ render() {
         // Determinar el archivo según el tipo
         let audioFilename;
         if (message.type === 'audio') {
-            audioFilename = message.filename; // Archivos de audio guardados
+            audioFilename = message.filename; // Archivos de audio guardados (incluye jingles desde BD)
         } else {
-            audioFilename = message.azuracastFilename; // Mensajes de texto con audio
+            // Para mensajes de texto: buscar primero azuracastFilename (audio normal)
+            // Si no existe, usar filename (jingles desde localStorage)
+            audioFilename = message.azuracastFilename || message.filename;
         }
         
         if (!message || !audioFilename) {

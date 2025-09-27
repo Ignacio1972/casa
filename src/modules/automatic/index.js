@@ -609,6 +609,7 @@ export default class AutomaticModeModule {
             
             console.log('[Automatic] Enviando request con música:', requestData.music_file || 'DEFAULT', 'y duración:', requestData.target_duration || 20);
             
+            // Temporalmente usar v1 mientras se debugea v2
             const response = await fetch('/api/automatic-jingle-service.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

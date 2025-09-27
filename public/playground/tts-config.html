@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ Configuración TTS - Playground</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .config-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .config-header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .config-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .config-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .label-text {
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .label-value {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .highlight-group {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #667eea30;
+        }
+
+        .highlight-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: #555;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f7ff;
+        }
+
+        .btn-danger {
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #fff5f5;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .timeline-bar {
+            height: 50px;
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .timeline-segment {
+            position: absolute;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .timeline-intro {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+        }
+
+        .timeline-voice {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .timeline-outro {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+
+        .info-box-text {
+            color: #424242;
+            font-size: 0.95rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .quick-preset {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <div class="config-header">
+            <h1 class="config-title">
+                <span>🎙️</span> Configuración Global de TTS (Text-to-Speech)
+            </h1>
+            <p class="config-subtitle">Ajusta los parámetros predeterminados para todos los mensajes de voz sin música</p>
+        </div>
+
+        <div class="config-grid">
+            <!-- Panel de Silencios -->
+            <div class="panel">
+                <h2 class="panel-title">⏱️ Control de Silencios</h2>
+                
+                <div class="highlight-group">
+                    <div class="highlight-title">🔇 Silencios antes y después del mensaje</div>
+                    
+                    <div class="quick-preset">
+                        <button class="preset-btn" onclick="setSilencePreset(0, 0)">Sin silencios</button>
+                        <button class="preset-btn" onclick="setSilencePreset(1, 1)">Mínimo (1s)</button>
+                        <button class="preset-btn active" onclick="setSilencePreset(3, 3)">Estándar (3s)</button>
+                        <button class="preset-btn" onclick="setSilencePreset(5, 5)">Extendido (5s)</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Silencio ANTES del mensaje:</span>
+                            <span class="label-value" id="introSilenceValue">3.0s</span>
+                        </div>
+                        <input type="range" id="introSilence" min="0" max="10" value="3" step="0.5">
+                        <div class="help-text">Tiempo de silencio antes de que comience a hablar la voz</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Silencio DESPUÉS del mensaje:</span>
+                            <span class="label-value" id="outroSilenceValue">3.0s</span>
+                        </div>
+                        <input type="range" id="outroSilence" min="0" max="10" value="3" step="0.5">
+                        <div class="help-text">Tiempo de silencio después de que termine el mensaje</div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="addSilence" checked>
+                        <label for="addSilence" class="checkbox-label">
+                            Agregar silencios automáticamente (desmarcar para mensajes sin silencios)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-box-title">💡 Consejo</div>
+                    <div class="info-box-text">
+                        Los silencios son útiles para evitar cortes abruptos en la radio. 
+                        3 segundos es el estándar recomendado, pero puedes ajustarlo según tus necesidades.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Normalización de Audio -->
+            <div class="panel">
+                <h2 class="panel-title">🎚️ Normalización y Volumen</h2>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Volumen de salida:</span>
+                        <span class="label-value" id="outputVolumeValue">100%</span>
+                    </div>
+                    <input type="range" id="outputVolume" min="50" max="150" value="100" step="5">
+                    <div class="help-text">Ajusta el volumen general del mensaje generado</div>
+                </div>
+
+                <div class="highlight-group">
+                    <div class="highlight-title">📊 Normalización LUFS</div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Target LUFS (Loudness):</span>
+                            <span class="label-value" id="targetLUFSValue">-16 LUFS</span>
+                        </div>
+                        <input type="range" id="targetLUFS" min="-23" max="-12" value="-16" step="1">
+                        <div class="help-text">-16 LUFS es el estándar para mensajes, -23 LUFS para broadcast</div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableNormalization" checked>
+                        <label for="enableNormalization" class="checkbox-label">
+                            Activar normalización automática (mantiene volumen consistente)
+                        </label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableCompression" checked>
+                        <label for="enableCompression" class="checkbox-label">
+                            Aplicar compresión suave (mejora claridad de la voz)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Voice Settings -->
+        <div class="panel">
+            <h2 class="panel-title">🎤 Configuración de Calidad de Voz</h2>
+            
+            <div class="info-box" style="margin-bottom: 20px;">
+                <div class="info-box-title">ℹ️ Parámetros de ElevenLabs</div>
+                <div class="info-box-text">
+                    Estos valores controlan cómo suena la voz generada. Ajústalos para obtener 
+                    voces más naturales o más consistentes según tus necesidades.
+                </div>
+            </div>
+            
+            <div class="config-grid">
+                <div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Estilo/Expresividad (Style):</span>
+                            <span class="label-value" id="styleValue">50%</span>
+                        </div>
+                        <input type="range" id="voiceStyle" min="0" max="100" value="50" step="5">
+                        <div class="help-text">Más bajo = neutral y consistente | Más alto = expresivo y variado</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Estabilidad (Stability):</span>
+                            <span class="label-value" id="stabilityValue">75%</span>
+                        </div>
+                        <input type="range" id="voiceStability" min="0" max="100" value="75" step="5">
+                        <div class="help-text">Controla la consistencia de la voz (70-80% recomendado)</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Claridad/Similitud (Similarity):</span>
+                            <span class="label-value" id="similarityValue">80%</span>
+                        </div>
+                        <input type="range" id="voiceSimilarity" min="0" max="100" value="80" step="5">
+                        <div class="help-text">Qué tan clara y fiel a la voz original (75-85% recomendado)</div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="speakerBoost" checked>
+                        <label for="speakerBoost" class="checkbox-label">
+                            Activar Speaker Boost (mejora la calidad general)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                <label class="label-text" style="display: block; margin-bottom: 10px;">Voz para pruebas:</label>
+                <select id="testVoice" style="margin-bottom: 15px;">
+                    <option value="">Cargando voces...</option>
+                </select>
+                <div class="help-text">Selecciona una voz para probar la configuración con el botón de prueba</div>
+            </div>
+        </div>
+
+        <!-- Preview Visual -->
+        <div class="panel">
+            <h2 class="panel-title">👁️ Vista Previa del Audio</h2>
+            
+            <div class="preview-section">
+                <div class="preview-title">Estructura del mensaje con la configuración actual:</div>
+                <div class="timeline-bar">
+                    <div class="timeline-intro timeline-segment" id="timelineIntro">Silencio</div>
+                    <div class="timeline-voice timeline-segment" id="timelineVoice">Mensaje de Voz</div>
+                    <div class="timeline-outro timeline-segment" id="timelineOutro">Silencio</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.85rem; color: #666;">
+                    <span>0s</span>
+                    <span id="totalDuration">10s total (estimado)</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">ℹ️ Aplicación Automática</div>
+                <div class="info-box-text">
+                    Estos valores se aplicarán automáticamente a todos los mensajes TTS generados 
+                    desde el Dashboard y el Modo Automático. Los cambios son globales y afectarán 
+                    a todos los usuarios del sistema.
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveConfig()">
+                    <span>💾</span> Guardar Configuración
+                </button>
+                <button class="btn btn-secondary" onclick="testConfig()">
+                    <span>🎤</span> Probar con Mensaje Real
+                </button>
+                <button class="btn btn-danger" onclick="resetConfig()">
+                    <span>🔄</span> Restaurar Valores por Defecto
+                </button>
+            </div>
+
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentConfig = null;
+        let availableVoices = [];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentConfig();
+            loadAvailableVoices();
+            initializeSliders();
+            updateTimeline();
+        });
+
+        // Cargar configuración actual
+        async function loadCurrentConfig() {
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/tts-config-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfig = data.config;
+                    applyConfigToUI(currentConfig);
+                    showStatus('Configuración cargada', 'success');
+                }
+            } catch (error) {
+                console.error('Error cargando configuración:', error);
+                // Si no existe, usar valores por defecto
+                currentConfig = {
+                    silence: {
+                        add_silence: true,
+                        intro_seconds: 3,
+                        outro_seconds: 3
+                    },
+                    normalization: {
+                        enabled: true,
+                        target_lufs: -16,
+                        output_volume: 1.0,
+                        enable_compression: true
+                    },
+                    voice_settings: {
+                        style: 0.5,
+                        stability: 0.75,
+                        similarity_boost: 0.8,
+                        use_speaker_boost: true
+                    }
+                };
+                applyConfigToUI(currentConfig);
+            }
+        }
+
+        // Cargar voces disponibles
+        async function loadAvailableVoices() {
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/generate.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'list_voices' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.voices) {
+                    availableVoices = Object.entries(data.voices);
+                    updateVoiceSelector();
+                }
+            } catch (error) {
+                console.error('Error cargando voces:', error);
+                // Voces por defecto si falla
+                availableVoices = [
+                    ['rachel', { label: 'Rachel' }],
+                    ['juan_carlos', { label: 'Juan Carlos' }],
+                    ['veronica', { label: 'Verónica' }]
+                ];
+                updateVoiceSelector();
+            }
+        }
+
+        // Actualizar selector de voces
+        function updateVoiceSelector() {
+            const select = document.getElementById('testVoice');
+            
+            select.innerHTML = availableVoices.map(([key, voice]) => {
+                return `<option value="${key}">${voice.label || key}</option>`;
+            }).join('');
+            
+            // Seleccionar la primera voz por defecto
+            if (availableVoices.length > 0) {
+                select.value = availableVoices[0][0];
+            }
+        }
+
+        // Aplicar configuración a la UI
+        function applyConfigToUI(config) {
+            // Silencios
+            document.getElementById('addSilence').checked = config.silence?.add_silence !== false;
+            document.getElementById('introSilence').value = config.silence?.intro_seconds || 3;
+            document.getElementById('introSilenceValue').textContent = (config.silence?.intro_seconds || 3).toFixed(1) + 's';
+            document.getElementById('outroSilence').value = config.silence?.outro_seconds || 3;
+            document.getElementById('outroSilenceValue').textContent = (config.silence?.outro_seconds || 3).toFixed(1) + 's';
+            
+            // Normalización
+            document.getElementById('enableNormalization').checked = config.normalization?.enabled !== false;
+            document.getElementById('targetLUFS').value = config.normalization?.target_lufs || -16;
+            document.getElementById('targetLUFSValue').textContent = (config.normalization?.target_lufs || -16) + ' LUFS';
+            document.getElementById('outputVolume').value = (config.normalization?.output_volume || 1.0) * 100;
+            document.getElementById('outputVolumeValue').textContent = Math.round((config.normalization?.output_volume || 1.0) * 100) + '%';
+            document.getElementById('enableCompression').checked = config.normalization?.enable_compression !== false;
+            
+            // Voice settings
+            document.getElementById('voiceStyle').value = (config.voice_settings?.style || 0.5) * 100;
+            document.getElementById('styleValue').textContent = Math.round((config.voice_settings?.style || 0.5) * 100) + '%';
+            document.getElementById('voiceStability').value = (config.voice_settings?.stability || 0.75) * 100;
+            document.getElementById('stabilityValue').textContent = Math.round((config.voice_settings?.stability || 0.75) * 100) + '%';
+            document.getElementById('voiceSimilarity').value = (config.voice_settings?.similarity_boost || 0.8) * 100;
+            document.getElementById('similarityValue').textContent = Math.round((config.voice_settings?.similarity_boost || 0.8) * 100) + '%';
+            document.getElementById('speakerBoost').checked = config.voice_settings?.use_speaker_boost !== false;
+            
+            updateTimeline();
+            toggleSilenceControls();
+        }
+
+        // Inicializar sliders
+        function initializeSliders() {
+            const sliders = [
+                { id: 'introSilence', valueId: 'introSilenceValue', suffix: 's', decimals: 1, callback: updateTimeline },
+                { id: 'outroSilence', valueId: 'outroSilenceValue', suffix: 's', decimals: 1, callback: updateTimeline },
+                { id: 'targetLUFS', valueId: 'targetLUFSValue', suffix: ' LUFS', decimals: 0 },
+                { id: 'outputVolume', valueId: 'outputVolumeValue', suffix: '%', decimals: 0 },
+                { id: 'voiceStyle', valueId: 'styleValue', suffix: '%', decimals: 0 },
+                { id: 'voiceStability', valueId: 'stabilityValue', suffix: '%', decimals: 0 },
+                { id: 'voiceSimilarity', valueId: 'similarityValue', suffix: '%', decimals: 0 }
+            ];
+
+            sliders.forEach(slider => {
+                const element = document.getElementById(slider.id);
+                if (element) {
+                    element.addEventListener('input', (e) => {
+                        let value = parseFloat(e.target.value);
+                        if (slider.decimals === 0) {
+                            value = Math.round(value);
+                        }
+                        document.getElementById(slider.valueId).textContent = 
+                            (slider.decimals === 1 ? value.toFixed(1) : value) + slider.suffix;
+                        if (slider.callback) slider.callback();
+                    });
+                }
+            });
+
+            // Toggle silencios
+            document.getElementById('addSilence').addEventListener('change', toggleSilenceControls);
+        }
+
+        // Toggle controles de silencio
+        function toggleSilenceControls() {
+            const enabled = document.getElementById('addSilence').checked;
+            document.getElementById('introSilence').disabled = !enabled;
+            document.getElementById('outroSilence').disabled = !enabled;
+            updateTimeline();
+        }
+
+        // Preset de silencios
+        function setSilencePreset(intro, outro) {
+            document.getElementById('introSilence').value = intro;
+            document.getElementById('introSilenceValue').textContent = intro.toFixed(1) + 's';
+            document.getElementById('outroSilence').value = outro;
+            document.getElementById('outroSilenceValue').textContent = outro.toFixed(1) + 's';
+            document.getElementById('addSilence').checked = intro > 0 || outro > 0;
+            
+            // Actualizar botones de preset
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateTimeline();
+            toggleSilenceControls();
+        }
+
+        // Actualizar timeline visual
+        function updateTimeline() {
+            const addSilence = document.getElementById('addSilence').checked;
+            const intro = addSilence ? parseFloat(document.getElementById('introSilence').value) : 0;
+            const outro = addSilence ? parseFloat(document.getElementById('outroSilence').value) : 0;
+            const voiceDuration = 4; // Duración estimada del mensaje
+
+            const total = intro + voiceDuration + outro;
+
+            const introBar = document.getElementById('timelineIntro');
+            const voiceBar = document.getElementById('timelineVoice');
+            const outroBar = document.getElementById('timelineOutro');
+
+            if (intro > 0) {
+                introBar.style.display = 'flex';
+                introBar.style.width = (intro / total * 100) + '%';
+                introBar.style.left = '0';
+                introBar.textContent = intro > 0.5 ? `Silencio ${intro.toFixed(1)}s` : '';
+            } else {
+                introBar.style.display = 'none';
+            }
+
+            voiceBar.style.width = (voiceDuration / total * 100) + '%';
+            voiceBar.style.left = (intro / total * 100) + '%';
+            voiceBar.textContent = `Mensaje de Voz`;
+
+            if (outro > 0) {
+                outroBar.style.display = 'flex';
+                outroBar.style.width = (outro / total * 100) + '%';
+                outroBar.style.left = ((intro + voiceDuration) / total * 100) + '%';
+                outroBar.textContent = outro > 0.5 ? `Silencio ${outro.toFixed(1)}s` : '';
+            } else {
+                outroBar.style.display = 'none';
+            }
+
+            document.getElementById('totalDuration').textContent = 
+                `${total.toFixed(1)}s total (${voiceDuration}s voz + ${(intro + outro).toFixed(1)}s silencios)`;
+        }
+
+        // Guardar configuración
+        async function saveConfig() {
+            const config = {
+                silence: {
+                    add_silence: document.getElementById('addSilence').checked,
+                    intro_seconds: parseFloat(document.getElementById('introSilence').value),
+                    outro_seconds: parseFloat(document.getElementById('outroSilence').value)
+                },
+                normalization: {
+                    enabled: document.getElementById('enableNormalization').checked,
+                    target_lufs: parseInt(document.getElementById('targetLUFS').value),
+                    output_volume: parseFloat(document.getElementById('outputVolume').value) / 100,
+                    enable_compression: document.getElementById('enableCompression').checked
+                },
+                voice_settings: {
+                    style: parseFloat(document.getElementById('voiceStyle').value) / 100,
+                    stability: parseFloat(document.getElementById('voiceStability').value) / 100,
+                    similarity_boost: parseFloat(document.getElementById('voiceSimilarity').value) / 100,
+                    use_speaker_boost: document.getElementById('speakerBoost').checked
+                }
+            };
+
+            try {
+                showStatus('Guardando configuración...', 'info');
+                
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/tts-config-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'save',
+                        config: config
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfig = config;
+                    showStatus('✅ Configuración guardada exitosamente', 'success');
+                } else {
+                    throw new Error(data.error || 'Error al guardar');
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Probar configuración
+        async function testConfig() {
+            const testVoice = document.getElementById('testVoice').value;
+            if (!testVoice) {
+                showStatus('Selecciona una voz para la prueba', 'error');
+                return;
+            }
+
+            showStatus('Generando mensaje de prueba...', 'info');
+
+            const testText = "Este es un mensaje de prueba para verificar la configuración de voz y silencios del sistema TTS.";
+
+            try {
+                // Primero guardar la configuración temporal
+                await saveConfig();
+
+                // Generar audio con la configuración actual
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/generate.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate_audio',
+                        text: testText,
+                        voice: testVoice,
+                        category: 'test',
+                        // Los voice_settings se tomarán de la configuración
+                        source: 'tts-config-test'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.filename) {
+                    showStatus(`🎵 Audio generado: ${data.filename}. Reproduciéndolo...`, 'success');
+                    
+                    // Reproducir el audio generado
+                    const audioUrl = window.location.protocol + '//' + window.location.hostname + ':4000/api/biblioteca.php?filename=' + data.filename;
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                } else {
+                    throw new Error(data.error || 'Error al generar audio');
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Restaurar configuración
+        async function resetConfig() {
+            if (!confirm('¿Estás seguro de restaurar los valores por defecto?\n\nEsto establecerá:\n- Silencios: 3 segundos\n- LUFS: -16\n- Voice settings: valores estándar')) return;
+
+            try {
+                const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/tts-config-service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reset' })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfig = data.config;
+                    applyConfigToUI(currentConfig);
+                    showStatus('🔄 Configuración restaurada a valores por defecto', 'success');
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Mostrar estado
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+
+            if (type !== 'info') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

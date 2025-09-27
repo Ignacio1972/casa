@@ -1,0 +1,19 @@
+{
+    "silence": {
+        "add_silence": true,
+        "intro_seconds": 5,
+        "outro_seconds": 7
+    },
+    "normalization": {
+        "enabled": true,
+        "target_lufs": -16,
+        "output_volume": 1.25,
+        "enable_compression": true
+    },
+    "voice_settings": {
+        "style": 0.5,
+        "stability": 0.75,
+        "similarity_boost": 0.8,
+        "use_speaker_boost": true
+    }
+}

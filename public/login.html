@@ -223,8 +223,11 @@
     <script>
         function handleLogin() {
             const clientNumber = document.getElementById('client-number').value;
-            if (clientNumber) {
-                // Simula verificación pero no hace nada
+            if (clientNumber === '1234') {
+                // Redirige al dashboard con el acceso correcto
+                window.location.href = '/?access=demo#dashboard';
+            } else if (clientNumber) {
+                // Para cualquier otro número muestra error
                 setTimeout(() => {
                     alert('Acceso no autorizado. Por favor contacta a tu administrador.');
                     document.getElementById('client-number').value = '';

@@ -4,13 +4,64 @@
  * FIX: Mantiene características exactas del audio original (MONO, bitrate constante)
  */
 
+// Función de logging si no existe
+if (!function_exists('logMessage')) {
+    function logMessage($message) {
+        $timestamp = date('Y-m-d H:i:s');
+        $logFile = dirname(__DIR__) . '/logs/tts-' . date('Y-m-d') . '.log';
+        
+        if (!file_exists(dirname($logFile))) {
+            mkdir(dirname($logFile), 0755, true);
+        }
+        
+        file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND | LOCK_EX);
+    }
+}
+
+// Definir UPLOAD_DIR si no existe
+if (!defined('UPLOAD_DIR')) {
+    define('UPLOAD_DIR', dirname(__DIR__) . '/temp/');
+}
+
 /**
- * Agrega 3 segundos de silencio antes y después del audio
+ * Agrega silencios configurables antes y después del audio
  * FIX: Preserva formato original (mono/stereo, bitrate, sample rate)
+ * @param string $inputFile Archivo de entrada
+ * @param float $introSeconds Segundos de silencio al inicio (opcional, default desde config)
+ * @param float $outroSeconds Segundos de silencio al final (opcional, default desde config)
  */
-function addSilenceToAudio($inputFile) {
+function addSilenceToAudio($inputFile, $introSeconds = null, $outroSeconds = null) {
     try {
+        // Si no se especifican los silencios, leer de la configuración
+        if ($introSeconds === null || $outroSeconds === null) {
+            $configFile = dirname(__DIR__) . '/data/tts-config.json';
+            if (file_exists($configFile)) {
+                $config = json_decode(file_get_contents($configFile), true);
+                if ($config && isset($config['silence'])) {
+                    // Solo aplicar silencios si está habilitado
+                    if ($config['silence']['add_silence'] ?? true) {
+                        $introSeconds = $introSeconds ?? ($config['silence']['intro_seconds'] ?? 3);
+                        $outroSeconds = $outroSeconds ?? ($config['silence']['outro_seconds'] ?? 3);
+                    } else {
+                        // Si los silencios están deshabilitados, usar 0
+                        $introSeconds = 0;
+                        $outroSeconds = 0;
+                    }
+                }
+            }
+            // Valores por defecto si no hay configuración
+            $introSeconds = $introSeconds ?? 3;
+            $outroSeconds = $outroSeconds ?? 3;
+        }
+        
         logMessage("=== Iniciando addSilenceToAudio con archivo: $inputFile");
+        logMessage("Silencios configurados - Intro: {$introSeconds}s, Outro: {$outroSeconds}s");
+        
+        // Si ambos silencios son 0, devolver el archivo sin modificar
+        if ($introSeconds == 0 && $outroSeconds == 0) {
+            logMessage("No se agregarán silencios (ambos configurados en 0)");
+            return $inputFile;
+        }
         
         // Verificar que el archivo existe
         if (!file_exists($inputFile)) {
@@ -31,7 +82,8 @@ function addSilenceToAudio($inputFile) {
         $stream = $audio_info['streams'][0];
         $channels = $stream['channels'];
         $sample_rate = $stream['sample_rate'];
-        $bit_rate = $stream['bit_rate'];
+        // Preservar el bitrate original (ahora será 192kbps con el nuevo formato)
+        $bit_rate = $stream['bit_rate'] ?? '192000';
         
         logMessage("Archivo original - Channels: $channels, Sample Rate: $sample_rate, Bitrate: $bit_rate");
         
@@ -42,10 +94,13 @@ function addSilenceToAudio($inputFile) {
         // FIX: Crear silencio con EXACTAMENTE las mismas características
         $channel_layout = ($channels == 1) ? 'mono' : 'stereo';
         
+        // Crear silencio con duración configurable (intro)
+        $silenceDuration = max($introSeconds, $outroSeconds); // Crear un solo archivo de silencio del máximo necesario
         $cmdSilence = sprintf(
-            'ffmpeg -f lavfi -i anullsrc=channel_layout=%s:sample_rate=%s -t 3 -c:a libmp3lame -b:a %s -ac %d -ar %s -y %s 2>&1',
+            'ffmpeg -f lavfi -i anullsrc=channel_layout=%s:sample_rate=%s -t %.1f -c:a libmp3lame -b:a %s -ac %d -ar %s -y %s 2>&1',
             $channel_layout,
             $sample_rate,
+            $silenceDuration,
             $bit_rate,
             $channels,
             $sample_rate,
@@ -65,7 +120,56 @@ function addSilenceToAudio($inputFile) {
         
         // FIX: Concatenar preservando características del archivo original
         $listFile = UPLOAD_DIR . 'concat_' . uniqid() . '.txt';
-        $fileList = "file '" . $silenceFile . "'\nfile '" . $inputFile . "'\nfile '" . $silenceFile . "'";
+        
+        // Crear lista de archivos con silencios configurables
+        $fileList = "";
+        
+        // Agregar silencio inicial si es necesario
+        if ($introSeconds > 0) {
+            // Si necesitamos diferentes duraciones, crear archivos separados
+            if ($introSeconds != $outroSeconds && $outroSeconds > 0) {
+                $introSilenceFile = UPLOAD_DIR . 'silence_intro_' . uniqid() . '.mp3';
+                $cmdIntroSilence = sprintf(
+                    'ffmpeg -f lavfi -i anullsrc=channel_layout=%s:sample_rate=%s -t %.1f -c:a libmp3lame -b:a %s -ac %d -ar %s -y %s 2>&1',
+                    $channel_layout,
+                    $sample_rate,
+                    $introSeconds,
+                    $bit_rate,
+                    $channels,
+                    $sample_rate,
+                    escapeshellarg($introSilenceFile)
+                );
+                shell_exec($cmdIntroSilence);
+                $fileList .= "file '" . $introSilenceFile . "'\n";
+            } else {
+                $fileList .= "file '" . $silenceFile . "'\n";
+            }
+        }
+        
+        // Agregar archivo de audio principal
+        $fileList .= "file '" . $inputFile . "'\n";
+        
+        // Agregar silencio final si es necesario
+        if ($outroSeconds > 0) {
+            if ($introSeconds != $outroSeconds && $introSeconds > 0) {
+                $outroSilenceFile = UPLOAD_DIR . 'silence_outro_' . uniqid() . '.mp3';
+                $cmdOutroSilence = sprintf(
+                    'ffmpeg -f lavfi -i anullsrc=channel_layout=%s:sample_rate=%s -t %.1f -c:a libmp3lame -b:a %s -ac %d -ar %s -y %s 2>&1',
+                    $channel_layout,
+                    $sample_rate,
+                    $outroSeconds,
+                    $bit_rate,
+                    $channels,
+                    $sample_rate,
+                    escapeshellarg($outroSilenceFile)
+                );
+                shell_exec($cmdOutroSilence);
+                $fileList .= "file '" . $outroSilenceFile . "'";
+            } else {
+                $fileList .= "file '" . $silenceFile . "'";
+            }
+        }
+        
         file_put_contents($listFile, $fileList);
         
         logMessage("Archivo de lista creado: $listFile");
@@ -86,6 +190,9 @@ function addSilenceToAudio($inputFile) {
         // Limpiar archivos temporales
         @unlink($silenceFile);
         @unlink($listFile);
+        // Limpiar archivos de silencio adicionales si se crearon
+        if (isset($introSilenceFile)) @unlink($introSilenceFile);
+        if (isset($outroSilenceFile)) @unlink($outroSilenceFile);
         
         // Verificar resultado
         if (file_exists($outputFile) && filesize($outputFile) > 0) {

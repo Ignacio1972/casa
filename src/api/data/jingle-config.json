@@ -1,12 +1,12 @@
 {
     "jingle_defaults": {
         "enabled_by_default": false,
-        "intro_silence": 3,
-        "outro_silence": 4.5,
-        "music_volume": 0.45,
+        "intro_silence": 12,
+        "outro_silence": 16,
+        "music_volume": 0.4,
         "voice_volume": 0.8,
-        "fade_in": 3.5,
-        "fade_out": 3.5,
+        "fade_in": 1.5,
+        "fade_out": 4,
         "ducking_enabled": true,
         "duck_level": 0.2,
         "default_music": "Uplift.mp3",

@@ -31,13 +31,14 @@ export default class DashboardV2Module {
             selectedVoice: 'juan_carlos',
             selectedCategory: localStorage.getItem('mbi_selectedCategory') || 'sin_categoria',
             voiceSettings: {
-                style: 0.5,  // Valor por defecto: balanceado (como sistema automático)
-                stability: 0.75,  // Valor por defecto: natural (como sistema automático)
-                similarity_boost: 0.8,  // Valor por defecto: expresivo (como sistema automático)
+                style: 0.15,  // Valor por defecto: expresividad 15%
+                stability: 1.0,  // Valor por defecto: estabilidad 100%
+                similarity_boost: 0.5,  // Valor por defecto: similitud 50%
                 use_speaker_boost: true  // Siempre activo
             },
             useDefaultValues: true,  // Estado del toggle de valores por defecto
-            recentMessages: []
+            recentMessages: [],
+            lastGeneratedFilename: null  // Para guardar el filename del último audio generado
         };
         
         // Referencias a elementos DOM
@@ -323,11 +324,11 @@ export default class DashboardV2Module {
         this.state.useDefaultValues = isChecked;
         
         if (isChecked) {
-            // Resetear a valores por defecto (mismo que sistema automático)
+            // Resetear a valores por defecto
             const defaults = {
-                style: 50,      // 50% como sistema automático
-                stability: 75,  // 75% como sistema automático
-                similarity: 80  // 80% como sistema automático
+                style: 15,      // Expresividad 15%
+                stability: 100,  // Estabilidad 100%
+                similarity: 50  // Similitud 50%
             };
             
             // Actualizar sliders
@@ -343,12 +344,12 @@ export default class DashboardV2Module {
             this.elements.clarityValue.textContent = defaults.similarity + '%';
             this.elements.clarityTrack.style.width = defaults.similarity + '%';
             
-            // Actualizar estado
-            this.state.voiceSettings.style = 0.5;
-            this.state.voiceSettings.stability = 0.75;
-            this.state.voiceSettings.similarity_boost = 0.8;
+            // Actualizar estado (convertir porcentajes a valores decimales)
+            this.state.voiceSettings.style = defaults.style / 100;  // 0.15
+            this.state.voiceSettings.stability = defaults.stability / 100;  // 1.0
+            this.state.voiceSettings.similarity_boost = defaults.similarity / 100;  // 0.5
             
-            console.log('[Dashboard v2] Valores reseteados a default');
+            console.log('[Dashboard v2] Valores reseteados a default:', this.state.voiceSettings);
         }
     }
     
@@ -456,6 +457,11 @@ export default class DashboardV2Module {
                     this.playAudio(audioUrl);
                     this.showSuccess(`¡Jingle generado! Duración: ${response.duration?.toFixed(1) || 'N/A'}s`);
                     
+                    // Guardar el filename del jingle para poder enviarlo a la radio después
+                    if (response.filename) {
+                        this.state.lastGeneratedFilename = response.filename;
+                    }
+                    
                     // Actualizar mensajes recientes para que aparezca el jingle
                     await this.loadRecentMessages();
                 } else {
@@ -491,6 +497,10 @@ export default class DashboardV2Module {
                     const audioUrl = response.audio_url || `/api/temp/${response.filename}`;
                     this.playAudio(audioUrl);
                     this.showSuccess('Audio generado exitosamente');
+                    
+                    // Guardar el filename para poder enviarlo a la radio después
+                    // Usar azuracast_filename si está disponible, sino usar filename
+                    this.state.lastGeneratedFilename = response.azuracast_filename || response.filename;
                     
                     // Actualizar mensajes recientes (quota eliminado)
                     await this.loadRecentMessages();
@@ -545,6 +555,10 @@ export default class DashboardV2Module {
         // Configurar botón de guardar
         const saveBtn = playerContainer.querySelector('#saveToLibraryBtn');
         saveBtn.onclick = () => this.saveToLibrary(url);
+        
+        // Configurar botón de enviar a radio
+        const sendToRadioBtn = playerContainer.querySelector('#sendToRadioBtn');
+        sendToRadioBtn.onclick = () => this.sendToRadio();
     }
     
     /**
@@ -560,10 +574,55 @@ export default class DashboardV2Module {
             text: text,
             audioUrl: audioUrl,
             voice: voice.label,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            // Incluir el filename si es un jingle
+            filename: this.state.lastGeneratedFilename || null
         });
         
         this.showSuccess('Mensaje guardado en la biblioteca');
+    }
+    
+    /**
+     * Envía el mensaje generado a la radio
+     */
+    async sendToRadio() {
+        // Obtener el filename del último audio generado
+        const filename = this.state.lastGeneratedFilename;
+        
+        if (!filename) {
+            this.showError('No hay audio disponible para enviar');
+            return;
+        }
+        
+        if (!confirm(`¿Quiere que este mensaje suene ahora mismo en la radio?`)) return;
+        
+        try {
+            // Determinar si es un jingle o mensaje normal
+            // Los jingles empiezan con "jingle_", los mensajes con "tts"
+            const isJingle = filename.startsWith('jingle_');
+            
+            // Usar el endpoint correcto según el tipo
+            // Para jingles y mensajes TTS generados, usamos generate.php
+            const endpoint = '/api/generate.php';
+            const action = 'send_to_radio';
+            
+            const response = await this.apiClient.post(endpoint, {
+                action: action,
+                filename: filename
+            });
+            
+            if (response.success) {
+                this.showSuccess('¡Mensaje enviado a la radio!');
+                
+                // Actualizar mensajes recientes para reflejar el cambio
+                await this.loadRecentMessages();
+            } else {
+                throw new Error(response.error || 'Error desconocido');
+            }
+        } catch (error) {
+            console.error('[Dashboard v2] Error enviando a radio:', error);
+            this.showError('Error al enviar a la radio: ' + error.message);
+        }
     }
     
     /**
@@ -729,6 +788,40 @@ export default class DashboardV2Module {
      */
     async loadInitialData() {
         // Controles avanzados siempre visibles - no necesita localStorage
+        
+        // Inicializar valores de los sliders con los valores por defecto
+        if (this.state.useDefaultValues) {
+            // Aplicar valores por defecto
+            const defaults = {
+                style: 15,      // Expresividad 15%
+                stability: 100,  // Estabilidad 100%
+                similarity: 50  // Similitud 50%
+            };
+            
+            // Actualizar sliders
+            if (this.elements.styleSlider) {
+                this.elements.styleSlider.value = defaults.style;
+                this.elements.styleValue.textContent = defaults.style + '%';
+                this.elements.styleTrack.style.width = defaults.style + '%';
+            }
+            
+            if (this.elements.stabilitySlider) {
+                this.elements.stabilitySlider.value = defaults.stability;
+                this.elements.stabilityValue.textContent = defaults.stability + '%';
+                this.elements.stabilityTrack.style.width = defaults.stability + '%';
+            }
+            
+            if (this.elements.claritySlider) {
+                this.elements.claritySlider.value = defaults.similarity;
+                this.elements.clarityValue.textContent = defaults.similarity + '%';
+                this.elements.clarityTrack.style.width = defaults.similarity + '%';
+            }
+            
+            // Marcar el toggle como activo
+            if (this.elements.defaultValuesToggle) {
+                this.elements.defaultValuesToggle.checked = true;
+            }
+        }
         
         // Cargar mensajes recientes
         await this.loadRecentMessages();

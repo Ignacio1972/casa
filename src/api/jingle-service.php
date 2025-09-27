@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/services/tts-service.php';
+require_once __DIR__ . '/services/radio-service.php';
 
 // Función de logging
 if (!function_exists('logMessage')) {
@@ -378,6 +379,85 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
                         ]);
                         
                         logMessage("[JingleService] Jingle guardado en BD: " . $filename);
+                        
+                        // Subir a AzuraCast para que esté disponible para la radio
+                        try {
+                            // Usar el mismo método que uploadExternalFile (JSON con base64)
+                            $azuracastUrl = AZURACAST_BASE_URL . '/api/station/' . AZURACAST_STATION_ID . '/files';
+                            
+                            // Leer archivo y convertir a base64
+                            $fileContent = file_get_contents($tempPath);
+                            $base64Content = base64_encode($fileContent);
+                            
+                            // Preparar datos con path completo
+                            $azuracastPath = 'Grabaciones/' . $filename;
+                            $postData = [
+                                'path' => $azuracastPath,
+                                'file' => $base64Content
+                            ];
+                            
+                            $ch = curl_init();
+                            curl_setopt($ch, CURLOPT_URL, $azuracastUrl);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                                'X-API-Key: ' . AZURACAST_API_KEY,
+                                'Content-Type: application/json'
+                            ]);
+                            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+                            
+                            $response = curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            curl_close($ch);
+                            
+                            if ($httpCode === 200 || $httpCode === 201) {
+                                logMessage("[JingleService] Jingle subido a AzuraCast exitosamente: " . $filename);
+                                
+                                // Obtener el ID del archivo desde la respuesta
+                                $responseData = json_decode($response, true);
+                                if (isset($responseData['id'])) {
+                                    $fileId = $responseData['id'];
+                                    
+                                    // Asignar a playlist usando el ID del archivo
+                                    $playlistUrl = AZURACAST_BASE_URL . '/api/station/' . AZURACAST_STATION_ID . '/file/' . $fileId;
+                                    
+                                    $playlistData = [
+                                        'playlists' => [
+                                            ['id' => PLAYLIST_ID_GRABACIONES]
+                                        ]
+                                    ];
+                                    
+                                    $ch = curl_init();
+                                    curl_setopt($ch, CURLOPT_URL, $playlistUrl);
+                                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+                                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($playlistData));
+                                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                                        'X-API-Key: ' . AZURACAST_API_KEY,
+                                        'Content-Type: application/json'
+                                    ]);
+                                    
+                                    curl_exec($ch);
+                                    $playlistHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                                    curl_close($ch);
+                                    
+                                    if ($playlistHttpCode === 200) {
+                                        logMessage("[JingleService] Jingle agregado a playlist Grabaciones");
+                                    } else {
+                                        logMessage("[JingleService] No se pudo agregar a playlist (HTTP $playlistHttpCode), pero archivo subido");
+                                    }
+                                } else {
+                                    logMessage("[JingleService] Archivo subido pero no se pudo obtener ID para playlist");
+                                }
+                            } else {
+                                logMessage("[JingleService] Error subiendo jingle a AzuraCast: HTTP " . $httpCode);
+                            }
+                        } catch (Exception $azuraError) {
+                            logMessage("[JingleService] Error con AzuraCast: " . $azuraError->getMessage());
+                            // No fallar, continuar sin AzuraCast
+                        }
+                        
                     } catch (Exception $dbError) {
                         // No fallar si hay error en DB, solo loguear
                         logMessage("[JingleService] Error guardando en BD: " . $dbError->getMessage());
@@ -402,6 +482,29 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
                     'success' => true,
                     'music' => $musicList
                 ]);
+                break;
+                
+            case 'send_to_radio':
+                // Enviar jingle a la radio
+                $filename = $input['filename'] ?? '';
+                
+                if (empty($filename)) {
+                    throw new Exception('No se especificó el archivo a enviar');
+                }
+                
+                logMessage("[JingleService] Enviando jingle a radio: $filename");
+                
+                // Usar la función de radio-service.php
+                $success = interruptRadio($filename);
+                
+                if ($success) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Jingle enviado a la radio y reproduciéndose'
+                    ]);
+                } else {
+                    throw new Exception('Error al interrumpir la radio con el jingle');
+                }
                 break;
                 
             default:

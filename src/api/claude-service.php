@@ -15,7 +15,7 @@ class ClaudeService {
     public function __construct() {
         // Cargar desde variables de entorno
         $this->apiKey = getenv('CLAUDE_API_KEY') ?: '';
-        $this->model = getenv('CLAUDE_MODEL') ?: 'claude-3-haiku-20240307';
+        $this->model = getenv('CLAUDE_MODEL') ?: 'claude-3-7-sonnet-20250219';
         $this->maxTokens = (int)(getenv('CLAUDE_MAX_TOKENS') ?: 500);
         $this->logFile = __DIR__ . '/logs/claude-' . date('Y-m-d') . '.log';
     }
@@ -27,27 +27,43 @@ class ClaudeService {
         return [
             'claude-3-haiku-20240307' => [
                 'name' => 'Claude 3 Haiku',
-                'description' => 'Más rápido y económico',
+                'description' => 'Más económico y rápido',
                 'cost_input' => 0.00025,  // por 1K tokens
                 'cost_output' => 0.00125,
                 'speed' => 'fast',
                 'quality' => 'good'
             ],
-            'claude-3-sonnet-20240229' => [
-                'name' => 'Claude 3 Sonnet',
-                'description' => 'Balance perfecto calidad/velocidad',
+            'claude-3-5-haiku-20241022' => [
+                'name' => 'Claude 3.5 Haiku',
+                'description' => 'Haiku mejorado, más inteligente',
+                'cost_input' => 0.001,
+                'cost_output' => 0.005,
+                'speed' => 'fast',
+                'quality' => 'very_good'
+            ],
+            'claude-3-7-sonnet-20250219' => [
+                'name' => 'Claude Sonnet 3.7',
+                'description' => 'Balance perfecto velocidad/calidad',
+                'cost_input' => 0.003,
+                'cost_output' => 0.015,
+                'speed' => 'fast',
+                'quality' => 'excellent'
+            ],
+            'claude-sonnet-4-20250514' => [
+                'name' => 'Claude Sonnet 4',
+                'description' => 'Modelo más avanzado y creativo',
                 'cost_input' => 0.003,
                 'cost_output' => 0.015,
                 'speed' => 'medium',
-                'quality' => 'excellent'
+                'quality' => 'best'
             ],
-            'claude-3-opus-20240229' => [
-                'name' => 'Claude 3 Opus',
-                'description' => 'Máxima calidad y creatividad',
+            'claude-opus-4-1-20250805' => [
+                'name' => 'Claude Opus 4.1',
+                'description' => 'Máxima capacidad y razonamiento',
                 'cost_input' => 0.015,
                 'cost_output' => 0.075,
                 'speed' => 'slow',
-                'quality' => 'best'
+                'quality' => 'superior'
             ]
         ];
     }

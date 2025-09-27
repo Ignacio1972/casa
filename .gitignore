@@ -61,4 +61,7 @@ uploads/
 
 # Archivos de audio temporales (agregados pero no los de producción)
 src/api/temp/jingle_*.mp3
-src/api/temp/tts*.mp3
+src/api/temp/tts*.mp3.env
+test-openai-key.php
+*.key
+*.pem

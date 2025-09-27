@@ -1,0 +1,126 @@
+{
+    "stations": [
+        {
+            "id": "principal",
+            "name": "Radio Principal",
+            "category": "general",
+            "priority": 1,
+            "azuracast_url": "http://51.222.25.222",
+            "api_key": "c3802cba5b5e61e8:fed31be9adb82ca57f1cf482d170851f",
+            "station_id": 1,
+            "playlist_id": 3,
+            "playlist_name": "Grabaciones",
+            "enabled": true,
+            "audio_requirements": {
+                "format": "mp3",
+                "bitrate": 192,
+                "sample_rate": 44100,
+                "lufs_target": -16,
+                "max_duration_seconds": 300
+            },
+            "features": {
+                "supports_interruption": true,
+                "supports_scheduling": true,
+                "supports_ducking": false
+            },
+            "metadata": {
+                "location": "Main Floor",
+                "audience": "General Public",
+                "content_type": "Mixed"
+            }
+        },
+        {
+            "id": "alternativa",
+            "name": "Radio Alternativa",
+            "category": "music",
+            "priority": 2,
+            "azuracast_url": "http://51.222.25.222",
+            "api_key": "c3802cba5b5e61e8:fed31be9adb82ca57f1cf482d170851f",
+            "station_id": 2,
+            "playlist_id": 3,
+            "playlist_name": "Grabaciones",
+            "enabled": true,
+            "audio_requirements": {
+                "format": "mp3",
+                "bitrate": 192,
+                "sample_rate": 44100,
+                "lufs_target": -14,
+                "max_duration_seconds": 300
+            },
+            "features": {
+                "supports_interruption": true,
+                "supports_scheduling": true,
+                "supports_ducking": true
+            },
+            "metadata": {
+                "location": "Food Court",
+                "audience": "Young Adults",
+                "content_type": "Contemporary Music"
+            }
+        },
+        {
+            "id": "ambiente",
+            "name": "Radio Ambiente",
+            "category": "ambient",
+            "priority": 3,
+            "azuracast_url": "http://51.222.25.222",
+            "api_key": "c3802cba5b5e61e8:fed31be9adb82ca57f1cf482d170851f",
+            "station_id": 3,
+            "playlist_id": 3,
+            "playlist_name": "Grabaciones",
+            "enabled": true,
+            "audio_requirements": {
+                "format": "mp3",
+                "bitrate": 128,
+                "sample_rate": 44100,
+                "lufs_target": -18,
+                "max_duration_seconds": 600
+            },
+            "features": {
+                "supports_interruption": false,
+                "supports_scheduling": true,
+                "supports_ducking": true
+            },
+            "metadata": {
+                "location": "Rest Areas",
+                "audience": "All Ages",
+                "content_type": "Ambient Music"
+            }
+        }
+    ],
+    "groups": {
+        "all": ["principal", "alternativa", "ambiente"],
+        "priority": ["principal"],
+        "music": ["alternativa", "ambiente"],
+        "general": ["principal", "alternativa"],
+        "emergency": ["principal", "alternativa", "ambiente"]
+    },
+    "broadcast_defaults": {
+        "retry_attempts": 3,
+        "retry_delay_seconds": 5,
+        "max_parallel_uploads": 3,
+        "timeout_seconds": 30,
+        "batch_size": 5,
+        "queue_enabled": true,
+        "queue_max_size": 100
+    },
+    "scaling_config": {
+        "max_stations": 30,
+        "parallel_batch_size": 5,
+        "worker_threads": 3,
+        "cache_ttl_seconds": 300
+    },
+    "health_check": {
+        "enabled": true,
+        "interval_seconds": 60,
+        "timeout_seconds": 5,
+        "failure_threshold": 3,
+        "recovery_threshold": 2
+    },
+    "metadata": {
+        "version": "2.0.0",
+        "created_at": "2025-09-25",
+        "environment": "development",
+        "client": "Casa Costanera"
+    }
+}

@@ -1,0 +1,98 @@
+/**
+ * Toggle Switch Component
+ * Estilos para el toggle de valores por defecto
+ */
+
+.controls-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(166, 189, 201, 0.1);
+}
+
+.toggle-group {
+    margin-bottom: 1rem;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(74, 85, 104, 0.6);
+    border-radius: 12px;
+    margin-right: 0.75rem;
+    transition: background 0.3s ease;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-label input:checked + .toggle-switch {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.toggle-label input:checked + .toggle-switch::after {
+    transform: translateX(20px);
+}
+
+.toggle-text {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Estados hover y focus */
+.toggle-label:hover .toggle-switch {
+    background: rgba(74, 85, 104, 0.8);
+}
+
+.toggle-label:hover input:checked + .toggle-switch {
+    background: linear-gradient(135deg, #7788ee 0%, #8654b2 100%);
+}
+
+/* Estado deshabilitado */
+.toggle-label.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggle-label.disabled .toggle-switch {
+    background: rgba(74, 85, 104, 0.3);
+}
+
+/* Animación suave */
+@keyframes togglePulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+.toggle-label input:checked + .toggle-switch {
+    animation: togglePulse 0.3s ease-out;
+}

@@ -35,9 +35,9 @@ export default class DashboardRedesignModule {
             selectedVoice: 'juan_carlos',
             selectedCategory: localStorage.getItem('mbi_selectedCategory') || 'sin_categoria',
             voiceSettings: {
-                style: 0.5,
-                stability: 0.75,
-                similarity_boost: 0.8,
+                style: 0.15,  // Expresividad 15%
+                stability: 1.0,  // Estabilidad 100%
+                similarity_boost: 0.5,  // Similitud 50%
                 use_speaker_boost: true
             },
             recentMessages: []

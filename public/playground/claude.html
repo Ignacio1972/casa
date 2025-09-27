@@ -872,12 +872,15 @@ Abre la consola del navegador (F12) para ver más detalles.`);
                         active: true
                     };
                 } else {
-                    // Actualizar existente
+                    // Actualizar existente - IMPORTANTE: mantener el ID
                     clientData = {
                         ...clientsData[clientId],
+                        id: clientId,  // Asegurar que el ID se mantiene
                         context: textarea.value
                     };
                 }
+                
+                console.log('[saveCustomContext] Guardando cliente:', clientData);
                 
                 const response = await fetch('/api/clients-service.php', {
                     method: 'POST',
@@ -889,6 +892,7 @@ Abre la consola del navegador (F12) para ver más detalles.`);
                 });
                 
                 const data = await response.json();
+                console.log('[saveCustomContext] Respuesta del servidor:', data);
                 
                 if (data.success) {
                     await loadClients();
@@ -898,7 +902,7 @@ Abre la consola del navegador (F12) para ver más detalles.`);
                     alert('Error: ' + data.error);
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('[saveCustomContext] Error:', error);
                 alert('Error al guardar el cliente');
             }
         }

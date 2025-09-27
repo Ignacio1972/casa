@@ -8,7 +8,8 @@
             "category": "custom",
             "added_date": "2025-08-23 17:06:14",
             "is_default": true,
-            "order": 1
+            "order": 1,
+            "volume_adjustment": 2.3
         },
         "test_voice": {
             "id": "test123",
@@ -18,7 +19,8 @@
             "category": "custom",
             "added_date": "2025-08-24 03:28:44",
             "is_default": false,
-            "order": 4
+            "order": 4,
+            "volume_adjustment": 0
         },
         "alejandro": {
             "id": "6nZRiu6mJ5DiYZA30eh5",
@@ -28,7 +30,8 @@
             "category": "custom",
             "added_date": "2025-08-24 04:32:55",
             "is_default": false,
-            "order": 3
+            "order": 3,
+            "volume_adjustment": 0
         },
         "jefry": {
             "id": "pXOYlNbO024q13bfqrw0",
@@ -38,7 +41,8 @@
             "category": "custom",
             "added_date": "2025-08-24 04:57:42",
             "is_default": false,
-            "order": 5
+            "order": 5,
+            "volume_adjustment": 0
         },
         "cristi": {
             "id": "9bDwPIakVNJ6w1nZOeRD",
@@ -48,7 +52,8 @@
             "category": "custom",
             "added_date": "2025-08-26 04:15:43",
             "is_default": false,
-            "order": 6
+            "order": 6,
+            "volume_adjustment": 0
         },
         "veronica": {
             "id": "Obg6KIFo8Md4PUo1m2mR",
@@ -58,7 +63,8 @@
             "category": "custom",
             "added_date": "2025-09-01 18:18:33",
             "is_default": false,
-            "order": 7
+            "order": 7,
+            "volume_adjustment": -20
         },
         "cristian": {
             "id": "nNS8uylvF9GBWVSiIt5h",
@@ -68,7 +74,8 @@
             "category": "custom",
             "added_date": "2025-09-03 22:18:24",
             "is_default": false,
-            "order": 8
+            "order": 8,
+            "volume_adjustment": 1.3
         },
         "yorman": {
             "id": "J2Jb9yZNvpXUNAL3a2bw",
@@ -78,7 +85,8 @@
             "category": "custom",
             "added_date": "2025-09-03 22:19:53",
             "is_default": false,
-            "order": 9
+            "order": 9,
+            "volume_adjustment": 0
         },
         "lizy": {
             "id": "g10k86KeEUyBqW9lcKYg",
@@ -88,7 +96,8 @@
             "category": "custom",
             "added_date": "2025-09-04 00:52:16",
             "is_default": false,
-            "order": 2
+            "order": 2,
+            "volume_adjustment": 0
         },
         "sandra": {
             "id": "rEVYTKPqwSMhytFPayIb",
@@ -98,22 +107,25 @@
             "category": "custom",
             "added_date": "2025-09-04 00:54:53",
             "is_default": false,
-            "order": 10
+            "order": 10,
+            "volume_adjustment": -0.3
         },
         "hope": {
             "id": "uYXf8XasLslADfZ2MB4u",
             "label": "Hope",
             "gender": "F",
-            "active": false,
+            "active": true,
             "category": "custom",
             "added_date": "2025-09-11 18:30:34",
             "is_default": false,
-            "order": 11
+            "order": 11,
+            "volume_adjustment": 0
         }
     },
     "settings": {
         "default_voice": "juan_carlos",
-        "last_updated": "2025-09-22T16:19:17-03:00",
-        "version": "2.0"
+        "last_updated": "2025-09-26T00:55:41-03:00",
+        "version": "2.0",
+        "migration_note": "Volume adjustments reduced by 50% for v2 migration - 2025-09-25 16:03:19"
     }
 }

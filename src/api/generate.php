@@ -107,15 +107,37 @@ try {
         // Preparar opciones base - SOLO PARÁMETROS SOPORTADOS
         $generatorOptions = [];
         
-        // Voice settings - SOLO los 4 parámetros válidos
+        // Cargar configuración TTS si existe
+        $ttsConfigFile = __DIR__ . '/data/tts-config.json';
+        $ttsConfig = null;
+        if (file_exists($ttsConfigFile)) {
+            $ttsConfig = json_decode(file_get_contents($ttsConfigFile), true);
+            logMessage("Configuración TTS cargada desde archivo");
+        }
+        
+        // Voice settings - Primero desde config TTS, luego desde request, luego defaults
         if (isset($input['voice_settings'])) {
+            // Si vienen del request, usarlos
             $generatorOptions['voice_settings'] = [
                 'style' => $input['voice_settings']['style'] ?? 0.5,
                 'stability' => $input['voice_settings']['stability'] ?? 0.75,
                 'similarity_boost' => $input['voice_settings']['similarity_boost'] ?? 0.8,
                 'use_speaker_boost' => $input['voice_settings']['use_speaker_boost'] ?? true
             ];
-            logMessage("Voice settings recibidos: " . json_encode($generatorOptions['voice_settings']));
+            logMessage("Voice settings recibidos del request: " . json_encode($generatorOptions['voice_settings']));
+        } elseif ($ttsConfig && isset($ttsConfig['voice_settings'])) {
+            // Si no vienen del request pero hay config TTS, usar esos
+            $generatorOptions['voice_settings'] = $ttsConfig['voice_settings'];
+            logMessage("Voice settings desde configuración TTS: " . json_encode($generatorOptions['voice_settings']));
+        } else {
+            // Valores por defecto
+            $generatorOptions['voice_settings'] = [
+                'style' => 0.5,
+                'stability' => 0.75,
+                'similarity_boost' => 0.8,
+                'use_speaker_boost' => true
+            ];
+            logMessage("Voice settings por defecto aplicados");
         }
         
         // Leer configuración de API desde archivo
@@ -153,12 +175,47 @@ try {
             throw new Exception('Debe proporcionar texto o seleccionar un template');
         }
         
-        // Guardar archivo temporal LOCAL para preview
-        $filename = 'tts' . date('YmdHis') . '.mp3';
-        $filepath = UPLOAD_DIR . $filename;
+        // Generar nombre descriptivo basado en el contenido
+        $textUsed = $result['processed_text'] ?? $input['text'] ?? 'mensaje';
+        $voiceUsed = $input['voice'] ?? 'voz';
+        
+        // Mapear ID de voz a nombre amigable si es necesario
+        $voicesConfigFile = __DIR__ . '/data/voices-config.json';
+        if (file_exists($voicesConfigFile)) {
+            $voicesConfig = json_decode(file_get_contents($voicesConfigFile), true);
+            if ($voicesConfig && isset($voicesConfig['voices'])) {
+                // Buscar si el voice ID corresponde a alguna voz conocida
+                foreach ($voicesConfig['voices'] as $voiceName => $voiceData) {
+                    if ($voiceData['id'] === $voiceUsed) {
+                        $voiceUsed = $voiceName;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Si el nombre de voz es muy largo (es un ID), acortarlo
+        if (strlen($voiceUsed) > 15) {
+            $voiceUsed = substr($voiceUsed, 0, 8);
+        }
+        
+        // Crear slug del texto (primeras palabras)
+        $words = explode(' ', $textUsed);
+        $slug = implode('_', array_slice($words, 0, 3)); // Primeras 3 palabras
+        // Limpiar caracteres especiales
+        $slug = preg_replace('/[^a-zA-Z0-9_\-]/', '', $slug);
+        $slug = strtolower(substr($slug, 0, 20)); // Máximo 20 caracteres
+        
+        // Formato: mensaje_slug_voz_YYYYMMDD_HHMMSS.mp3
+        $timestamp = date('Ymd_His');
+        $descriptiveFilename = 'mensaje_' . (!empty($slug) ? $slug . '_' : '') . $voiceUsed . '_' . $timestamp . '.mp3';
+        
+        // Guardar archivo temporal LOCAL para preview con nombre simple
+        $tempFilename = 'temp_' . date('YmdHis') . '.mp3';
+        $filepath = UPLOAD_DIR . $tempFilename;
         file_put_contents($filepath, $result['audio']);
         
-        logMessage("Archivo temporal creado para preview: $filename");
+        logMessage("Archivo temporal creado: $tempFilename, nombre descriptivo será: $descriptiveFilename");
         
         // ===== MANTENER TODA LA FUNCIONALIDAD DE AZURACAST =====
         require_once 'services/radio-service.php';
@@ -171,8 +228,8 @@ try {
             $filepathWithSilence = $filepathCopy;
         }
         
-        // Subir a AzuraCast
-        $uploadResult = uploadFileToAzuraCast($filepathWithSilence, $filename);
+        // Subir a AzuraCast con nombre descriptivo
+        $uploadResult = uploadFileToAzuraCast($filepathWithSilence, $descriptiveFilename);
         $actualFilename = $uploadResult['filename'];
         
         // Asignar a playlist
@@ -183,6 +240,10 @@ try {
         if ($filepathWithSilence !== $filepathCopy) {
             @unlink($filepathWithSilence);
         }
+        
+        // Mantener una copia local con el nombre correcto para preview
+        $localPreviewPath = UPLOAD_DIR . $actualFilename;
+        copy($filepath, $localPreviewPath);
         
         logMessage("Audio generado y subido exitosamente: $actualFilename");
 
@@ -209,15 +270,15 @@ try {
                 $input['category'] ?? 'sin_categoria'
             ]);
             
-            logMessage("Metadata guardada en BD para: $filename");
-            logMessage("DB: Guardando con actualFilename=" . $actualFilename . " (original era " . $filename . ")");
+            logMessage("Metadata guardada en BD para: $actualFilename");
+            logMessage("DB: Guardando con actualFilename=" . $actualFilename . " (temp era " . $tempFilename . ")");
         } catch (Exception $e) {
             logMessage("Error guardando metadata: " . $e->getMessage());
         }
         
         echo json_encode([
             'success' => true,
-            'filename' => $filename,           // Nombre local para preview
+            'filename' => $actualFilename,     // Usar el nombre descriptivo real
             'azuracast_filename' => $actualFilename,  // Nombre en AzuraCast
             'processed_text' => $result['processed_text']
         ]);

@@ -83,6 +83,22 @@ class VoiceAdminManager {
                         ${voice.gender}
                     </span>
                 </td>
+                <td style="padding: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" 
+                               id="volume-${key}"
+                               min="-20" 
+                               max="20" 
+                               value="${voice.volume_adjustment || 0}"
+                               step="0.5"
+                               oninput="document.getElementById('volume-value-${key}').textContent = this.value + ' dB'"
+                               onchange="updateVolume('${key}', this.value)"
+                               style="width: 100px;">
+                        <span id="volume-value-${key}" style="min-width: 45px; font-size: 0.9em;">
+                            ${voice.volume_adjustment || 0} dB
+                        </span>
+                    </div>
+                </td>
                 <td style="text-align: center; padding: 0.75rem;">
                     <button onclick="toggleVoice('${key}')" 
                             style="padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer;
@@ -281,6 +297,40 @@ class VoiceAdminManager {
         }
     }
 
+    async updateVolume(voiceKey, volumeValue) {
+        try {
+            // Actualizar visualmente el valor
+            document.getElementById(`volume-value-${voiceKey}`).textContent = `${volumeValue} dB`;
+            
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'update_volume',
+                    voice_key: voiceKey,
+                    volume_adjustment: parseFloat(volumeValue)
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                // Actualizar la configuración local
+                if (this.voicesConfig && this.voicesConfig.voices[voiceKey]) {
+                    this.voicesConfig.voices[voiceKey].volume_adjustment = parseFloat(volumeValue);
+                }
+                this.showNotification(`Volumen ajustado a ${volumeValue} dB`, 'success');
+            } else {
+                this.showNotification(data.error || 'Error ajustando volumen', 'error');
+                // Recargar para restaurar el valor correcto
+                await this.loadVoices();
+            }
+        } catch (error) {
+            console.error('Error updating volume:', error);
+            this.showNotification('Error ajustando volumen', 'error');
+            await this.loadVoices();
+        }
+    }
+
     showNotification(message, type = 'info') {
         // Crear notificación temporal
         const notification = document.createElement('div');
@@ -345,6 +395,10 @@ function reorderVoice(key, direction) {
 
 function editVoiceName(key) {
     voiceAdmin.editVoiceName(key);
+}
+
+function updateVolume(key, value) {
+    voiceAdmin.updateVolume(key, value);
 }
 
 // Inicializar cuando se muestre la sección

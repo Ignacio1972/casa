@@ -43,7 +43,8 @@ switch($action) {
             'gender' => $input['gender'] ?? 'F',
             'active' => true,
             'category' => 'custom',
-            'added_date' => date('Y-m-d H:i:s')
+            'added_date' => date('Y-m-d H:i:s'),
+            'volume_adjustment' => 0
         ];
         
         $config['settings']['last_updated'] = date('c');
@@ -184,6 +185,27 @@ switch($action) {
         
         file_put_contents($voicesFile, json_encode($config, JSON_PRETTY_PRINT));
         echo json_encode(['success' => true, 'message' => 'Voice label updated successfully']);
+        break;
+        
+    case 'update_volume':
+        $config = json_decode(file_get_contents($voicesFile), true);
+        $voiceKey = $input['voice_key'];
+        $volumeAdjustment = $input['volume_adjustment'] ?? 0;
+        
+        if (!isset($config['voices'][$voiceKey])) {
+            echo json_encode(['success' => false, 'error' => 'Voice not found']);
+            exit;
+        }
+        
+        // Limitar el rango de -20 a +20 dB
+        $volumeAdjustment = max(-20, min(20, floatval($volumeAdjustment)));
+        
+        // Actualizar el ajuste de volumen
+        $config['voices'][$voiceKey]['volume_adjustment'] = $volumeAdjustment;
+        $config['settings']['last_updated'] = date('c');
+        
+        file_put_contents($voicesFile, json_encode($config, JSON_PRETTY_PRINT));
+        echo json_encode(['success' => true, 'message' => 'Volume adjustment updated', 'volume' => $volumeAdjustment]);
         break;
         
     default:
