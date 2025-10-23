@@ -393,12 +393,20 @@
             <div class="panel">
                 <h2 class="panel-title">🎛️ Volúmenes y Auto-Ducking</h2>
                 
+                <div id="volumeWarning" class="info-box" style="background: #fff3cd; border-left-color: #ffc107; display: none; margin-bottom: 20px;">
+                    <div class="info-box-title" style="color: #856404;">⚠️ Advertencia de Volumen Alto</div>
+                    <div class="info-box-text" style="color: #856404;">
+                        Los volúmenes superiores al 100% pueden causar distorsión. Úsalos con precaución.
+                    </div>
+                </div>
+                
                 <div class="control-group">
                     <div class="control-label">
                         <span class="label-text">Volumen de Música:</span>
                         <span class="label-value" id="musicVolumeValue">30%</span>
                     </div>
-                    <input type="range" id="musicVolume" min="0" max="100" value="30" step="5">
+                    <input type="range" id="musicVolume" min="0" max="300" value="30" step="5">
+                    <div class="help-text">Máximo: 300% (3x amplificación)</div>
                 </div>
 
                 <div class="control-group">
@@ -406,7 +414,8 @@
                         <span class="label-text">Volumen de Voz:</span>
                         <span class="label-value" id="voiceVolumeValue">100%</span>
                     </div>
-                    <input type="range" id="voiceVolume" min="0" max="200" value="100" step="10">
+                    <input type="range" id="voiceVolume" min="0" max="500" value="100" step="10">
+                    <div class="help-text">Máximo: 500% (5x amplificación)</div>
                 </div>
 
                 <div class="highlight-group">
@@ -426,6 +435,62 @@
                         </div>
                         <input type="range" id="duckLevel" min="0" max="100" value="20" step="5">
                         <div class="help-text">La música bajará a este porcentaje cuando hable la voz</div>
+                    </div>
+                </div>
+                
+                <div class="highlight-group" style="margin-top: 20px;">
+                    <div class="highlight-title">🎛️ Control del Compresor Sidechain</div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Threshold (sensibilidad):</span>
+                            <span class="label-value" id="compressorThresholdValue">0.02</span>
+                        </div>
+                        <input type="range" id="compressorThreshold" min="0.005" max="0.5" value="0.02" step="0.005">
+                        <div class="help-text">Más bajo = más sensible | Más alto = menos compresión</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Ratio (fuerza):</span>
+                            <span class="label-value" id="compressorRatioValue">6:1</span>
+                        </div>
+                        <input type="range" id="compressorRatio" min="1" max="20" value="6" step="1">
+                        <div class="help-text">1:1 = sin compresión | 20:1 = compresión máxima</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Attack (ms):</span>
+                            <span class="label-value" id="compressorAttackValue">5ms</span>
+                        </div>
+                        <input type="range" id="compressorAttack" min="0" max="50" value="5" step="1">
+                        <div class="help-text">Velocidad de respuesta cuando empieza la voz</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Release (ms):</span>
+                            <span class="label-value" id="compressorReleaseValue">200ms</span>
+                        </div>
+                        <input type="range" id="compressorRelease" min="20" max="1000" value="200" step="10">
+                        <div class="help-text">Tiempo que tarda en volver al volumen normal</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="label-text">Makeup Gain:</span>
+                            <span class="label-value" id="compressorMakeupValue">1.0</span>
+                        </div>
+                        <input type="range" id="compressorMakeup" min="0.5" max="5" value="1" step="0.1">
+                        <div class="help-text">Compensación de volumen después de comprimir (máx: 5x)</div>
+                    </div>
+                    
+                    <div class="checkbox-group" style="margin-top: 15px;">
+                        <input type="checkbox" id="compressorBypass" unchecked>
+                        <label for="compressorBypass" class="checkbox-label">
+                            Desactivar compresor (sin límites de volumen)
+                        </label>
                     </div>
                 </div>
 
@@ -495,6 +560,112 @@
                     <option value="laura">Laura (Femenino, Amigable)</option>
                 </select>
                 <div class="help-text">Selecciona una voz para probar los voice settings con el botón de prueba</div>
+            </div>
+        </div>
+
+        <!-- Panel de Normalización Automática -->
+        <div class="panel">
+            <h2 class="panel-title">🎚️ Normalización Automática de Audio</h2>
+            
+            <div class="info-box" style="margin-bottom: 20px;">
+                <div class="info-box-title">⚡ Ecualización Inteligente de Volumen</div>
+                <div class="info-box-text">
+                    Sistema profesional que ajusta automáticamente el volumen de todas las voces al mismo nivel.
+                    Garantiza que todas las voces suenen con la misma potencia, sin importar la voz original.
+                </div>
+            </div>
+            
+            <div class="highlight-group">
+                <div class="highlight-title">🔊 Control de Normalización LUFS</div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="normalizationEnabled" checked>
+                    <label for="normalizationEnabled" class="checkbox-label">
+                        Activar Normalización Automática (iguala volumen de todas las voces)
+                    </label>
+                </div>
+
+                <div class="control-group" id="targetLufsGroup">
+                    <div class="control-label">
+                        <span class="label-text">Nivel objetivo (LUFS):</span>
+                        <span class="label-value" id="targetLufsValue">-16 LUFS</span>
+                    </div>
+                    <input type="range" id="targetLufs" min="-30" max="-10" value="-16" step="1">
+                    <div class="help-text">
+                        -10 = Muy fuerte (Publicidad) | -16 = Estándar (Radio) | -23 = Suave (Streaming)
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Modo de normalización:</span>
+                    </div>
+                    <select id="normalizationMode" style="width: 100%; padding: 8px; margin-top: 5px;">
+                        <option value="standard" selected>Estándar (preserva dinámicas naturales)</option>
+                        <option value="aggressive">Agresivo (iguala todo al máximo)</option>
+                        <option value="gentle">Suave (cambios sutiles)</option>
+                        <option value="broadcast">Broadcast (optimizado para radio)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="highlight-group" style="margin-top: 20px;">
+                <div class="highlight-title">⚙️ Compensación Dinámica</div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="dynamicCompensation" checked>
+                    <label for="dynamicCompensation" class="checkbox-label">
+                        Auto-compensar diferencias entre voces
+                    </label>
+                </div>
+
+                <div class="control-group" id="compensationRangeGroup">
+                    <div class="control-label">
+                        <span class="label-text">Rango de compensación:</span>
+                        <span class="label-value" id="compensationValue">±6 dB</span>
+                    </div>
+                    <input type="range" id="compensationRange" min="3" max="12" value="6" step="1">
+                    <div class="help-text">Cuánto puede ajustar el volumen automáticamente</div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span class="label-text">Velocidad de ajuste:</span>
+                        <span class="label-value" id="attackReleaseValue">Medio</span>
+                    </div>
+                    <select id="attackRelease" style="width: 100%; padding: 8px;">
+                        <option value="fast">Rápido (cambios inmediatos)</option>
+                        <option value="medium" selected>Medio (balance)</option>
+                        <option value="slow">Lento (transiciones suaves)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="highlight-group" style="margin-top: 20px;">
+                <div class="highlight-title">📊 Perfiles Preconfigurados</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="applyPreset('radio')" style="padding: 10px;">
+                        📻 Radio FM<br><small>-16 LUFS</small>
+                    </button>
+                    <button class="btn btn-secondary" onclick="applyPreset('streaming')" style="padding: 10px;">
+                        🎵 Streaming<br><small>-14 LUFS</small>
+                    </button>
+                    <button class="btn btn-secondary" onclick="applyPreset('store')" style="padding: 10px;">
+                        🏬 Tienda<br><small>-18 LUFS</small>
+                    </button>
+                    <button class="btn btn-secondary" onclick="applyPreset('loud')" style="padding: 10px;">
+                        🔊 Máximo<br><small>-10 LUFS</small>
+                    </button>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 20px;">
+                <div class="info-box-title">💡 Tip Pro</div>
+                <div class="info-box-text">
+                    Con la normalización activada, puedes subir el "Volumen de Voz" al 200% sin preocuparte,
+                    ya que el sistema ajustará automáticamente para evitar distorsión.
+                </div>
             </div>
         </div>
 
@@ -612,8 +783,39 @@
                 document.getElementById('speakerBoost').checked = config.voice_settings.use_speaker_boost !== false;
             }
             
+            // Normalization settings
+            if (config.normalization_settings) {
+                document.getElementById('normalizationEnabled').checked = config.normalization_settings.enabled !== false;
+                document.getElementById('targetLufs').value = config.normalization_settings.target_lufs || -16;
+                document.getElementById('targetLufsValue').textContent = (config.normalization_settings.target_lufs || -16) + ' LUFS';
+                document.getElementById('normalizationMode').value = config.normalization_settings.mode || 'standard';
+                document.getElementById('dynamicCompensation').checked = config.normalization_settings.dynamic_compensation !== false;
+                document.getElementById('compensationRange').value = config.normalization_settings.compensation_range || 6;
+                document.getElementById('compensationValue').textContent = '±' + (config.normalization_settings.compensation_range || 6) + ' dB';
+                document.getElementById('attackRelease').value = config.normalization_settings.attack_release || 'medium';
+                
+                // Toggle visibility
+                document.getElementById('targetLufsGroup').style.display = config.normalization_settings.enabled !== false ? 'block' : 'none';
+                document.getElementById('compensationRangeGroup').style.display = config.normalization_settings.dynamic_compensation !== false ? 'block' : 'none';
+            }
+            
             // Toggle ducking controls
             document.getElementById('duckLevelGroup').style.display = config.ducking_enabled ? 'block' : 'none';
+            
+            // Compressor settings
+            if (config.compressor_settings) {
+                document.getElementById('compressorThreshold').value = config.compressor_settings.threshold || 0.02;
+                document.getElementById('compressorThresholdValue').textContent = config.compressor_settings.threshold || 0.02;
+                document.getElementById('compressorRatio').value = config.compressor_settings.ratio || 6;
+                document.getElementById('compressorRatioValue').textContent = (config.compressor_settings.ratio || 6) + ':1';
+                document.getElementById('compressorAttack').value = config.compressor_settings.attack || 5;
+                document.getElementById('compressorAttackValue').textContent = (config.compressor_settings.attack || 5) + 'ms';
+                document.getElementById('compressorRelease').value = config.compressor_settings.release || 200;
+                document.getElementById('compressorReleaseValue').textContent = (config.compressor_settings.release || 200) + 'ms';
+                document.getElementById('compressorMakeup').value = config.compressor_settings.makeup || 1;
+                document.getElementById('compressorMakeupValue').textContent = config.compressor_settings.makeup || 1;
+                document.getElementById('compressorBypass').checked = config.compressor_settings.bypass || false;
+            }
             
             updateTimeline();
         }
@@ -661,7 +863,13 @@
                 { id: 'duckLevel', valueId: 'duckLevelValue', suffix: '%' },
                 { id: 'voiceStyle', valueId: 'styleValue', suffix: '%' },
                 { id: 'voiceStability', valueId: 'stabilityValue', suffix: '%' },
-                { id: 'voiceSimilarity', valueId: 'similarityValue', suffix: '%' }
+                { id: 'voiceSimilarity', valueId: 'similarityValue', suffix: '%' },
+                { id: 'compensationRange', valueId: 'compensationValue', suffix: ' dB', prefix: '±' },
+                { id: 'compressorThreshold', valueId: 'compressorThresholdValue', suffix: '' },
+                { id: 'compressorRatio', valueId: 'compressorRatioValue', suffix: ':1' },
+                { id: 'compressorAttack', valueId: 'compressorAttackValue', suffix: 'ms' },
+                { id: 'compressorRelease', valueId: 'compressorReleaseValue', suffix: 'ms' },
+                { id: 'compressorMakeup', valueId: 'compressorMakeupValue', suffix: '' }
             ];
 
             sliders.forEach(slider => {
@@ -672,16 +880,53 @@
                         if (slider.suffix === '%') {
                             value = Math.round(value);
                         }
-                        document.getElementById(slider.valueId).textContent = value + slider.suffix;
+                        const prefix = slider.prefix || '';
+                        document.getElementById(slider.valueId).textContent = prefix + value + slider.suffix;
                         if (slider.callback) slider.callback();
+                        
+                        // Mostrar advertencia si los volúmenes están muy altos
+                        checkVolumeWarning();
                     });
                 }
             });
+            
+            // Slider especial para LUFS
+            const lufsSlider = document.getElementById('targetLufs');
+            if (lufsSlider) {
+                lufsSlider.addEventListener('input', (e) => {
+                    document.getElementById('targetLufsValue').textContent = e.target.value + ' LUFS';
+                });
+            }
+            
+            // Select de attack/release
+            const attackSelect = document.getElementById('attackRelease');
+            if (attackSelect) {
+                attackSelect.addEventListener('change', (e) => {
+                    const labels = { fast: 'Rápido', medium: 'Medio', slow: 'Lento' };
+                    document.getElementById('attackReleaseValue').textContent = labels[e.target.value] || 'Medio';
+                });
+            }
 
             // Toggle ducking
             document.getElementById('duckingEnabled').addEventListener('change', (e) => {
                 document.getElementById('duckLevelGroup').style.display = e.target.checked ? 'block' : 'none';
             });
+            
+            // Toggle normalization
+            const normToggle = document.getElementById('normalizationEnabled');
+            if (normToggle) {
+                normToggle.addEventListener('change', (e) => {
+                    document.getElementById('targetLufsGroup').style.display = e.target.checked ? 'block' : 'none';
+                });
+            }
+            
+            // Toggle dynamic compensation
+            const compToggle = document.getElementById('dynamicCompensation');
+            if (compToggle) {
+                compToggle.addEventListener('change', (e) => {
+                    document.getElementById('compensationRangeGroup').style.display = e.target.checked ? 'block' : 'none';
+                });
+            }
         }
 
         // Actualizar timeline visual
@@ -730,6 +975,22 @@
                         stability: parseFloat(document.getElementById('voiceStability').value) / 100,
                         similarity_boost: parseFloat(document.getElementById('voiceSimilarity').value) / 100,
                         use_speaker_boost: document.getElementById('speakerBoost').checked
+                    },
+                    normalization_settings: {
+                        enabled: document.getElementById('normalizationEnabled').checked,
+                        target_lufs: parseFloat(document.getElementById('targetLufs').value),
+                        mode: document.getElementById('normalizationMode').value,
+                        dynamic_compensation: document.getElementById('dynamicCompensation').checked,
+                        compensation_range: parseFloat(document.getElementById('compensationRange').value),
+                        attack_release: document.getElementById('attackRelease').value
+                    },
+                    compressor_settings: {
+                        threshold: parseFloat(document.getElementById('compressorThreshold').value),
+                        ratio: parseFloat(document.getElementById('compressorRatio').value),
+                        attack: parseFloat(document.getElementById('compressorAttack').value),
+                        release: parseFloat(document.getElementById('compressorRelease').value),
+                        makeup: parseFloat(document.getElementById('compressorMakeup').value),
+                        bypass: document.getElementById('compressorBypass').checked
                     }
                 },
                 allowed_music: currentConfig?.allowed_music || 'all',
@@ -846,6 +1107,96 @@
             }
         }
 
+        // Aplicar preset de normalización
+        function applyPreset(preset) {
+            const presets = {
+                radio: { 
+                    lufs: -16, 
+                    mode: 'broadcast',
+                    compensation: 6,
+                    attack: 'medium',
+                    name: 'Radio FM'
+                },
+                streaming: { 
+                    lufs: -14, 
+                    mode: 'standard',
+                    compensation: 8,
+                    attack: 'medium',
+                    name: 'Streaming'
+                },
+                store: { 
+                    lufs: -18, 
+                    mode: 'gentle',
+                    compensation: 5,
+                    attack: 'slow',
+                    name: 'Tienda/Local'
+                },
+                loud: { 
+                    lufs: -10, 
+                    mode: 'aggressive',
+                    compensation: 12,
+                    attack: 'fast',
+                    name: 'Máximo Volumen'
+                }
+            };
+            
+            const config = presets[preset];
+            if (config) {
+                // Activar normalización
+                document.getElementById('normalizationEnabled').checked = true;
+                document.getElementById('targetLufsGroup').style.display = 'block';
+                
+                // Aplicar valores del preset
+                document.getElementById('targetLufs').value = config.lufs;
+                document.getElementById('targetLufsValue').textContent = config.lufs + ' LUFS';
+                document.getElementById('normalizationMode').value = config.mode;
+                document.getElementById('compensationRange').value = config.compensation;
+                document.getElementById('compensationValue').textContent = '±' + config.compensation + ' dB';
+                document.getElementById('attackRelease').value = config.attack;
+                
+                const attackLabels = { fast: 'Rápido', medium: 'Medio', slow: 'Lento' };
+                document.getElementById('attackReleaseValue').textContent = attackLabels[config.attack];
+                
+                // Activar compensación dinámica
+                document.getElementById('dynamicCompensation').checked = true;
+                document.getElementById('compensationRangeGroup').style.display = 'block';
+                
+                showStatus(`✅ Preset "${config.name}" aplicado`, 'success');
+            }
+        }
+
+        // Verificar advertencia de volumen
+        function checkVolumeWarning() {
+            const musicVolume = parseFloat(document.getElementById('musicVolume').value);
+            const voiceVolume = parseFloat(document.getElementById('voiceVolume').value);
+            const warningDiv = document.getElementById('volumeWarning');
+            
+            if (musicVolume > 100 || voiceVolume > 100) {
+                warningDiv.style.display = 'block';
+                
+                // Cambiar el color de advertencia según el nivel
+                if (musicVolume > 200 || voiceVolume > 300) {
+                    warningDiv.style.background = '#f8d7da';
+                    warningDiv.style.borderLeftColor = '#dc3545';
+                    warningDiv.querySelector('.info-box-title').style.color = '#721c24';
+                    warningDiv.querySelector('.info-box-text').style.color = '#721c24';
+                    warningDiv.querySelector('.info-box-title').textContent = '⚠️ Advertencia: Volumen MUY Alto';
+                    warningDiv.querySelector('.info-box-text').textContent = 
+                        'Volúmenes tan altos CAUSARÁN distorsión severa. Se recomienda reducirlos.';
+                } else {
+                    warningDiv.style.background = '#fff3cd';
+                    warningDiv.style.borderLeftColor = '#ffc107';
+                    warningDiv.querySelector('.info-box-title').style.color = '#856404';
+                    warningDiv.querySelector('.info-box-text').style.color = '#856404';
+                    warningDiv.querySelector('.info-box-title').textContent = '⚠️ Advertencia de Volumen Alto';
+                    warningDiv.querySelector('.info-box-text').textContent = 
+                        'Los volúmenes superiores al 100% pueden causar distorsión. Úsalos con precaución.';
+                }
+            } else {
+                warningDiv.style.display = 'none';
+            }
+        }
+        
         // Mostrar estado
         function showStatus(message, type) {
             const statusDiv = document.getElementById('statusMessage');

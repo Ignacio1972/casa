@@ -1,0 +1,12 @@
+{
+    "stores": {
+        "main": {
+            "id": "main",
+            "name": "Casa Costanera Principal",
+            "enabled": true,
+            "api_url": "http:\/\/51.222.25.222",
+            "api_key": "c3802cba5b5e61e8:fed31be9adb82ca57f1cf482d170851f",
+            "station_id": 1
+        }
+    }
+}

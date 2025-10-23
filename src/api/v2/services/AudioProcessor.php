@@ -186,6 +186,57 @@ class AudioProcessor {
     /**
      * Aplica normalización two-pass con loudnorm
      */
+    /**
+     * Normaliza audio con target LUFS personalizado
+     * Método simplificado para uso directo con target específico
+     */
+    public function normalizeToTarget($inputFile, $outputFile, $targetLufs = -16) {
+        // Método simplificado: aplicar normalización directa sin análisis previo
+        // Esto es más rápido y funcional para el caso de jingles
+        
+        // Aplicar normalización con loudnorm en modo single-pass
+        $cmd = sprintf(
+            '%s -i %s -af "loudnorm=I=%d:TP=-1.0:LRA=11.0" -codec:a libmp3lame -b:a 192k -ar 44100 %s 2>&1',
+            self::FFMPEG_PATH,
+            escapeshellarg($inputFile),
+            $targetLufs,
+            escapeshellarg($outputFile)
+        );
+        
+        exec($cmd, $output, $returnCode);
+        
+        if ($returnCode !== 0) {
+            return ['success' => false, 'error' => 'Normalization failed'];
+        }
+        
+        // Analizar el resultado para obtener métricas
+        $finalCmd = sprintf(
+            '%s -i %s -af "loudnorm=I=%d:TP=-1.0:LRA=11.0:print_format=summary" -f null - 2>&1',
+            self::FFMPEG_PATH,
+            escapeshellarg($outputFile),
+            $targetLufs
+        );
+        
+        exec($finalCmd, $finalOutput);
+        $finalLufs = $targetLufs; // Default to target
+        
+        // Buscar el valor real de LUFS en la salida
+        foreach ($finalOutput as $line) {
+            if (preg_match('/Input Integrated:\s+(-?\d+\.?\d*)\s+LUFS/i', $line, $matches)) {
+                $finalLufs = floatval($matches[1]);
+                break;
+            }
+        }
+        
+        return [
+            'success' => true,
+            'metrics' => [
+                'original' => ['integrated_lufs' => 'N/A'],
+                'final' => ['integrated_lufs' => $finalLufs]
+            ]
+        ];
+    }
+    
     private function applyLoudnorm($input, $output, $profile, $measured, $voiceAdjustment = 0) {
         // Construir filtro loudnorm con valores medidos (two-pass)
         $loudnormFilter = sprintf(

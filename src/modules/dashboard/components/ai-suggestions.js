@@ -88,10 +88,10 @@ export class AISuggestionsComponent {
                             <div class="ai-field">
                                 <label for="aiTone">Tono</label>
                                 <select id="aiTone" class="ai-select">
-                                    <option value="profesional">Profesional</option>
+                                    <option value="profesional">Clásico</option>
                                     <option value="entusiasta">Entusiasta</option>
                                     <option value="amigable">Amigable</option>
-                                    <option value="urgente">Urgente</option>
+                                    <option value="urgente">Ahora mismo</option>
                                     <option value="informativo">Informativo</option>
                                 </select>
                             </div>
@@ -157,7 +157,7 @@ export class AISuggestionsComponent {
                     >
                         ${this.isGenerating ? 
                             '<span class="spinner"></span> Generando...' : 
-                            '✨ Generar 3 Sugerencias'
+                            '✨ Generar 2 Sugerencias'
                         }
                     </button>
                 </div>
@@ -369,7 +369,7 @@ export class AISuggestionsComponent {
             btn.disabled = this.isGenerating;
             btn.innerHTML = this.isGenerating ? 
                 '<span class="spinner"></span> Generando...' : 
-                '✨ Generar 3 Sugerencias';
+                '✨ Generar 2 Sugerencias';
         }
     }
     

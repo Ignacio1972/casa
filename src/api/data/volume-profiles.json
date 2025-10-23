@@ -1,0 +1,24 @@
+{
+    "profiles": {
+        "tts_simple": {
+            "voice_volume": 1,
+            "normalization_target": -16,
+            "intro_silence": 3,
+            "outro_silence": 3
+        },
+        "jingle": {
+            "voice_volume": 0.9,
+            "music_volume": 0.1,
+            "normalization_target": -27,
+            "ducking_enabled": true,
+            "ducking_level": -24
+        },
+        "automatic": {
+            "voice_volume": 0.85,
+            "music_volume": 0.35,
+            "normalization_target": -15,
+            "rate_limit": 10
+        }
+    },
+    "updated_at": "2025-09-27 16:03:59"
+}

@@ -1,7 +1,0 @@
-Sistema de Audio v2 - Reporte de Tests
-Fecha: Thu Sep 25 15:32:15 -03 2025
-----------------------------------------
-Total tests: 3
-Pasados: 1
-Fallidos: 2
-Porcentaje: 33%

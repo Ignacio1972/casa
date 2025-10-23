@@ -10,17 +10,21 @@
 <body>
     <div id="app">
         <header class="playground-header">
-            <h1>🧪 MBI-v3 API Playground</h1>
+            <h1>🧪 MBI-v3 API Playground - Centro de Control</h1>
             <div class="header-tools">
                 <span id="quota-display" class="quota-badge">Cargando quota...</span>
                 <button id="toggle-logs" class="btn-tool">📋 Logs</button>
                 <button id="toggle-dark" class="btn-tool">🌙</button>
-
+                <div style="display: flex; gap: 10px; margin-left: 15px; padding-left: 15px; border-left: 2px solid rgba(255,255,255,0.2);">
+                    <a href="/audio-control-panel.html" target="_blank" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 14px;">🎮 Audio Manager</a>
+                    <a href="/playground/tts-config.html" target="_blank" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.1); border-radius: 5px; font-size: 14px;">🔊 TTS Config</a>
+                </div>
             </div>
         </header>
         
         <nav class="playground-nav">
-            <button class="nav-btn active" data-section="tts-tester">🎤 TTS Tester</button>
+            <button class="nav-btn active" data-section="dashboard">🏠 Dashboard</button>
+            <button class="nav-btn" data-section="tts-tester">🎤 TTS Tester</button>
             <button class="nav-btn" data-section="voice-explorer">🎭 Voice Explorer</button>
             <button class="nav-btn" data-section="template-builder">📝 Template Builder</button>
             <button class="nav-btn" data-section="monitors">📊 Monitors</button>
@@ -30,11 +34,136 @@
             <button class="nav-btn" data-section="test-integration">🧪 Tests</button>
             <button class="nav-btn" onclick="window.open('/playground/jingle-studio.html', '_blank')">🎵 Jingle Studio</button>
             <button class="nav-btn" onclick="window.open('/playground/jingle-config.html', '_blank')">⚙️ Config Jingles</button>
+            <button class="nav-btn" onclick="window.open('/playground/tts-config.html', '_blank')">🔊 TTS Config</button>
+            <button class="nav-btn" onclick="window.open('/audio-control-panel.html', '_blank')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">🎮 Audio Manager</button>
         </nav>
         
         <main class="playground-content">
+            <!-- Dashboard Section - NEW -->
+            <section id="dashboard" class="content-section active">
+                <div style="padding: 2rem;">
+                    <h2 style="margin-bottom: 2rem; color: #333;">🎛️ Centro de Control de Audio - Casa Costanera</h2>
+                    
+                    <!-- Panel de Estado -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0; color: white;">🎮 Audio Manager</h3>
+                            <p style="margin: 1rem 0; color: rgba(255,255,255,0.95);">Control unificado para 30+ locales</p>
+                            <a href="/audio-control-panel.html" target="_blank" style="display: inline-block; background: white; color: #667eea; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">Abrir Panel</a>
+                        </div>
+                        
+                        <div style="background: #10b981; color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0; color: white;">🔊 TTS Config</h3>
+                            <p style="margin: 1rem 0; color: rgba(255,255,255,0.95);">Configuración avanzada de voces</p>
+                            <a href="/playground/tts-config.html" target="_blank" style="display: inline-block; background: white; color: #10b981; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">Configurar</a>
+                        </div>
+                        
+                        <div style="background: #f59e0b; color: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h3 style="margin-top: 0; color: white;">⚙️ Jingle Config</h3>
+                            <p style="margin: 1rem 0; color: rgba(255,255,255,0.95);">Ajustes de música y mezcla</p>
+                            <a href="/playground/jingle-config.html" target="_blank" style="display: inline-block; background: white; color: #f59e0b; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">Configurar</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Herramientas de Producción -->
+                    <h3 style="margin: 2rem 0 1rem; color: #555;">🎨 Herramientas de Producción</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎵</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Jingle Studio</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Crear jingles profesionales</p>
+                            <a href="/playground/jingle-studio.html" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">Abrir →</a>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎤</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">TTS Tester</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Probar voces y ajustes</p>
+                            <button class="nav-btn" data-section="tts-tester" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Abrir →</button>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎭</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Voice Explorer</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Catálogo de voces</p>
+                            <button class="nav-btn" data-section="voice-explorer" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Explorar →</button>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Template Builder</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Crear plantillas</p>
+                            <button class="nav-btn" data-section="template-builder" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Crear →</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Administración -->
+                    <h3 style="margin: 2rem 0 1rem; color: #555;">⚙️ Administración y Monitoreo</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎙️</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Admin Voces</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Gestionar voces del sistema</p>
+                            <button class="nav-btn" data-section="voice-admin" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Administrar →</button>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Monitors</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Estadísticas del sistema</p>
+                            <button class="nav-btn" data-section="monitors" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Ver →</button>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🛠️</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Tools</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Herramientas útiles</p>
+                            <button class="nav-btn" data-section="tools" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Usar →</button>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧪</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Tests</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Pruebas de integración</p>
+                            <button class="nav-btn" data-section="test-integration" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Probar →</button>
+                        </div>
+                    </div>
+                    
+                    <!-- IA y Asistentes -->
+                    <h3 style="margin: 2rem 0 1rem; color: #555;">🤖 IA y Asistentes</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🤖</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Claude AI</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Asistente de IA para generar contenido</p>
+                            <button class="nav-btn" data-section="claude-ai" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Usar Claude →</button>
+                        </div>
+                        
+                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                            <h4 style="margin: 0.5rem 0; color: #1f2937;">Modo Automático</h4>
+                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Generación automática con IA</p>
+                            <a href="http://51.222.25.222:4443/automatic-mode.html?access=corneta" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">Configurar →</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Enlaces Rápidos -->
+                    <div style="margin-top: 3rem; padding: 1.5rem; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb;">
+                        <h4 style="margin-top: 0; color: #555;">🔗 Enlaces Rápidos</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                            <a href="/" target="_blank" style="color: #667eea; text-decoration: none;">🏠 Dashboard Principal</a>
+                            <a href="/biblioteca" target="_blank" style="color: #667eea; text-decoration: none;">📚 Biblioteca</a>
+                            <a href="/docs/AUDIO-MANAGER-MIGRATION-PLAN.md" target="_blank" style="color: #667eea; text-decoration: none;">📖 Documentación</a>
+                            <span style="color: #999;">|</span>
+                            <span style="color: #666;">API: http://51.222.25.222:4000</span>
+                            <span style="color: #666;">Radio: http://51.222.25.222:8000</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
             <!-- TTS Tester Section -->
-            <section id="tts-tester" class="content-section active">
+            <section id="tts-tester" class="content-section">
                 <div class="tester-container">
                     <div class="input-panel">
                         <h2>Text Input</h2>

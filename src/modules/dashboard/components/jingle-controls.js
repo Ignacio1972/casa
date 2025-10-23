@@ -223,9 +223,26 @@ export class JingleControls {
             options.voice_settings = this.config.voice_settings;
         }
         
+        // Incluir normalization_settings si están en la configuración
+        if (this.config?.normalization_settings) {
+            options.normalization_settings = this.config.normalization_settings;
+            console.log('[JingleControls] Normalización LUFS activada:', this.config.normalization_settings);
+        }
+        
+        // Incluir compressor_settings si están en la configuración
+        if (this.config?.compressor_settings) {
+            options.compressor_settings = this.config.compressor_settings;
+            console.log('[JingleControls] Configuración del compresor:', this.config.compressor_settings);
+        }
+        
         console.log('[JingleControls] getJingleOptions devolviendo:');
         console.log('  - intro_silence:', options.intro_silence, 'segundos');
         console.log('  - outro_silence:', options.outro_silence, 'segundos');
+        console.log('  - Normalización:', options.normalization_settings?.enabled ? 
+                    `Activada (${options.normalization_settings?.target_lufs} LUFS)` : 'Desactivada');
+        console.log('  - Compresor:', options.compressor_settings?.bypass ? 
+                    'Desactivado (sin límites)' : 
+                    `Activo (threshold: ${options.compressor_settings?.threshold}, ratio: ${options.compressor_settings?.ratio}:1)`);
         console.log('  - Opciones completas:', options);
         
         return options;

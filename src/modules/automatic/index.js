@@ -1019,7 +1019,6 @@ export default class AutomaticModeModule {
         }
     }
     
-    
     /**
      * Attach event listeners a voice cards
      */

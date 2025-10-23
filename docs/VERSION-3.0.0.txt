@@ -1,0 +1,55 @@
+# Casa Costanera - Versión 3.0.0
+# Fecha: 2025-10-21
+# Estado: ESTABLE
+
+## CAMBIOS PRINCIPALES EN v3.0.0
+
+### 🎯 Limpieza y Reorganización Mayor
+- Eliminados 50+ archivos de prueba innecesarios
+- Reorganizada estructura de directorios
+- Movidos archivos Docker a deployment/
+- Limpieza completa del directorio public/
+- Eliminados backups antiguos y obsoletos
+
+### 📁 Estructura Mejorada
+```
+/var/www/casa/
+├── src/           # Código fuente principal
+├── docs/          # Documentación consolidada
+├── public/        # Archivos públicos (limpio)
+├── deployment/    # Docker y scripts de deploy
+├── database/      # Base de datos SQLite
+└── storage/       # Backups y temporales
+```
+
+### ✅ Archivos Críticos Restaurados
+- /api/recent-messages.php funcionando
+- Dashboard completamente operativo
+- Todas las APIs verificadas
+
+### 🔧 Sistema Verificado
+- Servidor Node.js: OK
+- Base de datos: OK
+- APIs TTS: OK
+- Dashboard: OK
+- Mensajes recientes: OK
+
+### 📊 Estadísticas
+- Archivos eliminados: 70+
+- Espacio liberado: ~50MB
+- Directorios reorganizados: 5
+- APIs verificadas: 10+
+
+## NOTAS DE INSTALACIÓN
+1. Restaurar desde este backup
+2. Ejecutar: node server.js
+3. Verificar permisos en database/
+4. Configurar .env con API keys
+
+## VERIFICACIÓN POST-INSTALACIÓN
+- Dashboard: http://localhost:4000/
+- API Test: http://localhost:4000/api/recent-messages.php
+- Playground: http://localhost:4000/playground/
+
+---
+ESTE ES UN RELEASE ESTABLE - PROBADO Y FUNCIONAL

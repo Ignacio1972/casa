@@ -416,4 +416,129 @@ export class MessageActions {
             this.parent.showError('Error al actualizar categoría');
         }
     }
+
+    /**
+     * Eliminar múltiples mensajes (batch delete)
+     * @param {Array} ids - Array de IDs de mensajes a eliminar
+     */
+    async deleteMultiple(ids) {
+        if (!ids || ids.length === 0) {
+            this.parent.showError('No hay mensajes seleccionados');
+            return;
+        }
+
+        // Límite de seguridad
+        if (ids.length > 50) {
+            this.parent.showError(`Máximo 50 mensajes por operación. Has seleccionado ${ids.length}`);
+            return;
+        }
+
+        // Confirmación única
+        const confirmDelete = confirm(
+            `¿Estás seguro de eliminar ${ids.length} mensaje${ids.length > 1 ? 's' : ''}?\n\n` +
+            `Esta acción no se puede deshacer.`
+        );
+        
+        if (!confirmDelete) return;
+
+        try {
+            // Mostrar indicador de progreso
+            this.parent.showNotification('Eliminando mensajes...', 'info');
+
+            // Llamar al endpoint de batch delete con la ruta correcta
+            const response = await fetch('/api/saved-messages.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'delete_batch',
+                    ids: ids
+                })
+            });
+            
+            const result = await response.json();
+
+            if (result.success) {
+                // Eliminar mensajes del array local
+                this.parent.messages = this.parent.messages.filter(m => !ids.includes(m.id));
+                
+                // Limpiar localStorage para mensajes de texto
+                ids.forEach(id => {
+                    storageManager.delete(`library_message_${id}`);
+                });
+
+                // Actualizar UI
+                this.parent.updateFilterCounts();
+                this.parent.displayMessages();
+                
+                // Mostrar resultado
+                this.parent.showSuccess(
+                    `✅ ${result.deleted_count} mensaje${result.deleted_count > 1 ? 's eliminados' : ' eliminado'}`
+                );
+
+                // Limpiar selección
+                this.parent.clearSelection();
+                
+                // Log para auditoría
+                console.log('[Batch Delete] Eliminados:', result.deleted_files);
+                
+            } else {
+                // Manejar errores específicos
+                if (result.messages_with_schedules) {
+                    const scheduleCount = result.messages_with_schedules.length;
+                    const safeCount = result.safe_to_delete ? result.safe_to_delete.length : 0;
+                    
+                    this.parent.showError(
+                        `${scheduleCount} mensaje${scheduleCount > 1 ? 's tienen' : ' tiene'} programaciones activas.\n` +
+                        `Solo se pueden eliminar ${safeCount} mensaje${safeCount !== 1 ? 's' : ''}.`
+                    );
+                    
+                    // Opcionalmente, preguntar si quiere eliminar solo los seguros
+                    if (safeCount > 0) {
+                        const deleteSafe = confirm(
+                            `¿Deseas eliminar solo los ${safeCount} mensaje${safeCount > 1 ? 's' : ''} sin programaciones?`
+                        );
+                        
+                        if (deleteSafe) {
+                            // Filtrar solo los IDs seguros y reintentar
+                            const safeIds = ids.filter(id => {
+                                const filename = id.replace('audio_', '') + '.mp3';
+                                return result.safe_to_delete.includes(filename);
+                            });
+                            
+                            if (safeIds.length > 0) {
+                                await this.deleteMultiple(safeIds);
+                            }
+                        }
+                    }
+                } else {
+                    this.parent.showError(result.error || 'Error al eliminar mensajes');
+                }
+            }
+        } catch (error) {
+            console.error('[Batch Delete] Error:', error);
+            this.parent.showError('Error al eliminar los mensajes: ' + error.message);
+        }
+    }
+
+    /**
+     * Obtener estadísticas de limpieza
+     */
+    async getCleanupStats() {
+        try {
+            const response = await apiClient.post('/saved-messages.php', {
+                action: 'cleanup_stats'
+            });
+
+            if (response.success) {
+                return response.stats;
+            } else {
+                throw new Error(response.error);
+            }
+        } catch (error) {
+            console.error('[Cleanup Stats] Error:', error);
+            return null;
+        }
+    }
 }

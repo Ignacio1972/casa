@@ -8,6 +8,20 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/services/tts-service.php';
 require_once __DIR__ . '/services/radio-service.php';
 
+// Incluir AudioProcessor para normalización LUFS si está disponible
+$audioProcessorPath = __DIR__ . '/v2/services/AudioProcessor.php';
+$audioProcessorAvailable = false;
+if (file_exists($audioProcessorPath)) {
+    require_once $audioProcessorPath;
+    // La clase está en namespace App\Services
+    $audioProcessorAvailable = class_exists('\\App\\Services\\AudioProcessor');
+    if ($audioProcessorAvailable) {
+        logMessage("[JingleService] AudioProcessor cargado correctamente");
+    } else {
+        logMessage("[JingleService] AudioProcessor no disponible (namespace issue)");
+    }
+}
+
 // Función de logging
 if (!function_exists('logMessage')) {
     function logMessage($message) {
@@ -58,6 +72,48 @@ function generateJingle($text, $voice, $options = []) {
         file_put_contents($ttsFile, $ttsAudio);
         
         logMessage("[JingleService] TTS generado: " . filesize($ttsFile) . " bytes");
+        
+        // Aplicar normalización LUFS si está configurada
+        if (isset($config['normalization_settings']) && 
+            $config['normalization_settings']['enabled'] && 
+            class_exists('\\App\\Services\\AudioProcessor')) {
+            
+            logMessage("[JingleService] Aplicando normalización LUFS...");
+            logMessage("[JingleService] Target LUFS: " . $config['normalization_settings']['target_lufs']);
+            logMessage("[JingleService] Modo: " . $config['normalization_settings']['mode']);
+            
+            try {
+                $audioProcessor = new \App\Services\AudioProcessor();
+                $normalizedFile = $tempDir . '/voice_normalized.mp3';
+                
+                // Obtener el target LUFS de la configuración
+                $targetLufs = $config['normalization_settings']['target_lufs'] ?? -16;
+                
+                // Usar el nuevo método normalizeToTarget con target personalizado
+                $normResult = $audioProcessor->normalizeToTarget(
+                    $ttsFile,
+                    $normalizedFile,
+                    $targetLufs
+                );
+                
+                if ($normResult && $normResult['success'] && file_exists($normalizedFile)) {
+                    // Reemplazar archivo TTS con el normalizado
+                    unlink($ttsFile);
+                    rename($normalizedFile, $ttsFile);
+                    
+                    logMessage("[JingleService] Normalización aplicada: " . 
+                              ($normResult['metrics']['original']['integrated_lufs'] ?? 'N/A') . 
+                              " LUFS -> " . 
+                              ($normResult['metrics']['final']['integrated_lufs'] ?? $targetLufs) . 
+                              " LUFS");
+                } else {
+                    logMessage("[JingleService] No se pudo aplicar normalización, usando audio original");
+                }
+            } catch (\Exception $e) {
+                logMessage("[JingleService] Error en normalización: " . $e->getMessage());
+                // Continuar sin normalización en caso de error
+            }
+        }
         
         // 2. Si no hay música, devolver solo el TTS con silencios
         if (empty($config['music_file'])) {
@@ -215,30 +271,72 @@ function buildDuckingCommand($musicFile, $voiceFile, $outputFile, $config, $voic
     $voiceVolume = $config['voice_volume'];
     $introMs = intval($config['intro_silence'] * 1000);
     
-    // Comando simplificado que garantiza que la música continúe después de la voz
-    $cmd = sprintf(
-        'ffmpeg -i "%s" -i "%s" -filter_complex ' .
-        '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f[music_loop];' .
-        '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice_pad];' .
-        '[voice_pad]asplit=2[vo][vd];' .
-        '[music_loop][vd]sidechaincompress=threshold=0.02:ratio=6:attack=5:release=200:makeup=1[music_ducked];' .
-        '[music_ducked]afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music_final];' .
-        '[music_final][vo]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
-        '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
-        $musicFile,
-        $voiceFile,
-        $totalDuration,
-        $musicVolume * 0.6,
-        $introMs,
-        $introMs,
-        $voiceVolume,
-        $totalDuration,
-        $config['fade_in'],
-        $fadeOutStart,
-        $config['fade_out'],
-        $totalDuration,
-        $outputFile
-    );
+    // Obtener configuración del compresor o usar valores por defecto
+    $compressor = $config['compressor_settings'] ?? [];
+    $compThreshold = $compressor['threshold'] ?? 0.02;
+    $compRatio = $compressor['ratio'] ?? 6;
+    $compAttack = $compressor['attack'] ?? 5;
+    $compRelease = $compressor['release'] ?? 200;
+    $compMakeup = $compressor['makeup'] ?? 1;
+    $compBypass = $compressor['bypass'] ?? false;
+    
+    // Si el compresor está desactivado, usar mezcla simple sin sidechain
+    if ($compBypass) {
+        logMessage("[JingleService] Compresor desactivado - usando mezcla simple");
+        // Mezcla simple sin compresión sidechain
+        $cmd = sprintf(
+            'ffmpeg -i "%s" -i "%s" -filter_complex ' .
+            '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f,afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music];' .
+            '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice];' .
+            '[music][voice]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
+            '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+            $musicFile,
+            $voiceFile,
+            $totalDuration,
+            $musicVolume,
+            $config['fade_in'],
+            $fadeOutStart,
+            $config['fade_out'],
+            $introMs,
+            $introMs,
+            $voiceVolume,
+            $totalDuration,
+            $totalDuration,
+            $outputFile
+        );
+    } else {
+        // Con compresión sidechain configurada
+        logMessage("[JingleService] Usando compresor: threshold=$compThreshold, ratio=$compRatio:1, attack=$compAttack, release=$compRelease, makeup=$compMakeup");
+        
+        $cmd = sprintf(
+            'ffmpeg -i "%s" -i "%s" -filter_complex ' .
+            '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f[music_loop];' .
+            '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice_pad];' .
+            '[voice_pad]asplit=2[vo][vd];' .
+            '[music_loop][vd]sidechaincompress=threshold=%.3f:ratio=%d:attack=%d:release=%d:makeup=%.1f[music_ducked];' .
+            '[music_ducked]afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music_final];' .
+            '[music_final][vo]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
+            '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+            $musicFile,
+            $voiceFile,
+            $totalDuration,
+            $musicVolume,
+            $introMs,
+            $introMs,
+            $voiceVolume,
+            $totalDuration,
+            $compThreshold,
+            $compRatio,
+            $compAttack,
+            $compRelease,
+            $compMakeup,
+            $config['fade_in'],
+            $fadeOutStart,
+            $config['fade_out'],
+            $totalDuration,
+            $outputFile
+        );
+    }
     
     return $cmd;
 }

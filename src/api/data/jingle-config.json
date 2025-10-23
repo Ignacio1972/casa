@@ -1,10 +1,10 @@
 {
     "jingle_defaults": {
         "enabled_by_default": false,
-        "intro_silence": 12,
-        "outro_silence": 16,
-        "music_volume": 0.4,
-        "voice_volume": 0.8,
+        "intro_silence": 7,
+        "outro_silence": 6,
+        "music_volume": 0.8,
+        "voice_volume": 2.3,
         "fade_in": 1.5,
         "fade_out": 4,
         "ducking_enabled": true,
@@ -15,6 +15,22 @@
             "stability": 1,
             "similarity_boost": 0.5,
             "use_speaker_boost": true
+        },
+        "normalization_settings": {
+            "enabled": true,
+            "target_lufs": -10,
+            "mode": "standard",
+            "dynamic_compensation": false,
+            "compensation_range": 6,
+            "attack_release": "medium"
+        },
+        "compressor_settings": {
+            "threshold": 0.055,
+            "ratio": 6,
+            "attack": 5,
+            "release": 200,
+            "makeup": 1.4,
+            "bypass": true
         }
     },
     "allowed_music": "all",

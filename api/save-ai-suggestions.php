@@ -1,1 +1,1 @@
-/var/www/casa/src/api/save-ai-suggestions.php
+../src/api/save-ai-suggestions.php

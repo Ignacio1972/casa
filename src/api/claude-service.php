@@ -15,7 +15,7 @@ class ClaudeService {
     public function __construct() {
         // Cargar desde variables de entorno
         $this->apiKey = getenv('CLAUDE_API_KEY') ?: '';
-        $this->model = getenv('CLAUDE_MODEL') ?: 'claude-3-7-sonnet-20250219';
+        $this->model = getenv('CLAUDE_MODEL') ?: 'claude-sonnet-4-20250514';
         $this->maxTokens = (int)(getenv('CLAUDE_MAX_TOKENS') ?: 500);
         $this->logFile = __DIR__ . '/logs/claude-' . date('Y-m-d') . '.log';
     }
@@ -82,9 +82,9 @@ class ClaudeService {
     }
     
     /**
-     * Obtener prompt del sistema según categoría y contexto del cliente
+     * Obtener prompt del sistema según categoría, contexto del cliente y tono
      */
-    private function getSystemPrompt($category = 'general', $clientContext = null) {
+    private function getSystemPrompt($category = 'general', $clientContext = null, $tone = 'profesional') {
         // Contexto base o personalizado del cliente
         if ($clientContext && !empty($clientContext)) {
             $basePrompt = $clientContext . " ";
@@ -107,7 +107,19 @@ class ClaudeService {
         }
         
         $basePrompt .= "Genera anuncios cortos (máximo 100 palabras), claros y atractivos en español chileno. ";
-        $basePrompt .= "Usa un tono amigable y profesional. Evita usar emojis o caracteres especiales. ";
+        
+        // Instrucciones específicas según el tono seleccionado
+        $toneInstructions = [
+            'profesional' => "Mantén un tono formal, serio y confiable. Usa lenguaje corporativo y evita expresiones coloquiales. Sé conciso y directo.",
+            'entusiasta' => "Usa un tono energético, emocionante y motivador. Incluye expresiones como '¡Increíble!', '¡No te lo pierdas!', '¡Aprovecha ahora!'. Transmite emoción y urgencia positiva.",
+            'amigable' => "Sé cercano, cálido y acogedor. Habla como si fueras un amigo dando un buen consejo. Usa un lenguaje casual pero respetuoso.",
+            'urgente' => "Transmite importancia y necesidad de acción inmediata. Usa palabras como 'ATENCIÓN', 'IMPORTANTE', 'ÚLTIMO MOMENTO', 'AHORA'. Sé directo y enfático.",
+            'informativo' => "Sé claro, objetivo y directo. Presenta los datos de forma organizada sin adornos ni emociones. Enfócate en transmitir información precisa."
+        ];
+        
+        $toneInstruction = $toneInstructions[$tone] ?? $toneInstructions['profesional'];
+        $basePrompt .= $toneInstruction . " ";
+        $basePrompt .= "Evita usar emojis o caracteres especiales. ";
         
         $categoryPrompts = [
             'ofertas' => "Enfócate en el ahorro, descuentos y beneficios. Crea urgencia y emoción por la oferta.",
@@ -175,8 +187,8 @@ class ClaudeService {
             return $prompt;
         }
         
-        // Modo normal: 3 opciones
-        $prompt = "Genera 3 opciones diferentes de anuncios para lo siguiente:\n\n";
+        // Modo normal: 2 opciones
+        $prompt = "Genera 2 opciones diferentes de anuncios para lo siguiente:\n\n";
         
         if (!empty($params['context'])) {
             $prompt .= "Contexto: " . $params['context'] . "\n";
@@ -194,7 +206,7 @@ class ClaudeService {
             $prompt .= "Duración aproximada al leer: " . $params['duration'] . " segundos\n";
         }
         
-        $prompt .= "\nFormato de respuesta: Proporciona exactamente 3 opciones numeradas, ";
+        $prompt .= "\nFormato de respuesta: Proporciona exactamente 2 opciones numeradas, ";
         $prompt .= "cada una en un párrafo separado. No incluyas títulos ni explicaciones adicionales.";
         
         return $prompt;
@@ -219,8 +231,12 @@ class ClaudeService {
             
             $this->log("Usando modelo: $modelToUse");
             
-            // Obtener contexto del cliente si existe
-            $systemPrompt = $this->getSystemPrompt($params['category'] ?? 'general', $params['client_context'] ?? null);
+            // Obtener contexto del cliente si existe, incluyendo el tono
+            $systemPrompt = $this->getSystemPrompt(
+                $params['category'] ?? 'general', 
+                $params['client_context'] ?? null,
+                $params['tone'] ?? 'profesional'
+            );
             $userPrompt = $this->buildUserPrompt($params);
             
             $requestData = [
@@ -324,12 +340,12 @@ class ClaudeService {
                         ];
                     }
                 }
-                if (count($suggestions) >= 3) break;
+                if (count($suggestions) >= 2) break;
             }
         }
         
-        // Si no encontramos 3 sugerencias estructuradas, dividir por párrafos
-        if (count($suggestions) < 3) {
+        // Si no encontramos 2 sugerencias estructuradas, dividir por párrafos
+        if (count($suggestions) < 2) {
             $paragraphs = array_filter(explode("\n", $text), 'trim');
             foreach ($paragraphs as $paragraph) {
                 if (strlen($paragraph) > 20) {
@@ -341,12 +357,12 @@ class ClaudeService {
                         'created_at' => date('Y-m-d H:i:s')
                     ];
                 }
-                if (count($suggestions) >= 3) break;
+                if (count($suggestions) >= 2) break;
             }
         }
         
-        // Limitar a 3 sugerencias
-        return array_slice($suggestions, 0, 3);
+        // Limitar a 2 sugerencias
+        return array_slice($suggestions, 0, 2);
     }
     
     /**

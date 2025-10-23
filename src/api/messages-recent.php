@@ -1,52 +1,37 @@
 <?php
-/**
- * API para obtener mensajes recientes de la base de datos
- */
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Manejar OPTIONS para CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Configuración
-$dbPath = __DIR__ . '/../../database/casa.db';
+$dbPath = '/var/www/casa/database/casa.db';
 
 try {
-    // Verificar que existe la base de datos
-    if (!file_exists($dbPath)) {
-        throw new Exception("Base de datos no encontrada");
-    }
-    
     $db = new PDO("sqlite:$dbPath");
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // Obtener los últimos 10 mensajes recientes
     $stmt = $db->prepare("
         SELECT 
-            id,
             filename,
             display_name as title,
             description as content,
             category,
             created_at,
-            voice_id,
-            duration
+            'audio_' || REPLACE(filename, '.mp3', '') as id
         FROM audio_metadata 
-        WHERE is_active = 1
+        WHERE is_saved = 0 
+            AND is_active = 1
         ORDER BY created_at DESC
-        LIMIT 10
+        LIMIT 40
     ");
     
     $stmt->execute();
     $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Formatear respuesta
     echo json_encode([
         'success' => true,
         'messages' => $messages,
@@ -54,7 +39,6 @@ try {
     ]);
     
 } catch (Exception $e) {
-    http_response_code(500);
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()

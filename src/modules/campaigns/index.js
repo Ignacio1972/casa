@@ -31,6 +31,8 @@ export default class CampaignLibraryModule {
         this.isLoading = false;
         this.fileUploadManager = null; // Se inicializa en load()
         this.messageActions = null; // Se inicializa en load()
+        this.selectionMode = false; // Modo de selección múltiple
+        this.selectedMessages = new Set(); // IDs de mensajes seleccionados
     }
     
     getName() {
@@ -105,6 +107,12 @@ render() {
                     Mensajes Guardados
                 </h1>
                 <div class="filter-bar">
+                    <button class="btn btn-secondary" id="toggle-selection-btn" title="Modo de selección">
+                        ☑️ Seleccionar
+                    </button>
+                    <button class="btn btn-danger" id="delete-selected-btn" style="display: none;">
+                        🗑️ Eliminar (<span id="selected-count">0</span>)
+                    </button>
                     <button class="btn btn-secondary" id="upload-audio-btn">
                         🎵 Subir Audio
                     </button>
@@ -199,6 +207,22 @@ render() {
 }
     
     attachEvents() {
+        // Botón de modo selección
+        const toggleSelectionBtn = this.container.querySelector('#toggle-selection-btn');
+        if (toggleSelectionBtn) {
+            toggleSelectionBtn.addEventListener('click', () => {
+                this.toggleSelectionMode();
+            });
+        }
+        
+        // Botón de eliminar seleccionados
+        const deleteSelectedBtn = this.container.querySelector('#delete-selected-btn');
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', () => {
+                this.deleteSelectedMessages();
+            });
+        }
+        
         // Filtro de categorías (dropdown)
         const filterSelect = this.container.querySelector('#library-filter');
         if (filterSelect) {
@@ -484,9 +508,22 @@ render() {
             const categoryClass = `badge-${categoryNormalized}`;
             const categoryLabel = getCategoryShortLabel(message.category);
             
+            // Verificar si está seleccionado
+            const isSelected = this.selectedMessages.has(message.id);
+            
             return `
-            <div class="message-card ${isAudio ? 'audio-card' : ''}" data-id="${message.id}">
-                <div class="message-header">
+            <div class="message-card ${isAudio ? 'audio-card' : ''} ${isSelected ? 'selected' : ''}" data-id="${message.id}">
+                ${this.selectionMode ? `
+                    <div class="selection-checkbox" style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                        <input type="checkbox" 
+                               class="message-checkbox" 
+                               data-id="${message.id}"
+                               ${isSelected ? 'checked' : ''}
+                               style="width: 20px; height: 20px; cursor: pointer;"
+                               onclick="window.campaignLibrary.toggleMessageSelection('${message.id}')">
+                    </div>
+                ` : ''}
+                <div class="message-header" ${this.selectionMode ? 'style="padding-left: 40px;"' : ''}>
                     <h3 class="message-title">${escapeHtml(message.title)}</h3>
                     <div class="category-badge-container">
                         <span class="message-badge ${categoryClass}" data-category="${message.category || 'sin-categoria'}" onclick="window.campaignLibrary.toggleCategoryDropdown(event, '${message.id}')">
@@ -534,7 +571,8 @@ render() {
             changeCategory: (id) => this.messageActions.changeCategory(id),
             scheduleMessage: (id, title) => this.messageActions.scheduleMessage(id, title),
             toggleCategoryDropdown: (event, id) => this.messageActions.toggleCategoryDropdown(event, id),
-            updateCategory: (id, category) => this.messageActions.updateCategory(id, category)
+            updateCategory: (id, category) => this.messageActions.updateCategory(id, category),
+            toggleMessageSelection: (id) => this.toggleMessageSelection(id)
         };
     }
     
@@ -896,5 +934,142 @@ render() {
             notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+    
+    // === NUEVOS MÉTODOS PARA SELECCIÓN MÚLTIPLE ===
+    
+    /**
+     * Alternar modo de selección múltiple
+     */
+    toggleSelectionMode() {
+        this.selectionMode = !this.selectionMode;
+        
+        const toggleBtn = this.container.querySelector('#toggle-selection-btn');
+        const deleteBtn = this.container.querySelector('#delete-selected-btn');
+        
+        if (this.selectionMode) {
+            // Activar modo selección
+            toggleBtn.innerHTML = '✅ Cancelar';
+            toggleBtn.classList.add('active');
+            deleteBtn.style.display = 'inline-block';
+            
+            // Agregar clase al contenedor
+            this.container.querySelector('.campaigns-module').classList.add('selection-mode');
+        } else {
+            // Desactivar modo selección
+            toggleBtn.innerHTML = '☑️ Seleccionar';
+            toggleBtn.classList.remove('active');
+            deleteBtn.style.display = 'none';
+            
+            // Limpiar selección
+            this.clearSelection();
+            
+            // Remover clase del contenedor
+            this.container.querySelector('.campaigns-module').classList.remove('selection-mode');
+        }
+        
+        // Refrescar vista
+        this.displayMessages();
+    }
+    
+    /**
+     * Alternar selección de un mensaje
+     */
+    toggleMessageSelection(id) {
+        if (!this.selectionMode) return;
+        
+        if (this.selectedMessages.has(id)) {
+            this.selectedMessages.delete(id);
+        } else {
+            this.selectedMessages.add(id);
+        }
+        
+        // Actualizar contador
+        this.updateSelectionCount();
+        
+        // Actualizar visual del card
+        const card = this.container.querySelector(`[data-id="${id}"]`);
+        if (card) {
+            card.classList.toggle('selected');
+            // Agregar efecto de selección
+            card.style.backgroundColor = this.selectedMessages.has(id) ? '#f0f8ff' : '';
+            card.style.border = this.selectedMessages.has(id) ? '2px solid #007bff' : '';
+        }
+    }
+    
+    /**
+     * Actualizar contador de seleccionados
+     */
+    updateSelectionCount() {
+        const countEl = this.container.querySelector('#selected-count');
+        if (countEl) {
+            countEl.textContent = this.selectedMessages.size;
+        }
+        
+        // Habilitar/deshabilitar botón eliminar
+        const deleteBtn = this.container.querySelector('#delete-selected-btn');
+        if (deleteBtn) {
+            deleteBtn.disabled = this.selectedMessages.size === 0;
+            if (this.selectedMessages.size === 0) {
+                deleteBtn.classList.add('disabled');
+            } else {
+                deleteBtn.classList.remove('disabled');
+            }
+        }
+    }
+    
+    /**
+     * Limpiar toda la selección
+     */
+    clearSelection() {
+        this.selectedMessages.clear();
+        this.updateSelectionCount();
+        
+        // Limpiar visualmente todos los cards
+        this.container.querySelectorAll('.message-card.selected').forEach(card => {
+            card.classList.remove('selected');
+            card.style.backgroundColor = '';
+            card.style.border = '';
+        });
+    }
+    
+    /**
+     * Eliminar mensajes seleccionados
+     */
+    async deleteSelectedMessages() {
+        if (this.selectedMessages.size === 0) {
+            this.showError('No hay mensajes seleccionados');
+            return;
+        }
+        
+        // Convertir Set a Array
+        const selectedIds = Array.from(this.selectedMessages);
+        
+        // Delegar al método deleteMultiple de MessageActions
+        await this.messageActions.deleteMultiple(selectedIds);
+        
+        // Si la eliminación fue exitosa, salir del modo selección
+        if (this.selectedMessages.size === 0) {
+            this.toggleSelectionMode();
+        }
+    }
+    
+    /**
+     * Seleccionar todos los mensajes visibles
+     */
+    selectAll() {
+        this.filteredMessages.forEach(msg => {
+            this.selectedMessages.add(msg.id);
+        });
+        this.updateSelectionCount();
+        this.displayMessages();
+    }
+    
+    /**
+     * Deseleccionar todos
+     */
+    deselectAll() {
+        this.clearSelection();
+        this.displayMessages();
     }
 }

@@ -1,8 +1,8 @@
 {
     "silence": {
         "add_silence": true,
-        "intro_seconds": 5,
-        "outro_seconds": 7
+        "intro_seconds": 2.5,
+        "outro_seconds": 5
     },
     "normalization": {
         "enabled": true,
@@ -12,7 +12,7 @@
     },
     "voice_settings": {
         "style": 0.5,
-        "stability": 0.75,
+        "stability": 0.55,
         "similarity_boost": 0.8,
         "use_speaker_boost": true
     }

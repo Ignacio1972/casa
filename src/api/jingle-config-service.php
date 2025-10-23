@@ -27,7 +27,15 @@ function getJingleConfig() {
                 'fade_out' => 2,
                 'ducking_enabled' => true,
                 'duck_level' => 0.2,
-                'default_music' => 'Martin Roth - Just Sine Waves.mp3'
+                'default_music' => 'Martin Roth - Just Sine Waves.mp3',
+                'normalization_settings' => [
+                    'enabled' => true,
+                    'target_lufs' => -16,
+                    'mode' => 'standard',
+                    'dynamic_compensation' => true,
+                    'compensation_range' => 6,
+                    'attack_release' => 'medium'
+                ]
             ],
             'allowed_music' => 'all',
             'user_can_override' => false
@@ -92,12 +100,12 @@ function validateConfig($config) {
         return ['valid' => false, 'error' => 'outro_silence debe estar entre 0 y 30 segundos'];
     }
     
-    if ($defaults['music_volume'] < 0 || $defaults['music_volume'] > 1) {
-        return ['valid' => false, 'error' => 'music_volume debe estar entre 0 y 1'];
+    if ($defaults['music_volume'] < 0 || $defaults['music_volume'] > 3) {
+        return ['valid' => false, 'error' => 'music_volume debe estar entre 0 y 3'];
     }
     
-    if ($defaults['voice_volume'] < 0 || $defaults['voice_volume'] > 2) {
-        return ['valid' => false, 'error' => 'voice_volume debe estar entre 0 y 2'];
+    if ($defaults['voice_volume'] < 0 || $defaults['voice_volume'] > 5) {
+        return ['valid' => false, 'error' => 'voice_volume debe estar entre 0 y 5'];
     }
     
     if ($defaults['fade_in'] < 0 || $defaults['fade_in'] > 10) {
@@ -132,7 +140,15 @@ function resetToDefaults() {
             'fade_out' => 2,
             'ducking_enabled' => true,
             'duck_level' => 0.2,
-            'default_music' => 'Martin Roth - Just Sine Waves.mp3'
+            'default_music' => 'Martin Roth - Just Sine Waves.mp3',
+            'normalization_settings' => [
+                'enabled' => true,
+                'target_lufs' => -16,
+                'mode' => 'standard',
+                'dynamic_compensation' => true,
+                'compensation_range' => 6,
+                'attack_release' => 'medium'
+            ]
         ],
         'allowed_music' => 'all',
         'user_can_override' => false

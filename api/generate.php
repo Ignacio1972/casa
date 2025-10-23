@@ -1,1 +1,1 @@
-/var/www/casa/src/api/generate.php
+../src/api/generate.php
