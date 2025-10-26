@@ -61,12 +61,18 @@ class AnnouncementGenerator {
             'model_id' => $options['model'],
             'voice_settings' => $voiceSettings
         ];
-        
+
         // Agregar soporte para v3 si fue solicitado
         if (isset($options['use_v3']) && $options['use_v3'] === true) {
             $ttsOptions['use_v3'] = true;
         }
-        
+
+        // NUEVO: Pasar output_volume si está configurado
+        if (isset($options['output_volume'])) {
+            $ttsOptions['output_volume'] = $options['output_volume'];
+            logMessage("Pasando output_volume al TTS: " . $options['output_volume']);
+        }
+
         // Generar audio
         $audioData = generateEnhancedTTS($text, $options['voice'], $ttsOptions);
         

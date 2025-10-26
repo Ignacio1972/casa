@@ -82,6 +82,7 @@ export class ScheduleModal {
                             <div class="form-group">
                                 <label class="form-label">Repetir cada:</label>
                                 <select class="form-control form-select" id="intervalSelect">
+                                    <option value="3">3 minutos (Testing)</option>
                                     <option value="30">30 minutos</option>
                                     <option value="60">1 hora</option>
                                     <option value="120">2 horas</option>
@@ -103,12 +104,12 @@ export class ScheduleModal {
                             
                             <div class="form-group">
                                 <label class="form-label">Hora inicio:</label>
-                                <input type="time" class="form-control" id="intervalStartTime" value="10:00">
+                                <input type="time" class="form-control" id="intervalStartTime" value="00:00">
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="form-label">Hora fin:</label>
-                                <input type="time" class="form-control" id="intervalEndTime" value="20:00">
+                                <input type="time" class="form-control" id="intervalEndTime" value="23:59">
                             </div>
                         </div>
                         

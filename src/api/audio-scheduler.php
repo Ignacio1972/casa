@@ -69,9 +69,18 @@ function createSchedule($input) {
     // Calcular schedule_time basado en el tipo
     $schedule_time = null;
     if ($schedule_type === 'interval') {
-        $hours = intval($interval_hours ?? 0);
-        $minutes = intval($interval_minutes ?? 0);
-        $schedule_time = sprintf("%02d:%02d", $hours, $minutes);
+        // MODIFICADO: Para intervalos, guardar el rango horario [inicio, fin] si está disponible
+        // Esto permite validar que solo se ejecute dentro del rango especificado
+        if (is_array($schedule_times) && count($schedule_times) === 2) {
+            // Guardar el rango horario como JSON array
+            $schedule_time = json_encode($schedule_times);
+            error_log("[AudioScheduler] Guardando rango horario para intervalo: " . $schedule_time);
+        } else {
+            // Fallback: solo guardar el intervalo en formato HH:MM
+            $hours = intval($interval_hours ?? 0);
+            $minutes = intval($interval_minutes ?? 0);
+            $schedule_time = sprintf("%02d:%02d", $hours, $minutes);
+        }
     } elseif ($schedule_type === 'specific' && $schedule_times) {
         $times = is_array($schedule_times) ? $schedule_times : json_decode($schedule_times, true);
         $schedule_time = is_array($times) ? json_encode($times) : $times;
@@ -146,12 +155,12 @@ function createSchedule($input) {
     
     $stmt = $db->prepare("
         INSERT INTO audio_schedule (
-            filename, title, schedule_time, schedule_days, 
+            filename, title, schedule_time, schedule_days,
             start_date, end_date, is_active, notes,
             created_at, updated_at, priority, category
         ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, 
-            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?
+            ?, ?, ?, ?, ?, ?, ?, ?,
+            datetime('now','localtime'), datetime('now','localtime'), ?, ?
         )
     ");
     
@@ -323,8 +332,8 @@ function updateSchedule($input) {
             'error' => 'No hay campos para actualizar'
         ];
     }
-    
-    $updates[] = 'updated_at = CURRENT_TIMESTAMP';
+
+    $updates[] = "updated_at = datetime('now','localtime')";
     $params[] = $id;
     
     $sql = "UPDATE audio_schedule SET " . implode(', ', $updates) . " WHERE id = ?";
@@ -395,12 +404,12 @@ function getSchedulesToExecute() {
         if ($schedule_type === 'interval') {
             $interval_hours = intval($notes['interval_hours'] ?? 0);
             $interval_minutes = intval($notes['interval_minutes'] ?? 0);
-            
+
             if ($interval_hours > 0 || $interval_minutes > 0) {
                 // Verificar si hoy está en los días programados
                 $schedule_days = json_decode($schedule['schedule_days'], true) ?? [];
                 $day_matches = false;
-                
+
                 // Los días pueden venir como números o strings
                 foreach ($schedule_days as $day) {
                     if (is_numeric($day)) {
@@ -416,8 +425,23 @@ function getSchedulesToExecute() {
                         }
                     }
                 }
-                
+
                 if ($day_matches) {
+                    // NUEVO: Verificar rango horario si está definido
+                    $schedule_times = json_decode($schedule['schedule_time'], true);
+
+                    // Si schedule_time es un array de 2 elementos, es un rango [inicio, fin]
+                    if (is_array($schedule_times) && count($schedule_times) === 2) {
+                        $start_time = $schedule_times[0];
+                        $end_time = $schedule_times[1];
+
+                        // Verificar si estamos dentro del rango horario
+                        if ($current_time < $start_time || $current_time > $end_time) {
+                            // Fuera del rango horario, no ejecutar
+                            continue;
+                        }
+                    }
+
                     $last_executed = getLastExecution($schedule['id']);
                     if (!$last_executed) {
                         $should_execute = true;
@@ -524,8 +548,8 @@ function updateCategoryByFilename($input) {
     }
     
     $stmt = $db->prepare("
-        UPDATE audio_schedule 
-        SET category = ?, updated_at = CURRENT_TIMESTAMP
+        UPDATE audio_schedule
+        SET category = ?, updated_at = datetime('now','localtime')
         WHERE filename = ?
     ");
     $stmt->execute([$newCategory, $filename]);
@@ -546,10 +570,10 @@ function updateCategoryByFilename($input) {
  */
 function logExecution($schedule_id, $status = 'success', $message = '') {
     $db = getDBConnection();
-    
+
     $stmt = $db->prepare("
         INSERT INTO audio_schedule_log (schedule_id, status, message, executed_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (?, ?, ?, datetime('now','localtime'))
     ");
     $stmt->execute([$schedule_id, $status, $message]);
 }

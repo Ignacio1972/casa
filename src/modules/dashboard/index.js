@@ -244,7 +244,7 @@ export default class DashboardV2Module {
      */
     async loadMusicList() {
         try {
-            const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+            const response = await fetch('/api/jingle-service.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'list_music' })

@@ -9,7 +9,7 @@
             "added_date": "2025-08-23 17:06:14",
             "is_default": true,
             "order": 1,
-            "volume_adjustment": 1.5
+            "volume_adjustment": 0
         },
         "test_voice": {
             "id": "test123",
@@ -64,7 +64,7 @@
             "added_date": "2025-09-01 18:18:33",
             "is_default": false,
             "order": 3,
-            "volume_adjustment": 9.5
+            "volume_adjustment": 7
         },
         "cristian": {
             "id": "nNS8uylvF9GBWVSiIt5h",
@@ -124,7 +124,7 @@
     },
     "settings": {
         "default_voice": "juan_carlos",
-        "last_updated": "2025-10-20T14:18:10-03:00",
+        "last_updated": "2025-10-26T09:47:00-03:00",
         "version": "2.0",
         "migration_note": "Volume adjustments reduced by 50% for v2 migration - 2025-09-25 16:03:19"
     }

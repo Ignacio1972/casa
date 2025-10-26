@@ -24,7 +24,6 @@
         
         <nav class="playground-nav">
             <button class="nav-btn active" data-section="dashboard">🏠 Dashboard</button>
-            <button class="nav-btn" data-section="tts-tester">🎤 TTS Tester</button>
             <button class="nav-btn" data-section="voice-explorer">🎭 Voice Explorer</button>
             <button class="nav-btn" data-section="template-builder">📝 Template Builder</button>
             <button class="nav-btn" data-section="monitors">📊 Monitors</button>
@@ -74,14 +73,7 @@
                             <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Crear jingles profesionales</p>
                             <a href="/playground/jingle-studio.html" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">Abrir →</a>
                         </div>
-                        
-                        <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
-                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎤</div>
-                            <h4 style="margin: 0.5rem 0; color: #1f2937;">TTS Tester</h4>
-                            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Probar voces y ajustes</p>
-                            <button class="nav-btn" data-section="tts-tester" style="background: none; border: none; color: #667eea; font-weight: 600; cursor: pointer;">Abrir →</button>
-                        </div>
-                        
+
                         <div style="background: white; border: 2px solid #e5e7eb; padding: 1.5rem; border-radius: 10px; text-align: center;">
                             <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎭</div>
                             <h4 style="margin: 0.5rem 0; color: #1f2937;">Voice Explorer</h4>
@@ -161,68 +153,7 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- TTS Tester Section -->
-            <section id="tts-tester" class="content-section">
-                <div class="tester-container">
-                    <div class="input-panel">
-                        <h2>Text Input</h2>
-                        <textarea id="tts-text" placeholder="Escribe o pega tu texto aquí..." maxlength="5000"></textarea>
-                        <div class="char-counter">
-                            <span id="char-count">0</span> / 5000 caracteres
-                        </div>
-                    </div>
-                    
-                    <div class="settings-panel">
-                        <h2>Voice Settings</h2>
-                        
-                        <div class="form-group">
-                            <label>Voz:</label>
-                            <select id="voice-select">
-                                <!-- Se llenará dinámicamente -->
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Style: <span id="style-value">50</span>%</label>
-                            <input type="range" id="style-slider" min="0" max="100" value="50">
-                            <small>Neutral ← → Expresivo</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Stability: <span id="stability-value">75</span>%</label>
-                            <input type="range" id="stability-slider" min="0" max="100" value="75">
-                            <small>Variable ← → Estable</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Similarity: <span id="similarity-value">80</span>%</label>
-                            <input type="range" id="similarity-slider" min="0" max="100" value="80">
-                            <small>Bajo ← → Alto</small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="speaker-boost" checked>
-                                Speaker Boost
-                            </label>
-                        </div>
-                        
-                        <button id="generate-btn" class="btn btn-primary">
-                            🎵 Generar Audio
-                        </button>
-                    </div>
-                    
-                    <div class="output-panel">
-                        <h2>Output</h2>
-                        <div id="generation-status"></div>
-                        <audio id="audio-player" controls style="display:none;"></audio>
-                        <div id="audio-info"></div>
-                        <div id="api-response"></div>
-                    </div>
-                </div>
-            </section>
-            
+
             <!-- Otras secciones irán aquí -->
 <!-- Voice Explorer Section -->
             <section id="voice-explorer" class="content-section">

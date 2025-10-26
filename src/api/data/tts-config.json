@@ -1,14 +1,14 @@
 {
     "silence": {
         "add_silence": true,
-        "intro_seconds": 2.5,
+        "intro_seconds": 3,
         "outro_seconds": 5
     },
     "normalization": {
-        "enabled": true,
-        "target_lufs": -16,
-        "output_volume": 1.25,
-        "enable_compression": true
+        "enabled": false,
+        "target_lufs": -12,
+        "output_volume": 1.3,
+        "enable_compression": false
     },
     "voice_settings": {
         "style": 0.5,

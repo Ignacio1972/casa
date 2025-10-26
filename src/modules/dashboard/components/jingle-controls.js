@@ -32,9 +32,9 @@ export class JingleControls {
         try {
             // Agregar timestamp para evitar caché
             const timestamp = Date.now();
-            const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-config-service.php?t=' + timestamp, {
+            const response = await fetch('/api/jingle-config-service.php?t=' + timestamp, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Cache-Control': 'no-cache'
                 },
@@ -102,7 +102,7 @@ export class JingleControls {
 
     async loadMusicList() {
         try {
-            const response = await fetch(window.location.protocol + '//' + window.location.hostname + ':4000/api/jingle-service.php', {
+            const response = await fetch('/api/jingle-service.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'list_music' })

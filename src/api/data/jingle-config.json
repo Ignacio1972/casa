@@ -1,14 +1,14 @@
 {
     "jingle_defaults": {
         "enabled_by_default": false,
-        "intro_silence": 7,
-        "outro_silence": 6,
+        "intro_silence": 6,
+        "outro_silence": 4.5,
         "music_volume": 0.8,
         "voice_volume": 2.3,
         "fade_in": 1.5,
         "fade_out": 4,
         "ducking_enabled": true,
-        "duck_level": 0.2,
+        "duck_level": 0.05,
         "default_music": "Uplift.mp3",
         "voice_settings": {
             "style": 0.15,
@@ -17,11 +17,11 @@
             "use_speaker_boost": true
         },
         "normalization_settings": {
-            "enabled": true,
+            "enabled": false,
             "target_lufs": -10,
-            "mode": "standard",
+            "mode": "aggressive",
             "dynamic_compensation": false,
-            "compensation_range": 6,
+            "compensation_range": 7,
             "attack_release": "medium"
         },
         "compressor_settings": {

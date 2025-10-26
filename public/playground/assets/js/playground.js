@@ -6,33 +6,32 @@
 
 class PlaygroundApp {
     constructor() {
-        this.currentSection = 'tts-tester';
+        this.currentSection = 'dashboard';
         this.voices = {};
         this.logs = [];
         this.quotaInfo = null;
         this.audioContext = null;
-        
+
         this.init();
     }
-    
+
     async init() {
         console.log('🧪 Playground initializing...');
-        
+
         // Cargar datos iniciales
         await this.loadVoices();
         await this.updateQuota();
-        
+
         // Inicializar componentes
         this.initNavigation();
-        this.initTTSTester();
         this.initVoiceExplorer();
         this.initLogViewer();
         this.initThemeToggle();
         this.initTools();
-        
+
         // Iniciar monitoreo
         this.startMonitoring();
-        
+
         console.log('✅ Playground ready!');
     }
     
@@ -43,28 +42,15 @@ class PlaygroundApp {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'list_voices' })
             });
-            
+
             if (!response.ok) throw new Error('Failed to load voices');
-            
+
             const data = await response.json();
             this.voices = data.voices || {};
-            
-            // Poblar selector de voces
-            const voiceSelect = document.getElementById('voice-select');
-            if (voiceSelect) {
-                voiceSelect.innerHTML = '';
-                
-                Object.entries(this.voices).forEach(([id, voice]) => {
-                    const option = document.createElement('option');
-                    option.value = id;
-                    option.textContent = `${voice.label} (${voice.gender})`;
-                    voiceSelect.appendChild(option);
-                });
-                
-                // Seleccionar Fernanda por defecto
-                voiceSelect.value = 'fernanda';
-            }
-            
+
+            // LEGACY: voice-select removed (was part of TTS Tester)
+            // Voices are now managed through Voice Explorer and Admin Voces
+
         } catch (error) {
             console.error('Error loading voices:', error);
             this.addLog('Error cargando voces: ' + error.message, 'error');
@@ -135,159 +121,12 @@ class PlaygroundApp {
         });
     }
     
-    initTTSTester() {
-        // Contador de caracteres
-        const textInput = document.getElementById('tts-text');
-        const charCount = document.getElementById('char-count');
-        
-        if (textInput && charCount) {
-            textInput.addEventListener('input', () => {
-                const length = textInput.value.length;
-                charCount.textContent = length;
-                
-                if (length > 4500) {
-                    charCount.style.color = '#ef4444';
-                } else if (length > 4000) {
-                    charCount.style.color = '#f59e0b';
-                } else {
-                    charCount.style.color = '#94a3b8';
-                }
-            });
-        }
-        
-        // Sliders
-        this.initSlider('style');
-        this.initSlider('stability');
-        this.initSlider('similarity');
-        
-        // Botón generar
-        const generateBtn = document.getElementById('generate-btn');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', () => this.generateAudio());
-        }
-    }
-    
-    initSlider(name) {
-        const slider = document.getElementById(`${name}-slider`);
-        const value = document.getElementById(`${name}-value`);
-        
-        if (slider && value) {
-            slider.addEventListener('input', () => {
-                value.textContent = slider.value;
-            });
-        }
-    }
-    
-    async generateAudio() {
-        const generateBtn = document.getElementById('generate-btn');
-        const statusDiv = document.getElementById('generation-status');
-        const audioPlayer = document.getElementById('audio-player');
-        const audioInfo = document.getElementById('audio-info');
-        const apiResponse = document.getElementById('api-response');
-        
-        // Obtener valores
-        const text = document.getElementById('tts-text').value.trim();
-        const voice = document.getElementById('voice-select').value;
-        const style = document.getElementById('style-slider').value / 100;
-        const stability = document.getElementById('stability-slider').value / 100;
-        const similarity = document.getElementById('similarity-slider').value / 100;
-        const speakerBoost = document.getElementById('speaker-boost').checked;
-        
-        // Validar
-        if (!text) {
-            this.showNotification('Por favor ingresa un texto', 'error');
-            return;
-        }
-        
-        // Preparar UI
-        generateBtn.disabled = true;
-        generateBtn.textContent = '⏳ Generando...';
-        statusDiv.innerHTML = '<div class="loading">Procesando...</div>';
-        audioPlayer.style.display = 'none';
-        
-        const startTime = Date.now();
-        
-        try {
-            this.addLog(`Starting TTS generation: ${text.substring(0, 50)}...`, 'info');
-            
-            const response = await fetch('/api/generate.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'generate_audio',
-                    text: text,
-                    voice: voice,
-                    voice_settings: {
-                        style: style,
-                        stability: stability,
-                        similarity_boost: similarity,
-                        use_speaker_boost: speakerBoost
-                    },
-                    source: 'playground'
-                })
-            });
-            
-            const data = await response.json();
-            const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-            this.lastGenerationTime = parseFloat(elapsed);
-            
-            if (data.success) {
-                // Mostrar audio
-                audioPlayer.src = `/api/temp/${data.filename}`;
-                audioPlayer.style.display = 'block';
-                audioPlayer.play();
-                
-                // Mostrar info
-                statusDiv.innerHTML = `
-                    <div class="success-message">
-                        ✅ Audio generado en ${elapsed}s
-                    </div>
-                `;
-                
-                audioInfo.innerHTML = `
-                    <div class="info-grid">
-                        <div><strong>Archivo:</strong> ${data.filename}</div>
-                        <div><strong>Duración:</strong> ${data.duration || 'N/A'}</div>
-                        <div><strong>Tamaño:</strong> ${data.filesize || 'N/A'}</div>
-                        <div><strong>Voz:</strong> ${this.voices[voice]?.label}</div>
-                    </div>
-                `;
-                
-                // Mostrar respuesta API
-                apiResponse.innerHTML = `
-                    <details>
-                        <summary>API Response</summary>
-                        <pre>${JSON.stringify(data, null, 2)}</pre>
-                    </details>
-                `;
-                
-                this.addLog(`TTS generated successfully in ${elapsed}s`, 'success');
-                
-                // Trackear uso de caracteres
-                await this.trackUsage(text.length, voice, true);
-                
-                // Actualizar quota
-                await this.updateQuota();
-                
-            } else {
-                throw new Error(data.error || 'Generation failed');
-            }
-            
-        } catch (error) {
-            statusDiv.innerHTML = `
-                <div class="error-message">
-                    ❌ Error: ${error.message}
-                </div>
-            `;
-            
-            this.addLog(`TTS generation failed: ${error.message}`, 'error');
-            
-        } finally {
-            generateBtn.disabled = false;
-            generateBtn.textContent = '🎵 Generar Audio';
-        }
-    }
-    
+    // ========== LEGACY: TTS Tester removed ==========
+    // TTS Tester functionality has been removed as it's redundant with:
+    // - TTS Config page (for testing voices with full configuration)
+    // - Main Dashboard (for regular TTS generation)
+    // - Voice Explorer (for testing individual voices)
+
     // ========== VOICE EXPLORER ==========
     initVoiceExplorer() {
         const generateAllBtn = document.getElementById('generate-all-samples');
@@ -565,7 +404,7 @@ class PlaygroundApp {
         }, 3000);
     }
     
-    async trackUsage(characters, voice, success = true) {
+    async trackUsage(characters, voice, success = true, text = '') {
         try {
             const response = await fetch('/playground/api/quota-tracker.php', {
                 method: 'POST',
@@ -577,26 +416,26 @@ class PlaygroundApp {
                     success: success
                 })
             });
-            
+
             const data = await response.json();
-            
+
             if (!this.generationHistory) {
                 this.generationHistory = [];
             }
-            
+
             // Agregar al historial local para monitors
             this.generationHistory.unshift({
-                text: document.getElementById('tts-text').value,
+                text: text || `${characters} caracteres`,
                 voice: voice,
                 time: new Date().toLocaleTimeString(),
                 success: success,
                 duration: this.lastGenerationTime || 0,
                 characters: characters
             });
-            
+
             // Mantener solo últimas 50 generaciones
             this.generationHistory = this.generationHistory.slice(0, 50);
-            
+
             // Actualizar performance data
             if (!this.performanceData) {
                 this.performanceData = [];
@@ -606,9 +445,9 @@ class PlaygroundApp {
                 // Mantener solo últimos 20 tiempos
                 this.performanceData = this.performanceData.slice(-20);
             }
-            
+
             console.log('Usage tracked:', data);
-            
+
         } catch (error) {
             console.error('Error tracking usage:', error);
         }

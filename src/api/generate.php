@@ -139,6 +139,16 @@ try {
             ];
             logMessage("Voice settings por defecto aplicados");
         }
+
+        // NUEVO: Agregar output_volume desde la configuración TTS
+        if ($ttsConfig && isset($ttsConfig['normalization']['output_volume'])) {
+            $generatorOptions['output_volume'] = floatval($ttsConfig['normalization']['output_volume']);
+            logMessage("Output volume desde configuración TTS: " . $generatorOptions['output_volume']);
+        } else {
+            // Valor por defecto (1.0 = sin cambio)
+            $generatorOptions['output_volume'] = 1.0;
+            logMessage("Output volume por defecto: 1.0");
+        }
         
         // Leer configuración de API desde archivo
         $configFile = __DIR__ . '/data/api-config.json';
