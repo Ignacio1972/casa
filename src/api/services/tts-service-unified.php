@@ -164,45 +164,92 @@ function generateTTS($text, $voice, $options = []) {
     }
     
     logMessage("TTS generado exitosamente. Tamaño: " . strlen($response) . " bytes, MIME: $mimeType");
-    
-    // Aplicar ajuste de volumen si está configurado
-    $volumeAdjustment = 0;
-    if (file_exists($voicesFile) && isset($config['voices'][$voice]['volume_adjustment'])) {
-        $volumeAdjustment = floatval($config['voices'][$voice]['volume_adjustment']);
+
+    // Aplicar ajustes de volumen (por voz individual Y global)
+    $needsProcessing = false;
+    $volumeFilters = [];
+
+    // 1. Ajuste de volumen por voz individual (desde voices-config.json)
+    $volumeAdjustmentDb = 0;
+    if (file_exists($voicesFile) && isset($config['voices'])) {
+        // Buscar el volume_adjustment - puede venir como KEY o como ID
+        $voiceData = null;
+
+        // Primero intentar buscar por KEY directo
+        if (isset($config['voices'][$voice])) {
+            $voiceData = $config['voices'][$voice];
+            logMessage("Voz encontrada por KEY: $voice");
+        } else {
+            // Si no se encuentra, buscar por ID (el voice puede ser el ID de ElevenLabs)
+            foreach ($config['voices'] as $voiceKey => $voiceInfo) {
+                if (isset($voiceInfo['id']) && $voiceInfo['id'] === $voice) {
+                    $voiceData = $voiceInfo;
+                    logMessage("Voz encontrada por ID: $voice (key: $voiceKey)");
+                    break;
+                }
+            }
+        }
+
+        // Si encontramos la voz, aplicar su volume_adjustment
+        if ($voiceData && isset($voiceData['volume_adjustment'])) {
+            $volumeAdjustmentDb = floatval($voiceData['volume_adjustment']);
+            if ($volumeAdjustmentDb != 0) {
+                $needsProcessing = true;
+                $volumeFilters[] = "volume={$volumeAdjustmentDb}dB";
+                logMessage("Ajuste de volumen por voz: {$volumeAdjustmentDb} dB para voz: $voice");
+            }
+        } else {
+            logMessage("No se encontró volume_adjustment para la voz: $voice");
+        }
     }
-    
-    if ($volumeAdjustment != 0) {
-        logMessage("Aplicando ajuste de volumen: {$volumeAdjustment} dB para voz: $voice");
-        
+
+    // 2. Volumen global de salida (desde tts-config.json via output_volume)
+    $outputVolume = floatval($options['output_volume'] ?? 1.0);
+    if ($outputVolume != 1.0) {
+        $needsProcessing = true;
+        // Convertir factor lineal a multiplicador para ffmpeg
+        // FFmpeg volume filter acepta factores lineales (1.0 = sin cambio, 2.0 = doble volumen)
+        $volumeFilters[] = "volume={$outputVolume}";
+        logMessage("Volumen global de salida: {$outputVolume} (factor lineal)");
+    }
+
+    // Si necesitamos procesar el audio
+    if ($needsProcessing && count($volumeFilters) > 0) {
+        logMessage("Aplicando filtros de volumen: " . implode(', ', $volumeFilters));
+
         // Crear archivos temporales
         $tempInput = tempnam(sys_get_temp_dir(), 'tts_input_') . '.mp3';
         $tempOutput = tempnam(sys_get_temp_dir(), 'tts_output_') . '.mp3';
-        
+
         // Guardar el audio original
         file_put_contents($tempInput, $response);
-        
-        // Aplicar ajuste de volumen con FFmpeg
+
+        // Combinar todos los filtros de volumen
+        $filterChain = implode(',', $volumeFilters);
+
+        // Aplicar ajustes de volumen con FFmpeg
         $ffmpegCommand = sprintf(
-            'ffmpeg -i %s -af "volume=%sdB" -codec:a libmp3lame -b:a 192k %s 2>&1',
+            'ffmpeg -i %s -af "%s" -codec:a libmp3lame -b:a 192k %s 2>&1',
             escapeshellarg($tempInput),
-            escapeshellarg($volumeAdjustment),
+            $filterChain,
             escapeshellarg($tempOutput)
         );
-        
+
+        logMessage("Comando FFmpeg: $ffmpegCommand");
         exec($ffmpegCommand, $output, $returnCode);
-        
+
         if ($returnCode === 0 && file_exists($tempOutput)) {
             $response = file_get_contents($tempOutput);
             logMessage("Volumen ajustado exitosamente. Nuevo tamaño: " . strlen($response) . " bytes");
         } else {
             logMessage("ERROR: No se pudo ajustar el volumen. FFmpeg output: " . implode("\n", $output));
         }
-        
+
         // Limpiar archivos temporales
         @unlink($tempInput);
         @unlink($tempOutput);
     }
-    
+
     return $response;
 }
 
