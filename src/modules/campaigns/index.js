@@ -547,7 +547,7 @@ render() {
                 
                 <div class="message-meta">
                     <div class="message-actions">
-                        <button class="btn-icon btn-play" onclick="window.campaignLibrary.playMessage('${message.id}')" title="Preview">▶</button>
+                        <button class="btn-icon btn-play play-btn" data-message-id="${message.id}" data-filename="${message.filename || message.audioFilename || ''}" onclick="window.campaignLibrary.togglePlayPause('${message.id}')" title="Reproducir">▶</button>
                         <button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Cambiar Título">✏️</button>
                         ${isAudio ? `<button class="btn-icon btn-schedule" onclick="window.campaignLibrary.scheduleMessage('${message.id}', '${(message.title || '').replace(/'/g, "\\'").replace(/"/g, '\\"')}')" title="Programar">📅</button>` : ''}
                         <button class="btn-icon btn-radio" onclick="window.campaignLibrary.sendToRadio('${message.id}')" title="Enviar a Radio">
@@ -564,6 +564,7 @@ render() {
         
         // Exponer métodos globalmente para onclick - ahora delegamos a MessageActions
         window.campaignLibrary = {
+            togglePlayPause: (id) => this.togglePlayPause(id),
             playMessage: (id) => this.messageActions.playMessage(id),
             editMessage: (id) => this.messageActions.editMessage(id),
             sendToRadio: (id) => this.messageActions.sendToRadio(id),
@@ -1071,5 +1072,85 @@ render() {
     deselectAll() {
         this.clearSelection();
         this.displayMessages();
+    }
+
+    /**
+     * Toggle play/pause para mensajes
+     */
+    togglePlayPause(id) {
+        const message = this.messages.find(m => m.id === id);
+        if (!message) return;
+
+        // Determinar el archivo de audio
+        const audioFilename = message.filename || message.audioFilename;
+        if (!audioFilename) {
+            this.showError('Audio no disponible');
+            return;
+        }
+
+        const audioPlayer = document.querySelector('.floating-player audio');
+        const currentUrl = `/api/biblioteca.php?filename=${audioFilename}`;
+
+        // Usar currentSrc en lugar de src porque el audio usa <source> tag
+        const audioSrc = audioPlayer ? (audioPlayer.currentSrc || audioPlayer.src) : '';
+        const expectedFullUrl = window.location.origin + currentUrl;
+
+        // DEBUG: Logging para diagnosticar el problema
+        console.log('[Campaigns] togglePlayPause DEBUG:', {
+            id,
+            audioFilename,
+            audioPlayerExists: !!audioPlayer,
+            audioPlayerSrc: audioPlayer ? audioPlayer.src : 'N/A',
+            audioPlayerCurrentSrc: audioPlayer ? audioPlayer.currentSrc : 'N/A',
+            usingSrc: audioSrc,
+            expectedUrl: expectedFullUrl,
+            srcMatches: audioSrc === expectedFullUrl,
+            isPaused: audioPlayer ? audioPlayer.paused : 'N/A'
+        });
+
+        // Si existe un player y está reproduciendo este mismo archivo
+        if (audioPlayer && audioSrc === expectedFullUrl) {
+            console.log('[Campaigns] URLs coinciden, toggleando estado...');
+            if (audioPlayer.paused) {
+                console.log('[Campaigns] Reproduciendo...');
+                audioPlayer.play();
+                this.updatePlayButton(id, 'playing');
+            } else {
+                console.log('[Campaigns] Pausando...');
+                audioPlayer.pause();
+                this.updatePlayButton(id, 'paused');
+            }
+        } else {
+            console.log('[Campaigns] URLs NO coinciden o player no existe, creando nuevo player...');
+            // Reproducir nuevo audio
+            this.messageActions.playMessage(id, audioFilename);
+        }
+    }
+
+    /**
+     * Actualizar icono del botón de play
+     */
+    updatePlayButton(id, state) {
+        const button = this.container.querySelector(`button[data-message-id="${id}"]`);
+        if (button) {
+            if (state === 'playing') {
+                button.innerHTML = '⏸';
+                button.title = 'Pausar';
+            } else {
+                button.innerHTML = '▶';
+                button.title = 'Reproducir';
+            }
+        }
+    }
+
+    /**
+     * Resetear todos los botones de play
+     */
+    resetAllPlayButtons() {
+        const playButtons = this.container.querySelectorAll('.play-btn');
+        playButtons.forEach(btn => {
+            btn.innerHTML = '▶';
+            btn.title = 'Reproducir';
+        });
     }
 }
