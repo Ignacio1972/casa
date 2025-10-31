@@ -522,7 +522,7 @@ export default class DashboardV2Module {
     /**
      * Reproduce el audio generado
      */
-    playAudio(url) {
+    playAudio(url, filename = null) {
         // Crear reproductor si no existe
         let playerContainer = document.getElementById('audioPlayerContainer');
         if (!playerContainer) {
@@ -546,16 +546,42 @@ export default class DashboardV2Module {
             `;
             this.elements.messageForm.parentNode.appendChild(playerContainer);
         }
-        
+
         const audio = playerContainer.querySelector('#audioPlayer');
-        audio.src = url;
-        audio.play();
+
+        // Resetear todos los botones antes de reproducir
+        this.resetAllPlayButtons();
+
+        // Remover event listeners anteriores para evitar duplicados
+        const newAudio = audio.cloneNode(true);
+        audio.parentNode.replaceChild(newAudio, audio);
+
+        newAudio.src = url;
+        newAudio.play();
         playerContainer.style.display = 'block';
-        
+
+        // Guardar referencia al filename actual
+        newAudio.dataset.currentFilename = filename;
+
+        // Event listeners para sincronizar botones
+        if (filename) {
+            newAudio.addEventListener('play', () => {
+                this.updatePlayButton(filename, 'playing');
+            });
+
+            newAudio.addEventListener('pause', () => {
+                this.updatePlayButton(filename, 'paused');
+            });
+
+            newAudio.addEventListener('ended', () => {
+                this.updatePlayButton(filename, 'paused');
+            });
+        }
+
         // Configurar botón de guardar
         const saveBtn = playerContainer.querySelector('#saveToLibraryBtn');
         saveBtn.onclick = () => this.saveToLibrary(url);
-        
+
         // Configurar botón de enviar a radio
         const sendToRadioBtn = playerContainer.querySelector('#sendToRadioBtn');
         sendToRadioBtn.onclick = () => this.sendToRadio();
@@ -565,21 +591,57 @@ export default class DashboardV2Module {
      * Guarda el mensaje en la biblioteca
      */
     async saveToLibrary(audioUrl) {
-        const text = this.elements.messageText.value;
-        const voice = this.state.voices.find(v => v.key === this.state.selectedVoice);
-        
-        // Aquí iría la lógica para guardar
-        // Por ahora solo emitimos el evento
-        this.eventBus.emit('message:saved:library', {
-            text: text,
-            audioUrl: audioUrl,
-            voice: voice.label,
-            timestamp: new Date().toISOString(),
-            // Incluir el filename si es un jingle
-            filename: this.state.lastGeneratedFilename || null
-        });
-        
-        this.showSuccess('Mensaje guardado en la biblioteca');
+        // 1. Validar que existe un archivo de audio generado
+        const filename = this.state.lastGeneratedFilename;
+
+        if (!filename) {
+            this.showToast('No hay audio disponible para guardar', 'error');
+            return;
+        }
+
+        // 2. Obtener título del mensaje (truncar a 50 caracteres)
+        const text = this.elements.messageText.value.trim();
+        const title = text ? text.substring(0, 50) : 'Audio sin título';
+
+        // 3. Obtener categoría seleccionada
+        const category = this.state.selectedCategory || 'sin_categoria';
+
+        try {
+            // 4. Guardar en la base de datos mediante API
+            const response = await this.apiClient.post('/api/saved-messages.php', {
+                action: 'mark_as_saved',
+                filename: filename,
+                category: category,
+                title: title
+            });
+
+            if (response.success) {
+                // 5. Emitir evento para Campaign Library con datos completos
+                this.eventBus.emit('message:saved:library', {
+                    id: response.data.id,
+                    filename: response.data.filename,
+                    title: response.data.display_name || title,
+                    category: response.data.category,
+                    type: 'audio',
+                    savedAt: response.data.saved_at
+                });
+
+                // 6. Mostrar toast de éxito (igual que saveToFavorites)
+                this.showToast('✓ Mensaje guardado exitosamente', 'success');
+
+                console.log('[Dashboard v2] Mensaje guardado en biblioteca:', {
+                    filename: filename,
+                    title: title,
+                    category: category
+                });
+            } else {
+                throw new Error(response.error || 'Error al guardar en la base de datos');
+            }
+
+        } catch (error) {
+            console.error('[Dashboard v2] Error guardando en biblioteca:', error);
+            this.showToast('Error al guardar el mensaje', 'error');
+        }
     }
     
     /**
@@ -673,7 +735,7 @@ export default class DashboardV2Module {
                 <div class="message-preview">${this.truncateText(msg.notes || msg.content || 'Archivo de audio guardado', 100)}</div>
                 <div class="message-footer">
                     <div class="message-actions">
-                        ${msg.filename ? `<button class="btn-icon" title="Reproducir" onclick="window.dashboardV2.playMessageAudio('${msg.filename}')">▶</button>` : ''}
+                        ${msg.filename ? `<button class="btn-icon play-btn" data-filename="${msg.filename}" title="Reproducir" onclick="window.dashboardV2.togglePlayPause('${msg.filename}')">▶</button>` : ''}
                         <button class="btn-icon btn-save" title="Guardar" onclick="window.dashboardV2.saveToFavorites('${msg.id}', '${msg.filename || ''}', '${(msg.title || '').replace(/'/g, "\\'")}', '${msg.category || 'sin_categoria'}')">✓</button>
                         <button class="btn-icon btn-delete" title="Eliminar" onclick="window.dashboardV2.removeMessage('${msg.id}')">🗑️</button>
                     </div>
@@ -682,6 +744,54 @@ export default class DashboardV2Module {
         `).join('');
     }
     
+    // Método toggle para play/pause
+    togglePlayPause(filename) {
+        if (!filename) {
+            this.showError('Audio no disponible');
+            return;
+        }
+
+        const audioPlayer = document.getElementById('audioPlayer');
+        const currentUrl = `/api/biblioteca.php?filename=${filename}`;
+
+        // Si existe un player y está reproduciendo este mismo archivo
+        if (audioPlayer && audioPlayer.src === window.location.origin + currentUrl) {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                this.updatePlayButton(filename, 'playing');
+            } else {
+                audioPlayer.pause();
+                this.updatePlayButton(filename, 'paused');
+            }
+        } else {
+            // Reproducir nuevo audio
+            this.playMessageAudio(filename);
+        }
+    }
+
+    // Método para actualizar el icono del botón
+    updatePlayButton(filename, state) {
+        const button = this.elements.messageList.querySelector(`button[data-filename="${filename}"]`);
+        if (button) {
+            if (state === 'playing') {
+                button.innerHTML = '⏸';
+                button.title = 'Pausar';
+            } else {
+                button.innerHTML = '▶';
+                button.title = 'Reproducir';
+            }
+        }
+    }
+
+    // Resetear todos los botones de play a estado inicial
+    resetAllPlayButtons() {
+        const playButtons = this.elements.messageList.querySelectorAll('.play-btn');
+        playButtons.forEach(btn => {
+            btn.innerHTML = '▶';
+            btn.title = 'Reproducir';
+        });
+    }
+
     // Método para reproducir audio
     playMessageAudio(filename) {
         if (!filename) {
@@ -689,7 +799,7 @@ export default class DashboardV2Module {
             return;
         }
         const audioUrl = `/api/biblioteca.php?filename=${filename}`;
-        this.playAudio(audioUrl);
+        this.playAudio(audioUrl, filename);
     }
 
     // Método para guardar en favoritos

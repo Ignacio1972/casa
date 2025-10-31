@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Validar filename - ACTUALIZADO PARA PERMITIR MENSAJES, TTS LEGACY, JINGLES Y ARCHIVOS EXTERNOS
     $isTTSFile = preg_match('/^tts\d+(_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+)?\.mp3$/', $filename); // Legacy TTS
     $isMessageFile = preg_match('/^mensaje_.*\.mp3$/', $filename); // Nuevos mensajes descriptivos
-    $isJingleFile = preg_match('/^jingle_\d+_\d+_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+\.mp3$/', $filename);
+    $isJingleFile = preg_match('/^jingle_(auto_)?\d+_\d+_[a-zA-Z0-9_\-ñÑáéíóúÁÉÍÓÚ]+\.mp3$/', $filename); // Jingles normales y automáticos
     $isExternalFile = preg_match('/^[a-zA-Z0-9._\-ñÑáéíóúÁÉÍÓÚ]+\.(mp3|wav|flac|aac|ogg|m4a|opus)$/i', $filename);
     
     if (!$isTTSFile && !$isMessageFile && !$isJingleFile && !$isExternalFile) {
@@ -56,16 +56,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
     
-    // Para jingles, buscar primero en la carpeta temp local
-    if ($isJingleFile) {
+    // Para jingles y mensajes, buscar primero en la carpeta temp local
+    if ($isJingleFile || $isMessageFile) {
         $localJinglePath = __DIR__ . '/temp/' . $filename;
-        logMessage("Buscando jingle en carpeta local: $localJinglePath");
+        logMessage("Buscando archivo en carpeta local: $localJinglePath");
         
         if (file_exists($localJinglePath)) {
-            logMessage("Jingle encontrado en carpeta local");
+            logMessage("Archivo encontrado en carpeta local");
             $tempFile = $localJinglePath;
         } else {
-            logMessage("Jingle no encontrado en carpeta local, buscando en Docker");
+            logMessage("Archivo no encontrado en carpeta local, buscando en Docker");
             // Si no está en local, buscar en Docker como los demás archivos
             $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
             $tempFile = UPLOAD_DIR . 'temp_' . $filename;
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 escapeshellarg($tempFile)
             );
             
-            logMessage("copyCommand para jingle: " . $copyCommand);
+            logMessage("copyCommand: " . $copyCommand);
             $copyResult = shell_exec($copyCommand);
             logMessage("copyResult: " . $copyResult);
         }
