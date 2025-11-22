@@ -1,0 +1,520 @@
+/**
+ * RESET.CSS - MBI v3 System
+ * =================================
+ * Modern CSS Reset with dark theme optimizations
+ * Based on best practices for 2025 web development
+ * 
+ * @version: 1.0.0
+ */
+
+/* ========================================
+   Box Model Reset
+   ======================================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   Document Setup
+   ======================================== */
+
+html {
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  
+  /* Prevent text size adjustment on mobile */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  
+  /* Better font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Base font size for rem calculations */
+  font-size: 16px;
+  
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+}
+
+body {
+  /* Inherit line-height for consistency */
+  line-height: inherit;
+  
+  /* Full viewport height minimum */
+  min-height: 100vh;
+  
+  /* Text rendering optimization */
+  text-rendering: optimizeLegibility;
+  
+  /* Remove default margin */
+  margin: 0;
+  
+  /* Prevent iOS tap highlight */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ========================================
+   Typography Reset
+   ======================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  /* Remove default underline */
+  text-decoration: none;
+  
+  /* Inherit color */
+  color: inherit;
+  
+  /* Remove outline on focus (we'll add custom focus styles) */
+  outline: none;
+}
+
+a:not([class]) {
+  /* Default link underline for unstyled links */
+  text-decoration-skip-ink: auto;
+}
+
+strong, b {
+  font-weight: bolder;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub, sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/* ========================================
+   Lists Reset
+   ======================================== */
+
+ul,
+ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  margin: 0;
+  padding: 0;
+}
+
+/* ========================================
+   Forms Reset
+   ======================================== */
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  /* Inherit font from parent */
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  
+  /* Remove default margin */
+  margin: 0;
+  
+  /* Remove default padding */
+  padding: 0;
+  
+  /* Inherit color */
+  color: inherit;
+}
+
+button,
+input {
+  /* Remove overflow in IE */
+  overflow: visible;
+}
+
+button,
+select {
+  /* Remove text transform inheritance */
+  text-transform: none;
+}
+
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  /* Correct inability to style clickable types in iOS/Safari */
+  -webkit-appearance: button;
+  appearance: button;
+  
+  /* Remove default button styling */
+  background: transparent;
+  border: none;
+  
+  /* Pointer cursor */
+  cursor: pointer;
+  
+  /* Remove outline */
+  outline: none;
+}
+
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner,
+[type="reset"]::-moz-focus-inner,
+[type="submit"]::-moz-focus-inner {
+  /* Remove inner border and padding in Firefox */
+  border-style: none;
+  padding: 0;
+}
+
+button:-moz-focusring,
+[type="button"]:-moz-focusring,
+[type="reset"]:-moz-focusring,
+[type="submit"]:-moz-focusring {
+  /* Restore focus styles in Firefox */
+  outline: 1px dotted ButtonText;
+}
+
+input {
+  /* Remove default border */
+  border: none;
+  
+  /* Remove outline */
+  outline: none;
+  
+  /* Background reset */
+  background: transparent;
+}
+
+textarea {
+  /* Remove default border */
+  border: none;
+  
+  /* Remove outline */
+  outline: none;
+  
+  /* Background reset */
+  background: transparent;
+  
+  /* Only vertical resize */
+  resize: vertical;
+  
+  /* Remove overflow in IE */
+  overflow: auto;
+}
+
+select {
+  /* Remove default border */
+  border: none;
+  
+  /* Remove outline */
+  outline: none;
+  
+  /* Background reset */
+  background: transparent;
+  
+  /* Remove default arrow in IE */
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+fieldset {
+  /* Remove default styling */
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+legend {
+  /* Correct color inheritance */
+  color: inherit;
+  
+  /* Correct text wrapping */
+  display: table;
+  max-width: 100%;
+  white-space: normal;
+  
+  /* Remove padding */
+  padding: 0;
+}
+
+progress {
+  /* Add correct vertical alignment in Chrome, Firefox, Opera */
+  vertical-align: baseline;
+}
+
+[type="checkbox"],
+[type="radio"] {
+  /* Add correct box sizing in IE 10 */
+  box-sizing: border-box;
+  
+  /* Remove padding in IE 10 */
+  padding: 0;
+}
+
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button {
+  /* Remove spinner buttons */
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+[type="search"] {
+  /* Correct appearance in Chrome and Safari */
+  -webkit-appearance: textfield;
+  appearance: textfield;
+  
+  /* Correct outline in Safari */
+  outline-offset: -2px;
+}
+
+[type="search"]::-webkit-search-decoration,
+[type="search"]::-webkit-search-cancel-button {
+  /* Remove default search styling in Chrome/Safari */
+  -webkit-appearance: none;
+}
+
+::-webkit-file-upload-button {
+  /* Correct inability to style in iOS and Safari */
+  -webkit-appearance: button;
+  
+  /* Inherit font */
+  font: inherit;
+}
+
+/* ========================================
+   Media Reset
+   ======================================== */
+
+img,
+picture,
+video,
+canvas,
+svg {
+  /* Responsive images */
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+img {
+  /* Remove border on images inside links in IE 10 */
+  border-style: none;
+  
+  /* Preserve aspect ratio */
+  object-fit: cover;
+}
+
+svg {
+  /* Allow SVG to scale properly */
+  overflow: hidden;
+  
+  /* Vertical alignment fix */
+  vertical-align: middle;
+}
+
+/* ========================================
+   Table Reset
+   ======================================== */
+
+table {
+  /* Remove spacing between table cells */
+  border-collapse: collapse;
+  border-spacing: 0;
+  
+  /* Full width by default */
+  width: 100%;
+}
+
+td,
+th {
+  /* Remove default padding */
+  padding: 0;
+  
+  /* Text align left by default */
+  text-align: left;
+}
+
+/* ========================================
+   Dialog/Details Reset
+   ======================================== */
+
+details {
+  /* Add correct display in Edge, IE 10+, Firefox */
+  display: block;
+}
+
+summary {
+  /* Add correct display in all browsers */
+  display: list-item;
+  
+  /* Pointer cursor */
+  cursor: pointer;
+}
+
+dialog {
+  /* Reset dialog styling */
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ========================================
+   Hidden Elements
+   ======================================== */
+
+[hidden] {
+  /* Add correct display in IE 10 */
+  display: none !important;
+}
+
+template {
+  /* Add correct display in IE 10 */
+  display: none;
+}
+
+/* ========================================
+   Accessibility Helpers
+   ======================================== */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Remove focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ========================================
+   Scrollbar Styling (Optional)
+   ======================================== */
+
+/* Webkit scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(155, 155, 155, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 155, 155, 0.5);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.3) transparent;
+}
+
+/* ========================================
+   Selection Styling
+   ======================================== */
+
+::selection {
+  background: rgba(56, 122, 222, 0.3);
+  color: inherit;
+}
+
+::-moz-selection {
+  background: rgba(56, 122, 222, 0.3);
+  color: inherit;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+  
+  img {
+    max-width: 100% !important;
+  }
+  
+  @page {
+    margin: 0.5cm;
+  }
+}

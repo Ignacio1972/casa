@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test - Guardar en Biblioteca</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test-container { max-width: 600px; margin: 0 auto; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Test - Función Guardar en Biblioteca</h1>
+
+        <button onclick="testSaveToLibrary()">🧪 Probar Guardar en Biblioteca</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function testSaveToLibrary() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="log">Iniciando prueba...</div>';
+
+            try {
+                // Simular la llamada a la API
+                const response = await fetch('/api/saved-messages.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'mark_as_saved',
+                        filename: 'test_audio_' + Date.now() + '.mp3',
+                        category: 'test_category',
+                        title: 'Audio de prueba - ' + new Date().toLocaleTimeString()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultsDiv.innerHTML += `
+                        <div class="log success">
+                            ✅ Guardado exitoso!<br>
+                            ID: ${data.data.id}<br>
+                            Filename: ${data.data.filename}<br>
+                            Display Name: ${data.data.display_name}<br>
+                            Category: ${data.data.category}<br>
+                            Saved At: ${data.data.saved_at}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML += `
+                        <div class="log error">
+                            ❌ Error: ${data.error || 'Error desconocido'}
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="log error">
+                        ❌ Error de conexión: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

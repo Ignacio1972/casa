@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test MessageActions Refactorización</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h2 {
+            color: #00BCD4;
+            margin-top: 0;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #81C784;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #F44336;
+            color: #EF5350;
+        }
+        
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+            color: #64B5F6;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        .test-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Refactorización MessageActions</h1>
+    
+    <div class="test-section" style="background: rgba(255,193,7,0.1); border-color: #FFC107;">
+        <h2 style="color: #FFC107;">📌 Instrucciones de Uso</h2>
+        <div class="test-result info">
+            1. La página cargará automáticamente el módulo CampaignLibrary al iniciar
+        </div>
+        <div class="test-result info">
+            2. Si ves mensajes verdes (✅), el módulo se cargó correctamente
+        </div>
+        <div class="test-result info">
+            3. Presiona los botones para ejecutar diferentes pruebas
+        </div>
+        <div class="test-result info">
+            4. Revisa la consola del navegador (F12) para más detalles
+        </div>
+        <button onclick="location.reload()" style="background: #FF9800;">🔄 Recargar Página</button>
+        <button onclick="document.querySelectorAll('.test-result').forEach(el => el.remove())" style="background: #9C27B0;">🧹 Limpiar Resultados</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>1. Verificación de Carga del Módulo</h2>
+        <div id="module-status"></div>
+        <div class="test-controls">
+            <button onclick="checkModuleStatus()">Verificar Estado del Módulo</button>
+            <button onclick="loadCampaignModule()">Cargar Módulo Campaigns</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Verificación de MessageActions</h2>
+        <div id="message-actions-status"></div>
+        <div class="test-controls">
+            <button onclick="checkMessageActions()">Verificar MessageActions</button>
+            <button onclick="testMessageActionsMethods()">Probar Métodos</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Test de Funciones Delegadas</h2>
+        <div id="delegation-status"></div>
+        <div class="test-controls">
+            <button onclick="testDelegation()">Probar Delegación</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Test Completo de Acciones</h2>
+        <div id="actions-test"></div>
+        <div class="test-controls">
+            <button onclick="simulatePlayMessage()">Simular playMessage</button>
+            <button onclick="simulateEditMessage()">Simular editMessage</button>
+            <button onclick="simulateScheduleMessage()">Simular scheduleMessage</button>
+            <button onclick="simulateToggleCategory()">Simular toggleCategory</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Resultados del Test</h2>
+        <div id="test-results"></div>
+    </div>
+    
+    <script type="module">
+        // Importar los módulos necesarios
+        import { eventBus } from '/src/core/event-bus.js';
+        import { CampaignLibraryModule } from '/src/modules/campaigns/index.js';
+        
+        // Estado global para tests
+        window.testResults = [];
+        window.campaignModule = null;
+        
+        // Función auxiliar para mostrar resultados
+        function addResult(section, message, type = 'info') {
+            const element = document.getElementById(section);
+            if (!element) {
+                console.error(`Elemento ${section} no encontrado`);
+                return;
+            }
+            const result = document.createElement('div');
+            result.className = `test-result ${type}`;
+            result.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            element.appendChild(result);
+            
+            // También guardar en array global
+            window.testResults.push({
+                time: new Date().toLocaleTimeString(),
+                section,
+                message,
+                type
+            });
+        }
+        
+        // 1. Verificar estado del módulo
+        window.checkModuleStatus = function() {
+            try {
+                if (window.campaignLibrary) {
+                    addResult('module-status', '✅ window.campaignLibrary está disponible', 'success');
+                    
+                    // Verificar propiedades importantes
+                    const properties = ['playMessage', 'editMessage', 'sendToRadio', 
+                                      'scheduleMessage', 'deleteMessage', 'toggleCategoryDropdown',
+                                      'updateCategory', 'changeCategory'];
+                    
+                    properties.forEach(prop => {
+                        if (typeof window.campaignLibrary[prop] === 'function') {
+                            addResult('module-status', `✅ Método ${prop} está disponible`, 'success');
+                        } else {
+                            addResult('module-status', `❌ Método ${prop} NO está disponible`, 'error');
+                        }
+                    });
+                } else {
+                    addResult('module-status', '⚠️ window.campaignLibrary NO está cargado', 'error');
+                }
+            } catch (error) {
+                addResult('module-status', `❌ Error: ${error.message}`, 'error');
+            }
+        };
+        
+        // 2. Cargar módulo campaigns
+        window.loadCampaignModule = async function() {
+            try {
+                const container = document.createElement('div');
+                container.id = 'campaigns-container';
+                document.body.appendChild(container);
+                
+                window.campaignModule = new CampaignLibraryModule(container);
+                await window.campaignModule.initialize();
+                
+                addResult('module-status', '✅ Módulo CampaignLibrary inicializado correctamente', 'success');
+                
+                // Verificar que window.campaignLibrary esté disponible
+                if (window.campaignLibrary) {
+                    addResult('module-status', '✅ window.campaignLibrary creado exitosamente', 'success');
+                }
+            } catch (error) {
+                addResult('module-status', `❌ Error inicializando módulo: ${error.message}`, 'error');
+            }
+        };
+        
+        // 3. Verificar MessageActions
+        window.checkMessageActions = function() {
+            try {
+                if (!window.campaignModule) {
+                    addResult('message-actions-status', '⚠️ Primero debes cargar el módulo', 'error');
+                    return;
+                }
+                
+                // Verificar que messageActions existe
+                if (window.campaignModule.messageActions) {
+                    addResult('message-actions-status', '✅ messageActions está inicializado', 'success');
+                    
+                    // Verificar referencia al parent
+                    if (window.campaignModule.messageActions.parent === window.campaignModule) {
+                        addResult('message-actions-status', '✅ Referencia parent correcta', 'success');
+                    } else {
+                        addResult('message-actions-status', '❌ Referencia parent incorrecta', 'error');
+                    }
+                    
+                    // Verificar métodos
+                    const methods = ['getMessage', 'playMessage', 'editMessage', 'sendToRadio',
+                                   'scheduleMessage', 'deleteMessage', 'toggleCategoryDropdown',
+                                   'updateCategory', 'changeCategory'];
+                    
+                    methods.forEach(method => {
+                        if (typeof window.campaignModule.messageActions[method] === 'function') {
+                            addResult('message-actions-status', `✅ MessageActions.${method} existe`, 'success');
+                        } else {
+                            addResult('message-actions-status', `❌ MessageActions.${method} NO existe`, 'error');
+                        }
+                    });
+                } else {
+                    addResult('message-actions-status', '❌ messageActions NO está inicializado', 'error');
+                }
+            } catch (error) {
+                addResult('message-actions-status', `❌ Error: ${error.message}`, 'error');
+            }
+        };
+        
+        // 4. Test de métodos de MessageActions
+        window.testMessageActionsMethods = function() {
+            try {
+                if (!window.campaignModule || !window.campaignModule.messageActions) {
+                    addResult('message-actions-status', '⚠️ MessageActions no disponible', 'error');
+                    return;
+                }
+                
+                // Agregar un mensaje de prueba
+                const testMessage = {
+                    id: 'test-msg-1',
+                    title: 'Mensaje de Prueba',
+                    type: 'audio',
+                    filename: 'test.mp3',
+                    category: 'ofertas',
+                    createdAt: Date.now()
+                };
+                
+                window.campaignModule.messages = [testMessage];
+                addResult('message-actions-status', '✅ Mensaje de prueba agregado', 'info');
+                
+                // Probar getMessage
+                const retrieved = window.campaignModule.messageActions.getMessage('test-msg-1');
+                if (retrieved && retrieved.id === 'test-msg-1') {
+                    addResult('message-actions-status', '✅ getMessage funciona correctamente', 'success');
+                } else {
+                    addResult('message-actions-status', '❌ getMessage falló', 'error');
+                }
+            } catch (error) {
+                addResult('message-actions-status', `❌ Error en prueba: ${error.message}`, 'error');
+            }
+        };
+        
+        // 5. Test de delegación
+        window.testDelegation = function() {
+            try {
+                if (!window.campaignLibrary) {
+                    addResult('delegation-status', '⚠️ window.campaignLibrary no disponible', 'error');
+                    return;
+                }
+                
+                // Verificar que los métodos delegados apuntan a messageActions
+                const testMethods = ['playMessage', 'editMessage', 'sendToRadio', 'scheduleMessage'];
+                
+                testMethods.forEach(method => {
+                    // Verificar que el método existe
+                    if (typeof window.campaignLibrary[method] === 'function') {
+                        // Verificar que es una función delegada (contiene bind o arrow function)
+                        const funcString = window.campaignLibrary[method].toString();
+                        if (funcString.includes('messageActions') || funcString.includes('=>')) {
+                            addResult('delegation-status', 
+                                     `✅ ${method} está correctamente delegado`, 'success');
+                        } else {
+                            addResult('delegation-status', 
+                                     `⚠️ ${method} puede no estar delegado correctamente`, 'info');
+                        }
+                    } else {
+                        addResult('delegation-status', 
+                                 `❌ ${method} no está disponible`, 'error');
+                    }
+                });
+                
+                addResult('delegation-status', '✅ Test de delegación completado', 'success');
+            } catch (error) {
+                addResult('delegation-status', `❌ Error: ${error.message}`, 'error');
+            }
+        };
+        
+        // 6. Simulaciones de acciones
+        window.simulatePlayMessage = function() {
+            try {
+                addResult('actions-test', '🎵 Simulando playMessage...', 'info');
+                
+                // Agregar mensaje de prueba si no existe
+                if (!window.campaignModule.messages.length) {
+                    window.campaignModule.messages.push({
+                        id: 'audio-test',
+                        title: 'Audio de Prueba',
+                        type: 'audio',
+                        filename: 'test-audio.mp3'
+                    });
+                }
+                
+                // Intentar reproducir (fallará sin archivo real pero probará la función)
+                window.campaignLibrary.playMessage('audio-test');
+                addResult('actions-test', '✅ playMessage ejecutado sin errores', 'success');
+            } catch (error) {
+                addResult('actions-test', `❌ Error en playMessage: ${error.message}`, 'error');
+            }
+        };
+        
+        window.simulateEditMessage = function() {
+            try {
+                addResult('actions-test', '✏️ Simulando editMessage...', 'info');
+                
+                // Mockear prompt
+                const originalPrompt = window.prompt;
+                window.prompt = () => null; // Simular cancelación
+                
+                window.campaignLibrary.editMessage('test-msg-1');
+                
+                window.prompt = originalPrompt;
+                addResult('actions-test', '✅ editMessage ejecutado sin errores', 'success');
+            } catch (error) {
+                addResult('actions-test', `❌ Error en editMessage: ${error.message}`, 'error');
+            }
+        };
+        
+        window.simulateScheduleMessage = function() {
+            try {
+                addResult('actions-test', '📅 Simulando scheduleMessage...', 'info');
+                
+                // Agregar mensaje de audio si no existe
+                if (!window.campaignModule.messages.find(m => m.type === 'audio')) {
+                    window.campaignModule.messages.push({
+                        id: 'schedule-test',
+                        title: 'Audio para Programar',
+                        type: 'audio',
+                        filename: 'schedule-test.mp3',
+                        category: 'eventos'
+                    });
+                }
+                
+                window.campaignLibrary.scheduleMessage('schedule-test', 'Test Schedule');
+                addResult('actions-test', '✅ scheduleMessage ejecutado sin errores', 'success');
+            } catch (error) {
+                addResult('actions-test', `❌ Error en scheduleMessage: ${error.message}`, 'error');
+            }
+        };
+        
+        window.simulateToggleCategory = function() {
+            try {
+                addResult('actions-test', '📁 Simulando toggleCategoryDropdown...', 'info');
+                
+                // Crear evento mock
+                const mockEvent = {
+                    stopPropagation: () => {}
+                };
+                
+                window.campaignLibrary.toggleCategoryDropdown(mockEvent, 'test-msg-1');
+                addResult('actions-test', '✅ toggleCategoryDropdown ejecutado sin errores', 'success');
+            } catch (error) {
+                addResult('actions-test', `❌ Error en toggleCategoryDropdown: ${error.message}`, 'error');
+            }
+        };
+        
+        // Hacer funciones globales disponibles
+        window.addResult = addResult;
+        
+        // Auto-cargar el módulo al inicio
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Página de pruebas cargada');
+            addResult('test-results', '🚀 Página de pruebas iniciada', 'info');
+            addResult('test-results', '📋 Instrucciones: Los botones ejecutarán pruebas del módulo MessageActions', 'info');
+            addResult('test-results', '⏳ Cargando módulo automáticamente...', 'info');
+            
+            // Intentar cargar el módulo automáticamente
+            try {
+                await loadCampaignModule();
+                addResult('test-results', '✅ Módulo cargado. Puedes presionar los botones para ejecutar pruebas.', 'success');
+                
+                // Verificar estado inicial
+                checkModuleStatus();
+            } catch (error) {
+                addResult('test-results', `❌ Error cargando módulo: ${error.message}`, 'error');
+                console.error('Error completo:', error);
+            }
+        });
+    </script>
+</body>
+</html>

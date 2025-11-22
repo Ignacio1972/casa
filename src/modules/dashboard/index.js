@@ -133,6 +133,9 @@ export default class DashboardV2Module {
         }
         const html = await response.text();
         this.container.innerHTML = html;
+
+        // Esperar un tick para que el DOM se actualice completamente
+        await new Promise(resolve => setTimeout(resolve, 0));
     }
     
     /**
@@ -286,33 +289,39 @@ export default class DashboardV2Module {
      */
     setupEventListeners() {
         // Botón generar
-        this.elements.generateBtn.addEventListener('click', () => this.handleGenerate());
-        
+        if (this.elements.generateBtn) {
+            this.elements.generateBtn.addEventListener('click', () => this.handleGenerate());
+        }
+
         // Controles de voz reactivados
-        
+
         // Toggle de valores por defecto
         if (this.elements.defaultValuesToggle) {
             this.elements.defaultValuesToggle.addEventListener('change', (e) => {
                 this.handleDefaultValuesToggle(e.target.checked);
             });
         }
-        
+
         // Sliders
         this.setupSlider('style', 'Style', value => this.state.voiceSettings.style = value / 100);
         this.setupSlider('stability', 'Stability', value => this.state.voiceSettings.stability = value / 100);
         this.setupSlider('clarity', 'Similarity', value => this.state.voiceSettings.similarity_boost = value / 100);
-        
+
         // Selector de voz
-        this.elements.voiceSelect.addEventListener('change', (e) => {
-            this.state.selectedVoice = e.target.value;
-        });
-        
+        if (this.elements.voiceSelect) {
+            this.elements.voiceSelect.addEventListener('change', (e) => {
+                this.state.selectedVoice = e.target.value;
+            });
+        }
+
         // Inicializar categoría moderna
         this.initializeCategory();
-        
-        // Refrescar mensajes
-        this.elements.refreshMessages.addEventListener('click', () => this.loadRecentMessages());
-        
+
+        // Refrescar mensajes (verificar que exista)
+        if (this.elements.refreshMessages) {
+            this.elements.refreshMessages.addEventListener('click', () => this.loadRecentMessages());
+        }
+
         // Escuchar eventos del sistema
         this.eventBus.on('message:saved:library', () => this.loadRecentMessages());
     }
@@ -360,13 +369,19 @@ export default class DashboardV2Module {
         const slider = this.elements[`${name}Slider`];
         const value = this.elements[`${name}Value`];
         const track = this.elements[`${name}Track`];
-        
+
+        // Verificar que todos los elementos existen
+        if (!slider || !value || !track) {
+            console.warn(`[Dashboard v2] Slider ${name} elements not found`);
+            return;
+        }
+
         slider.addEventListener('input', (e) => {
             const val = e.target.value;
             value.textContent = val + '%';
             track.style.width = val + '%';
             callback(val);
-            
+
             // Desactivar toggle de valores por defecto al cambiar un slider
             if (this.state.useDefaultValues && this.elements.defaultValuesToggle) {
                 this.state.useDefaultValues = false;
@@ -456,12 +471,12 @@ export default class DashboardV2Module {
                     const audioUrl = 'data:audio/mp3;base64,' + response.audio;
                     this.playAudio(audioUrl);
                     this.showSuccess(`¡Jingle generado! Duración: ${response.duration?.toFixed(1) || 'N/A'}s`);
-                    
-                    // Guardar el filename del jingle para poder enviarlo a la radio después
+
+                    // Guardar el filename del jingle para poder enviarlo después
                     if (response.filename) {
                         this.state.lastGeneratedFilename = response.filename;
                     }
-                    
+
                     // Actualizar mensajes recientes para que aparezca el jingle
                     await this.loadRecentMessages();
                 } else {
@@ -497,11 +512,10 @@ export default class DashboardV2Module {
                     const audioUrl = response.audio_url || `/api/temp/${response.filename}`;
                     this.playAudio(audioUrl);
                     this.showSuccess('Audio generado exitosamente');
-                    
-                    // Guardar el filename para poder enviarlo a la radio después
-                    // Usar azuracast_filename si está disponible, sino usar filename
-                    this.state.lastGeneratedFilename = response.azuracast_filename || response.filename;
-                    
+
+                    // Guardar el filename para poder enviarlo después
+                    this.state.lastGeneratedFilename = response.filename;
+
                     // Actualizar mensajes recientes (quota eliminado)
                     await this.loadRecentMessages();
                 } else {
@@ -536,11 +550,14 @@ export default class DashboardV2Module {
                     <button type="button" id="saveToLibraryBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
                         💾 Guardar en Biblioteca
                     </button>
-                    <button type="button" id="sendToRadioBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" id="sendToLocalPlayerBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
+                        🖥️ Enviar a Máquina Local
+                    </button>
+                    <button type="button" id="sendToAzuracastBtn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
                         <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="currentColor">
                             <path d="M480-120q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM254-346l-84-86q59-59 138.5-93.5T480-560q92 0 171.5 35T790-430l-84 84q-44-44-102-69t-124-25q-66 0-124 25t-102 69ZM84-516 0-600q92-94 215-147t265-53q142 0 265 53t215 147l-84 84q-77-77-178.5-120.5T480-680q-116 0-217.5 43.5T84-516Z"/>
                         </svg>
-                        Enviar a la Radio
+                        Enviar a AzuraCast
                     </button>
                 </div>
             `;
@@ -582,9 +599,13 @@ export default class DashboardV2Module {
         const saveBtn = playerContainer.querySelector('#saveToLibraryBtn');
         saveBtn.onclick = () => this.saveToLibrary(url);
 
-        // Configurar botón de enviar a radio
-        const sendToRadioBtn = playerContainer.querySelector('#sendToRadioBtn');
-        sendToRadioBtn.onclick = () => this.sendToRadio();
+        // Configurar botón de enviar a Máquina Local
+        const sendToLocalPlayerBtn = playerContainer.querySelector('#sendToLocalPlayerBtn');
+        sendToLocalPlayerBtn.onclick = () => this.sendToLocalPlayer();
+
+        // Configurar botón de enviar a AzuraCast
+        const sendToAzuracastBtn = playerContainer.querySelector('#sendToAzuracastBtn');
+        sendToAzuracastBtn.onclick = () => this.sendToAzuracast();
     }
     
     /**
@@ -645,45 +666,66 @@ export default class DashboardV2Module {
     }
     
     /**
-     * Envía el mensaje generado a la radio
+     * Envía el mensaje generado a Máquina Local (Player Local)
      */
-    async sendToRadio() {
-        // Obtener el filename del último audio generado
+    async sendToLocalPlayer() {
         const filename = this.state.lastGeneratedFilename;
-        
+
         if (!filename) {
             this.showError('No hay audio disponible para enviar');
             return;
         }
-        
-        if (!confirm(`¿Quiere que este mensaje suene ahora mismo en la radio?`)) return;
-        
+
+        if (!confirm('¿Quiere enviar este mensaje a 🖥️ Máquina Local?')) return;
+
         try {
-            // Determinar si es un jingle o mensaje normal
-            // Los jingles empiezan con "jingle_", los mensajes con "tts"
-            const isJingle = filename.startsWith('jingle_');
-            
-            // Usar el endpoint correcto según el tipo
-            // Para jingles y mensajes TTS generados, usamos generate.php
-            const endpoint = '/api/generate.php';
-            const action = 'send_to_radio';
-            
-            const response = await this.apiClient.post(endpoint, {
-                action: action,
-                filename: filename
+            const response = await this.apiClient.post('/api/generate.php', {
+                action: 'send_to_radio',
+                filename: filename,
+                destination: 'local_player'
             });
-            
+
             if (response.success) {
-                this.showSuccess('¡Mensaje enviado a la radio!');
-                
-                // Actualizar mensajes recientes para reflejar el cambio
+                this.showSuccess('¡Mensaje enviado a 🖥️ Máquina Local!');
                 await this.loadRecentMessages();
             } else {
                 throw new Error(response.error || 'Error desconocido');
             }
         } catch (error) {
-            console.error('[Dashboard v2] Error enviando a radio:', error);
-            this.showError('Error al enviar a la radio: ' + error.message);
+            console.error('[Dashboard v2] Error enviando a Máquina Local:', error);
+            this.showError('Error al enviar a Máquina Local: ' + error.message);
+        }
+    }
+
+    /**
+     * Envía el mensaje generado a AzuraCast (Radio)
+     */
+    async sendToAzuracast() {
+        const filename = this.state.lastGeneratedFilename;
+
+        if (!filename) {
+            this.showError('No hay audio disponible para enviar');
+            return;
+        }
+
+        if (!confirm('¿Quiere que este mensaje suene ahora mismo en 📻 AzuraCast?')) return;
+
+        try {
+            const response = await this.apiClient.post('/api/generate.php', {
+                action: 'send_to_radio',
+                filename: filename,
+                destination: 'azuracast'
+            });
+
+            if (response.success) {
+                this.showSuccess('¡Mensaje enviado a 📻 AzuraCast!');
+                await this.loadRecentMessages();
+            } else {
+                throw new Error(response.error || 'Error desconocido');
+            }
+        } catch (error) {
+            console.error('[Dashboard v2] Error enviando a AzuraCast:', error);
+            this.showError('Error al enviar a AzuraCast: ' + error.message);
         }
     }
     
@@ -743,8 +785,10 @@ export default class DashboardV2Module {
             </div>
         `).join('');
     }
-    
-    // Método toggle para play/pause
+
+    /**
+     * Método para alternar play/pause en mensajes recientes
+     */
     togglePlayPause(filename) {
         if (!filename) {
             this.showError('Audio no disponible');
@@ -1115,7 +1159,7 @@ export default class DashboardV2Module {
             }, 300);
         }, 3000);
     }
-    
+
     /**
      * Maneja el dropdown de categorías
      */

@@ -25,28 +25,33 @@ export class MessageActions {
     /**
      * Reproducir mensaje de audio
      */
-    async playMessage(id) {
+    async playMessage(id, audioFilename = null) {
         const message = this.getMessage(id);
-        
-        // Determinar el archivo de audio según el tipo
-        let audioFilename;
-        if (message.type === 'audio') {
-            audioFilename = message.filename; // Archivos de audio guardados
-        } else {
-            audioFilename = message.audioFilename; // Mensajes de texto con audio generado
+
+        // Si no se proporcionó el audioFilename, determinarlo
+        if (!audioFilename) {
+            // Determinar el archivo de audio según el tipo
+            if (message.type === 'audio') {
+                audioFilename = message.filename; // Archivos de audio guardados
+            } else {
+                audioFilename = message.audioFilename; // Mensajes de texto con audio generado
+            }
         }
-        
+
         if (!message || !audioFilename) {
             this.parent.showError('Audio no disponible');
             return;
         }
-        
+
+        // Resetear todos los botones de play
+        this.parent.resetAllPlayButtons();
+
         // Remover player anterior si existe
         const existingPlayer = document.querySelector('.floating-player');
         if (existingPlayer) {
             existingPlayer.remove();
         }
-        
+
         // Crear player flotante
         const player = document.createElement('div');
         player.className = 'floating-player';
@@ -60,8 +65,22 @@ export class MessageActions {
                 Tu navegador no soporta el elemento de audio.
             </audio>
         `;
-        
+
         document.body.appendChild(player);
+
+        // Configurar eventos del audio para sincronizar botones
+        const audio = player.querySelector('audio');
+        audio.addEventListener('play', () => {
+            this.parent.updatePlayButton(id, 'playing');
+        });
+
+        audio.addEventListener('pause', () => {
+            this.parent.updatePlayButton(id, 'paused');
+        });
+
+        audio.addEventListener('ended', () => {
+            this.parent.updatePlayButton(id, 'paused');
+        });
     }
 
     /**
@@ -214,29 +233,37 @@ export class MessageActions {
     async deleteMessage(id) {
         const message = this.getMessage(id);
         if (!message) return;
-        
+
         if (!confirm(`¿Eliminar "${message.title}" permanentemente?\n\nEsta acción no se puede deshacer.`)) return;
-        
+
         // Eliminar localmente
         storageManager.delete(`library_message_${message.id}`);
-        
+
         // Eliminar del array
         this.parent.messages = this.parent.messages.filter(m => m.id !== id);
-        
-        // Eliminar en backend
+
+        // Eliminar en backend (soft delete)
         try {
-            await fetch('/api/library-metadata.php', {
+            const response = await fetch('/api/saved-messages.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: 'delete',
+                    action: 'soft_delete',
                     id: message.id
                 })
             });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                console.error('Error en soft_delete:', result.error);
+            } else {
+                console.log('[Campaign] Mensaje eliminado de BD:', message.id);
+            }
         } catch (error) {
             console.error('Error eliminando en backend:', error);
         }
-        
+
         // Actualizar UI
         this.parent.updateFilterCounts();
         this.parent.displayMessages();

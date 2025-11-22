@@ -1,8 +1,8 @@
 <?php
 /**
- * Configuración Principal - Casa Costanera
+ * Configuración Principal - MediaFlow
  * Sistema de Radio Automatizada
- * Puerto: 4000
+ * Puerto: 2082
  */
 
 // Cargar variables de entorno si existe .env
@@ -14,14 +14,14 @@ if (file_exists(__DIR__ . '/../.env')) {
 }
 
 // Configuración del Sistema
-define('APP_NAME', $_ENV['APP_NAME'] ?? 'Casa Costanera');
+define('APP_NAME', $_ENV['APP_NAME'] ?? 'MediaFlow');
 define('APP_VERSION', $_ENV['APP_VERSION'] ?? '1.0.0');
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'production');
 define('APP_DEBUG', $_ENV['APP_DEBUG'] ?? false);
-define('APP_PORT', $_ENV['APP_PORT'] ?? 4000);
+define('APP_PORT', $_ENV['APP_PORT'] ?? 2082);
 
 // URLs
-define('APP_URL', $_ENV['APP_URL'] ?? 'http://51.222.25.222:4000');
+define('APP_URL', $_ENV['APP_URL'] ?? 'http://148.113.205.115:2082');
 define('API_URL', APP_URL . '/api');
 define('ASSETS_URL', APP_URL . '/assets');
 

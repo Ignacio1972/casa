@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test - Preview de Mensajes Recientes</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .test-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        h1 { color: #333; }
+        .message-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #fff;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .message-title {
+            font-weight: bold;
+            color: #333;
+        }
+        .message-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .message-preview {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .message-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-icon {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-icon:hover {
+            background: #f0f0f0;
+        }
+        .play-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+        }
+        .play-btn:hover {
+            background: #45a049;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 5px;
+        }
+        audio {
+            width: 100%;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - Preview de Mensajes Recientes</h1>
+
+        <div id="message-list">
+            <!-- Mensajes de prueba se generarán aquí -->
+        </div>
+
+        <div id="audioPlayerContainer" style="display: none; margin-top: 20px;">
+            <audio id="audioPlayer" controls style="width: 100%;"></audio>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // Simular mensajes de prueba
+        const testMessages = [
+            {
+                id: 1,
+                title: "Promoción de verano",
+                filename: "tts_1730491200_Rachel.mp3",
+                category: "promociones",
+                preview: "Gran oferta de verano con descuentos hasta 50%"
+            },
+            {
+                id: 2,
+                title: "Evento cultural",
+                filename: "tts_1730491300_Domi.mp3",
+                category: "eventos",
+                preview: "Este fin de semana, festival de música en vivo"
+            },
+            {
+                id: 3,
+                title: "Información importante",
+                filename: "tts_1730491400_Bella.mp3",
+                category: "informacion",
+                preview: "Horario especial para el día feriado"
+            }
+        ];
+
+        // Estado del reproductor
+        let currentPlayingFile = null;
+
+        // Función para alternar play/pause
+        function togglePlayPause(filename) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const audioUrl = `/api/biblioteca.php?filename=${filename}`;
+            const container = document.getElementById('audioPlayerContainer');
+
+            // Si existe un player y está reproduciendo este mismo archivo
+            if (audioPlayer && audioPlayer.dataset.currentFile === filename) {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    updatePlayButton(filename, 'playing');
+                    updateStatus(`Reproduciendo: ${filename}`);
+                } else {
+                    audioPlayer.pause();
+                    updatePlayButton(filename, 'paused');
+                    updateStatus(`Pausado: ${filename}`);
+                }
+            } else {
+                // Reproducir nuevo audio
+                resetAllPlayButtons();
+                audioPlayer.src = audioUrl;
+                audioPlayer.dataset.currentFile = filename;
+                audioPlayer.play();
+                container.style.display = 'block';
+                updatePlayButton(filename, 'playing');
+                updateStatus(`Cargando y reproduciendo: ${filename}`);
+
+                // Event listeners
+                audioPlayer.onplay = () => updatePlayButton(filename, 'playing');
+                audioPlayer.onpause = () => updatePlayButton(filename, 'paused');
+                audioPlayer.onended = () => {
+                    updatePlayButton(filename, 'paused');
+                    updateStatus(`Finalizado: ${filename}`);
+                };
+            }
+        }
+
+        // Actualizar botón de play
+        function updatePlayButton(filename, state) {
+            const button = document.querySelector(`button[data-filename="${filename}"]`);
+            if (button) {
+                if (state === 'playing') {
+                    button.innerHTML = '⏸';
+                    button.title = 'Pausar';
+                } else {
+                    button.innerHTML = '▶';
+                    button.title = 'Reproducir';
+                }
+            }
+        }
+
+        // Resetear todos los botones
+        function resetAllPlayButtons() {
+            const buttons = document.querySelectorAll('.play-btn');
+            buttons.forEach(btn => {
+                btn.innerHTML = '▶';
+                btn.title = 'Reproducir';
+            });
+        }
+
+        // Actualizar estado
+        function updateStatus(message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `📊 Estado: ${message}`;
+        }
+
+        // Renderizar mensajes
+        function renderMessages() {
+            const messageList = document.getElementById('message-list');
+            messageList.innerHTML = testMessages.map(msg => `
+                <div class="message-item" data-id="${msg.id}">
+                    <div class="message-header">
+                        <span class="message-title">${msg.title}</span>
+                        <span class="message-badge">${msg.category}</span>
+                    </div>
+                    <div class="message-preview">${msg.preview}</div>
+                    <div class="message-actions">
+                        <button class="btn-icon play-btn"
+                                data-filename="${msg.filename}"
+                                title="Reproducir"
+                                onclick="togglePlayPause('${msg.filename}')">▶</button>
+                        <button class="btn-icon" title="Guardar">💾</button>
+                        <button class="btn-icon" title="Eliminar">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateStatus('Mensajes cargados. Haz clic en ▶ para reproducir.');
+        }
+
+        // Inicializar al cargar
+        document.addEventListener('DOMContentLoaded', renderMessages);
+    </script>
+</body>
+</html>

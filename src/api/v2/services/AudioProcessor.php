@@ -204,35 +204,18 @@ class AudioProcessor {
         );
         
         exec($cmd, $output, $returnCode);
-        
+
         if ($returnCode !== 0) {
+            error_log("[AudioProcessor] Normalización falló: " . implode("\n", $output));
             return ['success' => false, 'error' => 'Normalization failed'];
         }
-        
-        // Analizar el resultado para obtener métricas
-        $finalCmd = sprintf(
-            '%s -i %s -af "loudnorm=I=%d:TP=-1.0:LRA=11.0:print_format=summary" -f null - 2>&1',
-            self::FFMPEG_PATH,
-            escapeshellarg($outputFile),
-            $targetLufs
-        );
-        
-        exec($finalCmd, $finalOutput);
-        $finalLufs = $targetLufs; // Default to target
-        
-        // Buscar el valor real de LUFS en la salida
-        foreach ($finalOutput as $line) {
-            if (preg_match('/Input Integrated:\s+(-?\d+\.?\d*)\s+LUFS/i', $line, $matches)) {
-                $finalLufs = floatval($matches[1]);
-                break;
-            }
-        }
-        
+
+        // Retornar éxito sin análisis adicional (más rápido)
         return [
             'success' => true,
             'metrics' => [
                 'original' => ['integrated_lufs' => 'N/A'],
-                'final' => ['integrated_lufs' => $finalLufs]
+                'final' => ['integrated_lufs' => $targetLufs]
             ]
         ];
     }

@@ -1,0 +1,11 @@
+{
+    "id": "final_test",
+    "text": "Sistema simplificado funcionando correctamente",
+    "audio_path": "public/audio/test_tts_short.mp3",
+    "category": "test",
+    "type": "test",
+    "priority": "normal",
+    "duration": 3,
+    "created_at": "2025-11-22 00:17:00",
+    "destination": "local_player"
+}

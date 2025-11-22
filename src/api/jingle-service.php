@@ -4,6 +4,37 @@
  * Sistema para crear jingles combinando música de fondo con voces generadas
  */
 
+// Capturar errores fatales y devolverlos como JSON
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        // Si ya se envió output, no podemos hacer nada
+        if (headers_sent()) {
+            error_log("[JingleService] Error fatal después de headers enviados: " . json_encode($error));
+            return;
+        }
+
+        // Limpiar cualquier output previo
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Error fatal del servidor: ' . $error['message'],
+            'file' => basename($error['file']),
+            'line' => $error['line']
+        ]);
+
+        error_log("[JingleService] Error fatal capturado: " . json_encode($error));
+    }
+});
+
+// Iniciar output buffering para poder limpiar en caso de error
+ob_start();
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/services/tts-service.php';
 require_once __DIR__ . '/services/radio-service.php';
@@ -37,6 +68,9 @@ if (!function_exists('logMessage')) {
  * @return array Resultado con el archivo generado
  */
 function generateJingle($text, $voice, $options = []) {
+    logMessage("[JingleService] === INICIO GENERACIÓN JINGLE ===");
+    logMessage("[JingleService] Voice: $voice, Text length: " . strlen($text));
+
     try {
         // Opciones por defecto
         $defaults = [
@@ -85,17 +119,24 @@ function generateJingle($text, $voice, $options = []) {
             try {
                 $audioProcessor = new \App\Services\AudioProcessor();
                 $normalizedFile = $tempDir . '/voice_normalized.mp3';
-                
+
                 // Obtener el target LUFS de la configuración
                 $targetLufs = $config['normalization_settings']['target_lufs'] ?? -16;
-                
+
+                logMessage("[JingleService] Iniciando normalización LUFS a {$targetLufs}...");
+                $normStartTime = microtime(true);
+
                 // Usar el nuevo método normalizeToTarget con target personalizado
                 $normResult = $audioProcessor->normalizeToTarget(
                     $ttsFile,
                     $normalizedFile,
                     $targetLufs
                 );
-                
+
+                $normEndTime = microtime(true);
+                $normDuration = round($normEndTime - $normStartTime, 2);
+                logMessage("[JingleService] Normalización completada en {$normDuration}s");
+
                 if ($normResult && $normResult['success'] && file_exists($normalizedFile)) {
                     // Reemplazar archivo TTS con el normalizado
                     unlink($ttsFile);
@@ -219,9 +260,17 @@ function generateJingle($text, $voice, $options = []) {
         
         logMessage("[JingleService] Ejecutando ffmpeg...");
         logMessage("[JingleService] Comando: " . $ffmpegCmd);
+
+        // Ejecutar con timeout explícito
+        $startTime = microtime(true);
         exec($ffmpegCmd, $output, $returnVar);
-        
+        $endTime = microtime(true);
+        $duration = round($endTime - $startTime, 2);
+
+        logMessage("[JingleService] FFmpeg completado en {$duration}s con código: $returnVar");
+
         if ($returnVar !== 0) {
+            logMessage("[JingleService] FFmpeg output: " . implode("\n", $output));
             throw new Exception("Error mezclando audio: " . implode("\n", $output));
         }
         
@@ -270,74 +319,56 @@ function buildDuckingCommand($musicFile, $voiceFile, $outputFile, $config, $voic
     $musicVolume = $config['music_volume'];
     $voiceVolume = $config['voice_volume'];
     $introMs = intval($config['intro_silence'] * 1000);
-    
-    // Obtener configuración del compresor o usar valores por defecto
-    $compressor = $config['compressor_settings'] ?? [];
-    $compThreshold = $compressor['threshold'] ?? 0.02;
-    $compRatio = $compressor['ratio'] ?? 6;
-    $compAttack = $compressor['attack'] ?? 5;
-    $compRelease = $compressor['release'] ?? 200;
-    $compMakeup = $compressor['makeup'] ?? 1;
-    $compBypass = $compressor['bypass'] ?? false;
-    
-    // Si el compresor está desactivado, usar mezcla simple sin sidechain
-    if ($compBypass) {
-        logMessage("[JingleService] Compresor desactivado - usando mezcla simple");
-        // Mezcla simple sin compresión sidechain
-        $cmd = sprintf(
-            'ffmpeg -i "%s" -i "%s" -filter_complex ' .
-            '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f,afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music];' .
-            '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice];' .
-            '[music][voice]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
-            '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
-            $musicFile,
-            $voiceFile,
-            $totalDuration,
-            $musicVolume,
-            $config['fade_in'],
-            $fadeOutStart,
-            $config['fade_out'],
-            $introMs,
-            $introMs,
-            $voiceVolume,
-            $totalDuration,
-            $totalDuration,
-            $outputFile
-        );
-    } else {
-        // Con compresión sidechain configurada
-        logMessage("[JingleService] Usando compresor: threshold=$compThreshold, ratio=$compRatio:1, attack=$compAttack, release=$compRelease, makeup=$compMakeup");
-        
-        $cmd = sprintf(
-            'ffmpeg -i "%s" -i "%s" -filter_complex ' .
-            '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f[music_loop];' .
-            '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice_pad];' .
-            '[voice_pad]asplit=2[vo][vd];' .
-            '[music_loop][vd]sidechaincompress=threshold=%.3f:ratio=%d:attack=%d:release=%d:makeup=%.1f[music_ducked];' .
-            '[music_ducked]afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music_final];' .
-            '[music_final][vo]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
-            '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
-            $musicFile,
-            $voiceFile,
-            $totalDuration,
-            $musicVolume,
-            $introMs,
-            $introMs,
-            $voiceVolume,
-            $totalDuration,
-            $compThreshold,
-            $compRatio,
-            $compAttack,
-            $compRelease,
-            $compMakeup,
-            $config['fade_in'],
-            $fadeOutStart,
-            $config['fade_out'],
-            $totalDuration,
-            $outputFile
-        );
-    }
-    
+
+    // Obtener duck_level desde la configuración (0.0 a 1.0)
+    // 0.0 = sin ducking (música a volumen completo)
+    // 1.0 = máximo ducking (música muy reducida)
+    $duckLevel = isset($config['duck_level']) ? floatval($config['duck_level']) : 0.2;
+
+    // Calcular el threshold para sidechaincompress
+    // Invertir duck_level: alto duck_level → bajo threshold → más ducking
+    // Mapeo: duck_level 0.0 → threshold 0.9 (poco ducking)
+    //        duck_level 1.0 → threshold 0.01 (mucho ducking)
+    $threshold = max(0.01, min(0.9, 1.0 - $duckLevel));
+
+    // Configuración del compresor sidechain para ducking
+    $ratio = 6;           // Ratio de compresión (cuánto se reduce)
+    $attack = 5;          // Qué tan rápido reacciona (ms)
+    $release = 200;       // Qué tan rápido vuelve (ms)
+    $makeup = 1.0;        // Ganancia de compensación
+
+    logMessage("[JingleService] Auto-ducking configurado: duck_level=$duckLevel, threshold=$threshold");
+
+    // Usar sidechaincompress para ducking (afecta solo la música, no la voz)
+    $cmd = sprintf(
+        'ffmpeg -i "%s" -i "%s" -filter_complex ' .
+        '"[0:a]aloop=loop=-1:size=2e+09,atrim=0:%.1f,volume=%.2f[music_loop];' .
+        '[1:a]adelay=%d|%d,volume=%.2f,apad=whole_dur=%.1f[voice_pad];' .
+        '[voice_pad]asplit=2[vo][vd];' .
+        '[music_loop][vd]sidechaincompress=threshold=%.3f:ratio=%d:attack=%d:release=%d:makeup=%.1f[music_ducked];' .
+        '[music_ducked]afade=t=in:d=%.1f,afade=t=out:st=%.1f:d=%.1f[music_final];' .
+        '[music_final][vo]amix=inputs=2:duration=longest:dropout_transition=3[out]" ' .
+        '-map "[out]" -t %.1f -ac 2 -ar 44100 -codec:a libmp3lame -b:a 192k "%s" 2>&1',
+        $musicFile,
+        $voiceFile,
+        $totalDuration,
+        $musicVolume,
+        $introMs,
+        $introMs,
+        $voiceVolume,
+        $totalDuration,
+        $threshold,
+        $ratio,
+        $attack,
+        $release,
+        $makeup,
+        $config['fade_in'],
+        $fadeOutStart,
+        $config['fade_out'],
+        $totalDuration,
+        $outputFile
+    );
+
     return $cmd;
 }
 
@@ -432,54 +463,63 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
                 $text = $input['text'] ?? '';
                 $voice = $input['voice'] ?? 'mateo';
                 $options = $input['options'] ?? [];
-                
+                $destination = $input['destination'] ?? null; // Modo manual por defecto
+
                 if (empty($text)) {
                     throw new Exception('Texto requerido');
                 }
-                
+
+                if ($destination) {
+                    logMessage("[JingleService] Destino: $destination");
+                } else {
+                    logMessage("[JingleService] Modo manual: solo guardar localmente");
+                }
+
                 $result = generateJingle($text, $voice, $options);
-                
+
                 if ($result['success']) {
                     // Guardar en la base de datos para que aparezca en mensajes recientes
                     try {
                         $dbPath = __DIR__ . '/../../database/casa.db';
                         $db = new PDO("sqlite:$dbPath");
                         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                        
+
                         // Generar nombre de archivo único
                         $timestamp = date('Ymd_His');
                         $filename = "jingle_{$timestamp}_{$voice}.mp3";
-                        
+
                         // Guardar el archivo en el directorio temporal
                         $tempPath = __DIR__ . '/temp/' . $filename;
                         if (!file_exists(__DIR__ . '/temp')) {
                             mkdir(__DIR__ . '/temp', 0777, true);
                         }
                         file_put_contents($tempPath, base64_decode(base64_encode($result['audio'])));
-                        
+
                         // Preparar datos para la base de datos
                         $words = explode(' ', $text);
                         $displayName = implode(' ', array_slice($words, 0, 5));
                         if (count($words) > 5) $displayName .= '...';
-                        
+
                         // Insertar en la base de datos
                         $stmt = $db->prepare("
-                            INSERT INTO audio_metadata 
-                            (filename, display_name, description, category, is_saved, saved_at, created_at, is_active) 
+                            INSERT INTO audio_metadata
+                            (filename, display_name, description, category, is_saved, saved_at, created_at, is_active)
                             VALUES (?, ?, ?, ?, 0, datetime('now'), datetime('now'), 1)
                         ");
-                        
+
                         $stmt->execute([
                             $filename,
                             $displayName,
                             $text,
                             $input['category'] ?? 'sin_categoria'
                         ]);
-                        
+
                         logMessage("[JingleService] Jingle guardado en BD: " . $filename);
-                        
-                        // Subir a AzuraCast para que esté disponible para la radio
-                        try {
+
+                        // Solo subir a AzuraCast si el destino es 'azuracast'
+                        if ($destination === 'azuracast') {
+                            // Subir a AzuraCast para que esté disponible para la radio
+                            try {
                             // Usar el mismo método que uploadExternalFile (JSON con base64)
                             $azuracastUrl = AZURACAST_BASE_URL . '/api/station/' . AZURACAST_STATION_ID . '/files';
                             
@@ -555,7 +595,16 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
                             logMessage("[JingleService] Error con AzuraCast: " . $azuraError->getMessage());
                             // No fallar, continuar sin AzuraCast
                         }
-                        
+                        } elseif ($destination === 'local_player') {
+                            // Destino: local_player - No subir a AzuraCast
+                            logMessage("[JingleService] Destino: Player Local - No se sube a AzuraCast");
+                            logMessage("[JingleService] Archivo guardado localmente: $filename");
+                        } else {
+                            // Modo manual - Solo guardar localmente
+                            logMessage("[JingleService] Modo manual - Solo guardado local, sin envío automático");
+                            logMessage("[JingleService] Archivo guardado localmente: $filename");
+                        }
+
                     } catch (Exception $dbError) {
                         // No fallar si hay error en DB, solo loguear
                         logMessage("[JingleService] Error guardando en BD: " . $dbError->getMessage());
@@ -616,5 +665,8 @@ if (basename($_SERVER['SCRIPT_NAME']) === 'jingle-service.php') {
             'error' => $e->getMessage()
         ]);
     }
+
+    // Finalizar output buffering y enviar
+    ob_end_flush();
 }
 ?>

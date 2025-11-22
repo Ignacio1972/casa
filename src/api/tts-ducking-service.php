@@ -17,7 +17,7 @@ require_once __DIR__ . '/services/tts-service.php';
 
 class TTSDuckingService {
     private $ttsService;
-    private $liquidsoap_socket = '/var/azuracast/stations/test/config/liquidsoap.sock';
+    private $liquidsoap_socket = '/var/azuracast/stations/mediaflow/config/liquidsoap.sock';
     private $temp_dir = '/var/www/casa/src/api/temp/';
     
     public function __construct() {

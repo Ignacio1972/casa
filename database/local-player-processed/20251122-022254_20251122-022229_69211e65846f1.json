@@ -1,0 +1,12 @@
+{
+    "id": "20251122-022229_69211e65846f1",
+    "text": "Atenci\u00f3n amantes de los perros, en su supermercado L\u00edder tenemos la m\u00e1s completa selecci\u00f3n de alimentos y productos para el bienestar de su mascota. Marcas reconocidas y precios convenientes para que su perro reciba el mejor cuidado que se merece.",
+    "audio_path": "src\/api\/temp\/mensaje_atencin_amantes_de_juan_carlos_20251122_015104.mp3",
+    "category": "sin_categoria",
+    "type": "announcement",
+    "priority": "normal",
+    "duration": null,
+    "voice_name": "Desconocida",
+    "created_at": "2025-11-22 02:22:29",
+    "destination": "local_player"
+}

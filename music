@@ -1,0 +1,3 @@
+#!/bin/bash
+# Atajo rápido para gestión de música
+exec bash /var/www/casa/scripts/music-manager.sh "$@"

@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# Casa Costanera - Health Check Script
+# MediaFlow - Health Check Script
 # Verifica el estado de todos los componentes del sistema
 ################################################################################
 
@@ -15,7 +15,7 @@ BOLD='\033[1m'
 
 # Configuración
 CASA_DIR="/var/www/casa"
-API_BASE="http://localhost:4000"
+API_BASE="http://localhost:2082"
 AZURACAST_API="http://localhost/api"
 LOG_FILE="$CASA_DIR/logs/health-check-$(date +%Y-%m-%d).log"
 
@@ -71,7 +71,7 @@ print_info() {
 ################################################################################
 
 echo ""
-print_header "🏥 CASA COSTANERA - HEALTH CHECK"
+print_header "🏥 MEDIAFLOW - HEALTH CHECK"
 echo -e "${CYAN}Fecha:${NC} $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 
@@ -94,11 +94,11 @@ else
     check_fail "PHP-FPM NO está corriendo"
 fi
 
-# Verificar puerto 4000
-if netstat -tlpn 2>/dev/null | grep -q ":4000" || ss -tlpn 2>/dev/null | grep -q ":4000"; then
-    check_ok "Puerto 4000 está escuchando"
+# Verificar puerto 2082
+if netstat -tlpn 2>/dev/null | grep -q ":2082" || ss -tlpn 2>/dev/null | grep -q ":2082"; then
+    check_ok "Puerto 2082 está escuchando"
 else
-    check_fail "Puerto 4000 NO está escuchando"
+    check_fail "Puerto 2082 NO está escuchando"
 fi
 
 echo ""

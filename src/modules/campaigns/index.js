@@ -719,7 +719,7 @@ render() {
     
     toggleCategoryDropdown(event, messageId) {
         event.stopPropagation();
-        
+
         // Cerrar otros dropdowns y remover clase dropdown-active
         document.querySelectorAll('.category-dropdown').forEach(dropdown => {
             if (dropdown.id !== `dropdown-${messageId}`) {
@@ -731,15 +731,15 @@ render() {
                 }
             }
         });
-        
+
         // Toggle el dropdown actual
         const dropdown = document.getElementById(`dropdown-${messageId}`);
         const currentCard = document.querySelector(`[data-id="${messageId}"]`);
-        
+
         if (dropdown && currentCard) {
             const wasActive = dropdown.classList.contains('active');
             dropdown.classList.toggle('active');
-            
+
             // Agregar/quitar clase al card para z-index
             if (wasActive) {
                 currentCard.classList.remove('dropdown-active');
@@ -747,6 +747,86 @@ render() {
                 currentCard.classList.add('dropdown-active');
             }
         }
+    }
+
+    /**
+     * Alternar play/pause con corrección para currentSrc
+     */
+    togglePlayPause(id) {
+        const message = this.messages.find(m => m.id === id);
+        if (!message) return;
+
+        // Determinar el archivo de audio
+        const audioFilename = message.filename || message.audioFilename;
+        if (!audioFilename) {
+            this.showError('Audio no disponible');
+            return;
+        }
+
+        const audioPlayer = document.querySelector('.floating-player audio');
+        const currentUrl = `/api/biblioteca.php?filename=${audioFilename}`;
+
+        // Usar currentSrc en lugar de src porque el audio usa <source> tag
+        const audioSrc = audioPlayer ? (audioPlayer.currentSrc || audioPlayer.src) : '';
+        const expectedFullUrl = window.location.origin + currentUrl;
+
+        // DEBUG: Logging para diagnosticar el problema
+        console.log('[Campaigns] togglePlayPause DEBUG:', {
+            id,
+            audioFilename,
+            audioPlayerExists: !!audioPlayer,
+            audioPlayerSrc: audioPlayer ? audioPlayer.src : 'N/A',
+            audioPlayerCurrentSrc: audioPlayer ? audioPlayer.currentSrc : 'N/A',
+            usingSrc: audioSrc,
+            expectedUrl: expectedFullUrl,
+            srcMatches: audioSrc === expectedFullUrl,
+            isPaused: audioPlayer ? audioPlayer.paused : 'N/A'
+        });
+
+        // Si existe un player y está reproduciendo este mismo archivo
+        if (audioPlayer && audioSrc === expectedFullUrl) {
+            console.log('[Campaigns] URLs coinciden, toggleando estado...');
+            if (audioPlayer.paused) {
+                console.log('[Campaigns] Reproduciendo...');
+                audioPlayer.play();
+                this.updatePlayButton(id, 'playing');
+            } else {
+                console.log('[Campaigns] Pausando...');
+                audioPlayer.pause();
+                this.updatePlayButton(id, 'paused');
+            }
+        } else {
+            console.log('[Campaigns] URLs NO coinciden o player no existe, creando nuevo player...');
+            // Reproducir nuevo audio
+            this.messageActions.playMessage(id, audioFilename);
+        }
+    }
+
+    /**
+     * Actualizar icono del botón de play
+     */
+    updatePlayButton(id, state) {
+        const button = this.container.querySelector(`button[data-message-id="${id}"]`);
+        if (button) {
+            if (state === 'playing') {
+                button.innerHTML = '⏸';
+                button.title = 'Pausar';
+            } else {
+                button.innerHTML = '▶';
+                button.title = 'Reproducir';
+            }
+        }
+    }
+
+    /**
+     * Resetear todos los botones de play
+     */
+    resetAllPlayButtons() {
+        const playButtons = this.container.querySelectorAll('.play-btn');
+        playButtons.forEach(btn => {
+            btn.innerHTML = '▶';
+            btn.title = 'Reproducir';
+        });
     }
     
     async updateCategory(messageId, newCategory) {

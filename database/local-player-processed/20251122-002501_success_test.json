@@ -1,0 +1,9 @@
+{
+    "id": "success_test",
+    "text": "Prueba exitosa del sistema simplificado",
+    "audio_path": "public/audio/test_tts_short.mp3",
+    "category": "test",
+    "priority": "normal",
+    "duration": 3,
+    "created_at": "2025-11-22 00:19:00"
+}

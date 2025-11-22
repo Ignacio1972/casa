@@ -5,11 +5,10 @@
  */
 
 /**
- * Sube archivo a AzuraCast y retorna info completa
+ * Sube archivo a AzuraCast copiándolo directamente al contenedor Docker
+ * Método más confiable que la API para archivos de audio
  */
 function uploadFileToAzuraCast($filepath, $originalFilename) {
-    $url = AZURACAST_BASE_URL . '/api/station/' . AZURACAST_STATION_ID . '/files';
-    
     // Usar el nombre original si se proporciona, o generar uno descriptivo
     if (!empty($originalFilename) && $originalFilename !== 'temp.mp3') {
         // Si ya tiene un nombre descriptivo, usarlo
@@ -19,48 +18,54 @@ function uploadFileToAzuraCast($filepath, $originalFilename) {
         $timestamp = date('Ymd_His');
         $radioFilename = 'mensaje_' . $timestamp . '.mp3';
     }
-    $radioPath = 'Grabaciones/' . $radioFilename;
-    
-    // Leer y codificar archivo
-    $fileContent = file_get_contents($filepath);
-    $base64Content = base64_encode($fileContent);
-    
-    $data = [
-        'path' => $radioPath,
-        'file' => $base64Content
-    ];
-    
-    logMessage("Subiendo archivo a AzuraCast: $radioPath");
-    
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'X-API-Key: ' . AZURACAST_API_KEY
-        ],
-        CURLOPT_POSTFIELDS => json_encode($data),
-        CURLOPT_TIMEOUT => 60
-    ]);
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    
-    if ($httpCode !== 200) {
-        throw new Exception("Error subiendo archivo: HTTP $httpCode");
+
+    logMessage("Copiando archivo a AzuraCast: $radioFilename");
+
+    // Verificar que el archivo fuente existe
+    if (!file_exists($filepath)) {
+        throw new Exception("Archivo fuente no encontrado: $filepath");
     }
-    
-    $responseData = json_decode($response, true);
-    if (!$responseData || !isset($responseData['id'])) {
-        throw new Exception('Respuesta inválida del servidor al subir archivo');
+
+    // Ruta de destino en el contenedor Docker
+    $dockerDestPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $radioFilename;
+
+    // Copiar archivo directamente al contenedor usando docker cp
+    $copyCommand = sprintf(
+        'docker cp %s azuracast:%s 2>&1',
+        escapeshellarg($filepath),
+        escapeshellarg($dockerDestPath)
+    );
+
+    logMessage("Ejecutando: $copyCommand");
+    $copyOutput = shell_exec($copyCommand);
+
+    if ($copyOutput && trim($copyOutput) !== '') {
+        logMessage("Salida de docker cp: " . trim($copyOutput));
     }
-    
-    // Retornar ID y nombre real del archivo
+
+    // Verificar que el archivo se copió correctamente
+    $checkCommand = sprintf(
+        'docker exec azuracast test -f %s && echo "OK" || echo "FAILED"',
+        escapeshellarg($dockerDestPath)
+    );
+    $checkResult = trim(shell_exec($checkCommand));
+
+    if ($checkResult !== 'OK') {
+        throw new Exception("Error: archivo no se copió correctamente a AzuraCast");
+    }
+
+    logMessage("Archivo copiado exitosamente a: $dockerDestPath");
+
+    // Ajustar permisos
+    $chownCommand = sprintf(
+        'docker exec azuracast chown azuracast:azuracast %s',
+        escapeshellarg($dockerDestPath)
+    );
+    shell_exec($chownCommand);
+
+    // Retornar info del archivo
     return [
-        'id' => $responseData['id'],
+        'id' => 0, // No usamos ID de API
         'filename' => $radioFilename
     ];
 }
@@ -105,11 +110,11 @@ function assignFileToPlaylist($fileId) {
  */
 function interruptRadio($filename) {
     logMessage("Interrumpiendo radio con archivo: $filename");
-    
+
     // Construir URI y ejecutar interrupción
-    $fileUri = "file:///var/azuracast/stations/test/media/Grabaciones/" . $filename;
+    $fileUri = "file:///var/azuracast/stations/mediaflow/media/Grabaciones/" . $filename;
     $command = "interrupting_requests.push $fileUri";
-    $dockerCommand = 'sudo docker exec azuracast bash -c \'echo "' . $command . '" | socat - UNIX-CONNECT:/var/azuracast/stations/test/config/liquidsoap.sock\'';
+    $dockerCommand = 'sudo docker exec azuracast bash -c \'echo "' . $command . '" | socat - UNIX-CONNECT:/var/azuracast/stations/mediaflow/config/liquidsoap.sock\'';
     
     $output = shell_exec($dockerCommand . ' 2>&1');
     logMessage("Interrupción ejecutada. Respuesta: " . trim($output));
@@ -207,7 +212,7 @@ function interruptRadioWithSkip($filename, $duration = null, $skipAfter = true) 
     if ($duration === null) {
         // Intentar múltiples rutas donde podría estar el archivo
         $possiblePaths = [
-            "/var/azuracast/stations/test/media/Grabaciones/" . $filename,
+            "/var/azuracast/stations/mediaflow/media/Grabaciones/" . $filename,
             "/var/www/casa/src/api/temp/" . $filename,
             "/tmp/" . $filename
         ];
@@ -234,7 +239,7 @@ function interruptRadioWithSkip($filename, $duration = null, $skipAfter = true) 
     // IMPORTANTE: El comando correcto es playlist_default.skip
     // Simplificamos el comando para evitar problemas con nohup
     $skipCommand = sprintf(
-        '(sleep %d && echo "playlist_default.skip" | sudo docker exec -i azuracast socat - UNIX-CONNECT:/var/azuracast/stations/test/config/liquidsoap.sock) > /dev/null 2>&1 &',
+        '(sleep %d && echo "playlist_default.skip" | sudo docker exec -i azuracast socat - UNIX-CONNECT:/var/azuracast/stations/mediaflow/config/liquidsoap.sock) > /dev/null 2>&1 &',
         $waitTime
     );
     
@@ -255,9 +260,9 @@ function interruptRadioWithSkip($filename, $duration = null, $skipAfter = true) 
  */
 function skipSongNow() {
     logMessage("Ejecutando skip inmediato");
-    
+
     // Usar el comando correcto: playlist_default.skip
-    $skipCommand = 'echo "playlist_default.skip" | sudo docker exec azuracast socat - UNIX-CONNECT:/var/azuracast/stations/test/config/liquidsoap.sock 2>&1';
+    $skipCommand = 'echo "playlist_default.skip" | sudo docker exec azuracast socat - UNIX-CONNECT:/var/azuracast/stations/mediaflow/config/liquidsoap.sock 2>&1';
     $output = shell_exec($skipCommand);
     
     logMessage("Respuesta del skip: " . trim($output));

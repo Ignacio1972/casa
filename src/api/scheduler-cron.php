@@ -205,7 +205,7 @@ function executeSchedule($schedule) {
         $filename = $schedule['filename'];
 
         // Ruta dentro del contenedor Docker de AzuraCast
-        $dockerPath = "/var/azuracast/stations/test/media/Grabaciones/" . $filename;
+        $dockerPath = "/var/azuracast/stations/mediaflow/media/Grabaciones/" . $filename;
 
         // Verificar si el archivo existe DENTRO del contenedor Docker
         $checkCmd = sprintf(

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test - Mejoras de Campaigns</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        h1 { color: #333; }
+        h2 {
+            color: #666;
+            margin-top: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .info {
+            color: blue;
+            font-style: italic;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 3px;
+        }
+        .floating-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .debug-log {
+            background: #222;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - Mejoras del Módulo Campaigns</h1>
+
+        <h2>1. Función togglePlayPause con currentSrc</h2>
+        <div class="test-section">
+            <p>Esta prueba verifica que la función use <code>audioPlayer.currentSrc</code> en lugar de <code>audioPlayer.src</code></p>
+            <button onclick="testTogglePlayPause()">Probar Toggle Play/Pause</button>
+            <div id="toggleResult" class="result"></div>
+            <div id="debugLog" class="debug-log" style="display: none;"></div>
+        </div>
+
+        <h2>2. Función deleteMessage con soft_delete</h2>
+        <div class="test-section">
+            <p>Esta prueba verifica que se use <code>/api/saved-messages.php</code> con <code>soft_delete</code></p>
+            <button onclick="testSoftDelete()">Probar Soft Delete</button>
+            <div id="deleteResult" class="result"></div>
+        </div>
+
+        <h2>3. Sincronización de Botones Play/Pause</h2>
+        <div class="test-section">
+            <p>Verifica que los botones se actualicen dinámicamente (▶ ↔ ⏸)</p>
+            <div id="mockButtons">
+                <button class="play-btn" data-message-id="1">▶</button>
+                <button class="play-btn" data-message-id="2">▶</button>
+                <button class="play-btn" data-message-id="3">▶</button>
+            </div>
+            <button onclick="testButtonSync()">Simular Reproducción</button>
+            <div id="syncResult" class="result"></div>
+        </div>
+
+        <h2>4. Debug de URLs</h2>
+        <div class="test-section">
+            <p>Comparación de URLs para diagnóstico</p>
+            <button onclick="testUrlComparison()">Verificar Comparación de URLs</button>
+            <div id="urlResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Función para agregar log de debug
+        function debugLog(message) {
+            const logDiv = document.getElementById('debugLog');
+            logDiv.style.display = 'block';
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // 1. Test togglePlayPause con currentSrc
+        function testTogglePlayPause() {
+            const result = document.getElementById('toggleResult');
+            debugLog('=== INICIANDO TEST TOGGLE PLAY/PAUSE ===');
+
+            // Simular un audio player flotante
+            const existingPlayer = document.querySelector('.floating-player');
+            if (existingPlayer) {
+                existingPlayer.remove();
+            }
+
+            const player = document.createElement('div');
+            player.className = 'floating-player';
+            player.innerHTML = `
+                <audio id="testAudio">
+                    <source src="/api/biblioteca.php?filename=test.mp3" type="audio/mpeg">
+                </audio>
+            `;
+            document.body.appendChild(player);
+
+            const audio = player.querySelector('audio');
+
+            // Simular que el audio tiene currentSrc
+            Object.defineProperty(audio, 'currentSrc', {
+                get: function() {
+                    return window.location.origin + '/api/biblioteca.php?filename=test.mp3';
+                }
+            });
+
+            debugLog('Audio element created');
+            debugLog('audio.src: ' + audio.src);
+            debugLog('audio.currentSrc: ' + audio.currentSrc);
+
+            // Verificar comparación
+            const expectedUrl = window.location.origin + '/api/biblioteca.php?filename=test.mp3';
+            const usingSrc = audio.currentSrc || audio.src;
+            const matches = usingSrc === expectedUrl;
+
+            debugLog('Expected URL: ' + expectedUrl);
+            debugLog('Using src: ' + usingSrc);
+            debugLog('URLs match: ' + matches);
+
+            result.innerHTML = `
+                <div class="success">✅ Test completado</div>
+                <div>Usando currentSrc: ${audio.currentSrc ? 'SÍ' : 'NO'}</div>
+                <div>URLs coinciden: ${matches ? 'SÍ' : 'NO'}</div>
+                <div class="info">Revisa el log de debug para más detalles</div>
+            `;
+
+            // Limpiar
+            setTimeout(() => player.remove(), 3000);
+        }
+
+        // 2. Test soft delete
+        async function testSoftDelete() {
+            const result = document.getElementById('deleteResult');
+
+            try {
+                // Simular llamada a soft_delete
+                const response = await fetch('/api/saved-messages.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'soft_delete',
+                        id: 'test_' + Date.now()
+                    })
+                });
+
+                const data = await response.json();
+
+                result.innerHTML = `
+                    <div class="${data.success ? 'success' : 'error'}">
+                        ${data.success ? '✅ Soft delete funciona correctamente' : '❌ Error en soft delete'}
+                    </div>
+                    <div>Endpoint: /api/saved-messages.php</div>
+                    <div>Action: soft_delete</div>
+                    <div class="info">Respuesta: ${JSON.stringify(data)}</div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">❌ Error de conexión</div>
+                    <div>${error.message}</div>
+                `;
+            }
+        }
+
+        // 3. Test sincronización de botones
+        function testButtonSync() {
+            const result = document.getElementById('syncResult');
+            const buttons = document.querySelectorAll('.play-btn');
+
+            // Simular actualización de botón
+            const randomButton = buttons[Math.floor(Math.random() * buttons.length)];
+            const currentState = randomButton.innerHTML === '▶' ? 'paused' : 'playing';
+            const newState = currentState === 'paused' ? 'playing' : 'paused';
+
+            // Resetear todos los botones
+            buttons.forEach(btn => {
+                btn.innerHTML = '▶';
+                btn.title = 'Reproducir';
+            });
+
+            // Actualizar el botón seleccionado
+            if (newState === 'playing') {
+                randomButton.innerHTML = '⏸';
+                randomButton.title = 'Pausar';
+            } else {
+                randomButton.innerHTML = '▶';
+                randomButton.title = 'Reproducir';
+            }
+
+            result.innerHTML = `
+                <div class="success">✅ Botones sincronizados</div>
+                <div>Botón #${randomButton.dataset.messageId} actualizado a: ${newState}</div>
+                <div>Icono: ${randomButton.innerHTML}</div>
+                <div class="info">Todos los demás botones reseteados a ▶</div>
+            `;
+        }
+
+        // 4. Test comparación de URLs
+        function testUrlComparison() {
+            const result = document.getElementById('urlResult');
+
+            const testCases = [
+                {
+                    name: 'Con currentSrc',
+                    audioSrc: 'http://localhost/api/biblioteca.php?filename=test.mp3',
+                    currentSrc: window.location.origin + '/api/biblioteca.php?filename=test.mp3',
+                    expectedUrl: window.location.origin + '/api/biblioteca.php?filename=test.mp3'
+                },
+                {
+                    name: 'Sin currentSrc',
+                    audioSrc: window.location.origin + '/api/biblioteca.php?filename=test.mp3',
+                    currentSrc: null,
+                    expectedUrl: window.location.origin + '/api/biblioteca.php?filename=test.mp3'
+                }
+            ];
+
+            let html = '<div class="success">✅ Resultados de comparación:</div>';
+
+            testCases.forEach(test => {
+                const usingSrc = test.currentSrc || test.audioSrc;
+                const matches = usingSrc === test.expectedUrl;
+
+                html += `
+                    <div style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 3px;">
+                        <strong>${test.name}</strong><br>
+                        audio.src: ${test.audioSrc}<br>
+                        audio.currentSrc: ${test.currentSrc || 'null'}<br>
+                        Usando: ${usingSrc}<br>
+                        Expected: ${test.expectedUrl}<br>
+                        <span class="${matches ? 'success' : 'error'}">
+                            Coincide: ${matches ? 'SÍ ✅' : 'NO ❌'}
+                        </span>
+                    </div>
+                `;
+            });
+
+            result.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

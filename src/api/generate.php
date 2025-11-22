@@ -7,6 +7,7 @@ require_once 'config.php';
 require_once 'services/announcement-module/announcement-templates.php';
 require_once 'services/announcement-module/announcement-generator.php';
 require_once 'services/audio-processor.php';
+require_once __DIR__ . '/helpers/local-player-queue.php';
 
 
 // Función de logging
@@ -224,38 +225,96 @@ try {
         $tempFilename = 'temp_' . date('YmdHis') . '.mp3';
         $filepath = UPLOAD_DIR . $tempFilename;
         file_put_contents($filepath, $result['audio']);
-        
+
         logMessage("Archivo temporal creado: $tempFilename, nombre descriptivo será: $descriptiveFilename");
-        
-        // ===== MANTENER TODA LA FUNCIONALIDAD DE AZURACAST =====
-        require_once 'services/radio-service.php';
-        require_once 'services/audio-processor.php';
-        
-        // Procesar audio (agregar silencios)
-        $filepathCopy = copyFileForProcessing($filepath);
-        $filepathWithSilence = addSilenceToAudio($filepathCopy);
-        if ($filepathWithSilence === false) {
-            $filepathWithSilence = $filepathCopy;
+
+        // ===== DETECTAR DESTINO: LOCAL PLAYER O AZURACAST =====
+        // Si no se especifica destino, solo se guarda localmente (modo manual)
+        $destination = $input['destination'] ?? null;
+
+        if ($destination === 'local_player') {
+            // ===== ENVIAR A PLAYER LOCAL =====
+            logMessage("Destino: Player Local - Agregando a cola local");
+
+            // Procesar audio (agregar silencios) solo si es necesario
+            require_once 'services/audio-processor.php';
+            $filepathCopy = copyFileForProcessing($filepath);
+            $filepathWithSilence = addSilenceToAudio($filepathCopy);
+            if ($filepathWithSilence === false) {
+                $filepathWithSilence = $filepathCopy;
+            }
+
+            // Guardar con nombre descriptivo para el player local
+            $localPlayerPath = UPLOAD_DIR . $descriptiveFilename;
+            copy($filepathWithSilence, $localPlayerPath);
+
+            // Agregar a la cola del player local
+            $queueData = [
+                'text' => $textUsed,
+                'audio_path' => 'src/api/temp/' . $descriptiveFilename, // Ruta relativa
+                'category' => $input['category'] ?? 'sin_categoria',
+                'type' => 'announcement',
+                'priority' => 'normal',
+                'voice_name' => $voiceUsed,
+                'destination' => 'local_player'
+            ];
+
+            $addedToQueue = addToLocalPlayerQueue($queueData);
+
+            // Limpiar archivos temporales de procesamiento
+            @unlink($filepathCopy);
+            if ($filepathWithSilence !== $filepathCopy) {
+                @unlink($filepathWithSilence);
+            }
+
+            $actualFilename = $descriptiveFilename;
+
+            if ($addedToQueue) {
+                logMessage("Audio agregado a cola del Player Local exitosamente: $actualFilename");
+            } else {
+                throw new Exception('Error al agregar a cola del Player Local');
+            }
+
+        } elseif ($destination === 'azuracast') {
+            // ===== SUBIR A AZURACAST =====
+            logMessage("Destino: AzuraCast - Subiendo a plataforma de radio");
+
+            require_once 'services/radio-service.php';
+            require_once 'services/audio-processor.php';
+
+            // Procesar audio (agregar silencios)
+            $filepathCopy = copyFileForProcessing($filepath);
+            $filepathWithSilence = addSilenceToAudio($filepathCopy);
+            if ($filepathWithSilence === false) {
+                $filepathWithSilence = $filepathCopy;
+            }
+
+            // Subir a AzuraCast con nombre descriptivo
+            $uploadResult = uploadFileToAzuraCast($filepathWithSilence, $descriptiveFilename);
+            $actualFilename = $uploadResult['filename'];
+
+            // Limpiar archivos temporales DE PROCESAMIENTO (no el original)
+            @unlink($filepathCopy);
+            if ($filepathWithSilence !== $filepathCopy) {
+                @unlink($filepathWithSilence);
+            }
+
+            // Mantener una copia local con el nombre correcto para preview
+            $localPreviewPath = UPLOAD_DIR . $actualFilename;
+            copy($filepath, $localPreviewPath);
+
+            logMessage("Audio generado y subido a AzuraCast exitosamente: $actualFilename");
+        } else {
+            // ===== MODO MANUAL: SOLO GUARDAR LOCALMENTE =====
+            logMessage("Modo manual: Audio guardado solo localmente, sin envío automático");
+
+            // Simplemente renombrar el archivo temporal con el nombre descriptivo
+            $actualFilename = $descriptiveFilename;
+            $finalPath = UPLOAD_DIR . $actualFilename;
+            rename($filepath, $finalPath);
+
+            logMessage("Archivo guardado localmente para envío manual: $actualFilename");
         }
-        
-        // Subir a AzuraCast con nombre descriptivo
-        $uploadResult = uploadFileToAzuraCast($filepathWithSilence, $descriptiveFilename);
-        $actualFilename = $uploadResult['filename'];
-        
-        // Asignar a playlist
-        assignFileToPlaylist($uploadResult['id']);
-        
-        // Limpiar archivos temporales DE PROCESAMIENTO (no el original)
-        @unlink($filepathCopy);
-        if ($filepathWithSilence !== $filepathCopy) {
-            @unlink($filepathWithSilence);
-        }
-        
-        // Mantener una copia local con el nombre correcto para preview
-        $localPreviewPath = UPLOAD_DIR . $actualFilename;
-        copy($filepath, $localPreviewPath);
-        
-        logMessage("Audio generado y subido exitosamente: $actualFilename");
 
         // Guardar en base de datos para mensajes recientes
         try {
@@ -297,33 +356,167 @@ try {
     
     // Enviar a radio - MANTENER INTACTO
     if ($input['action'] === 'send_to_radio') {
-        logMessage("Procesando envío a radio");
-        
-        require_once 'services/radio-service.php';
-        
+        $destination = $input['destination'] ?? 'azuracast'; // Default: azuracast
+        logMessage("Procesando envío - Destino: $destination");
+
         $filename = $input['filename'] ?? '';
-        
+
         if (empty($filename)) {
             throw new Exception('No se especificó el archivo a enviar');
         }
-        
-        logMessage("Interrumpiendo radio con archivo: $filename");
-        
-        // Interrumpir la radio con el archivo
-        $success = interruptRadio($filename);
-        
-        if ($success) {
-            logMessage("Archivo enviado a radio exitosamente: $filename");
-            echo json_encode([
-                'success' => true,
-                'message' => 'Anuncio enviado a la radio y reproduciéndose'
-            ]);
+
+        // Verificar si el archivo existe localmente
+        $localPath = UPLOAD_DIR . $filename;
+        if (!file_exists($localPath)) {
+            logMessage("Archivo no encontrado en temp: $localPath");
+            throw new Exception('Archivo no encontrado: ' . $filename);
+        }
+
+        // Redirigir según el destino
+        if ($destination === 'local_player') {
+            // ===== ENVIAR A PLAYER LOCAL =====
+            logMessage("Agregando archivo a cola del Player Local: $filename");
+
+            // Leer metadata del archivo de la BD si existe
+            $textUsed = 'Mensaje de audio';
+            $category = 'sin_categoria';
+            $voiceName = 'Desconocida';
+
+            try {
+                $db = new PDO("sqlite:" . __DIR__ . "/../../database/casa.db");
+                $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                $stmt = $db->prepare("SELECT description, category, voice_name FROM audio_metadata WHERE filename = ? LIMIT 1");
+                $stmt->execute([$filename]);
+                $metadata = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($metadata) {
+                    $textUsed = $metadata['description'] ?? $textUsed;
+                    $category = $metadata['category'] ?? $category;
+                    $voiceName = $metadata['voice_name'] ?? $voiceName;
+                }
+            } catch (Exception $e) {
+                logMessage("Error leyendo metadata: " . $e->getMessage());
+            }
+
+            // Agregar a la cola del player local
+            $queueData = [
+                'text' => $textUsed,
+                'audio_path' => 'src/api/temp/' . $filename, // Ruta relativa
+                'category' => $category,
+                'type' => 'announcement',
+                'priority' => 'normal',
+                'voice_name' => $voiceName,
+                'destination' => 'local_player'
+            ];
+
+            $addedToQueue = addToLocalPlayerQueue($queueData);
+
+            if ($addedToQueue) {
+                logMessage("Archivo agregado a cola del Player Local exitosamente: $filename");
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Mensaje enviado al Player Local'
+                ]);
+            } else {
+                throw new Exception('Error al agregar a cola del Player Local');
+            }
         } else {
-            throw new Exception('Error al interrumpir la radio');
+            // ===== ENVIAR A AZURACAST (DEFAULT) =====
+            require_once 'services/radio-service.php';
+
+            logMessage("Subiendo archivo a AzuraCast: $filename");
+
+            // Subir archivo a AzuraCast primero
+            $uploadResult = uploadFileToAzuraCast($localPath, $filename);
+            $azuracastFilename = $uploadResult['filename'];
+
+            logMessage("Archivo subido a AzuraCast como: $azuracastFilename");
+            logMessage("Interrumpiendo radio con archivo: $azuracastFilename");
+
+            // Interrumpir la radio con el archivo
+            $success = interruptRadio($azuracastFilename);
+
+            if ($success) {
+                logMessage("Archivo enviado a radio exitosamente: $azuracastFilename");
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Anuncio enviado a la radio y reproduciéndose'
+                ]);
+            } else {
+                throw new Exception('Error al interrumpir la radio');
+            }
         }
         exit;
     }
-    
+
+    // Enviar a Player Local
+    if ($input['action'] === 'send_to_local_player') {
+        logMessage("Procesando envío a Player Local");
+
+        $filename = $input['filename'] ?? '';
+
+        if (empty($filename)) {
+            throw new Exception('No se especificó el archivo a enviar');
+        }
+
+        // Verificar si el archivo existe localmente
+        $localPath = UPLOAD_DIR . $filename;
+        if (!file_exists($localPath)) {
+            logMessage("Archivo no encontrado en temp: $localPath");
+            throw new Exception('Archivo no encontrado: ' . $filename);
+        }
+
+        logMessage("Agregando archivo a cola del Player Local: $filename");
+
+        // Leer metadata del archivo de la BD si existe
+        $textUsed = 'Mensaje de audio';
+        $category = 'sin_categoria';
+        $voiceName = 'Desconocida';
+
+        try {
+            $db = new PDO("sqlite:" . __DIR__ . "/../../database/casa.db");
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $stmt = $db->prepare("SELECT description, category, voice_name FROM audio_metadata WHERE filename = ? LIMIT 1");
+            $stmt->execute([$filename]);
+            $metadata = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($metadata) {
+                $textUsed = $metadata['description'] ?? $textUsed;
+                $category = $metadata['category'] ?? $category;
+                $voiceName = $metadata['voice_name'] ?? $voiceName;
+            }
+        } catch (Exception $e) {
+            logMessage("No se pudo leer metadata de BD: " . $e->getMessage());
+        }
+
+        // Agregar a la cola del player local
+        $queueData = [
+            'text' => $textUsed,
+            'audio_path' => 'src/api/temp/' . $filename,
+            'category' => $category,
+            'type' => 'announcement',
+            'priority' => 'high', // Alta prioridad para envíos manuales
+            'voice_name' => $voiceName,
+            'destination' => 'local_player'
+        ];
+
+        $addedToQueue = addToLocalPlayerQueue($queueData);
+
+        if ($addedToQueue) {
+            logMessage("Archivo agregado a cola del Player Local exitosamente: $filename");
+            echo json_encode([
+                'success' => true,
+                'message' => 'Anuncio agregado a la cola del Player Local',
+                'queue_count' => countLocalPlayerQueue()
+            ]);
+        } else {
+            throw new Exception('Error al agregar a cola del Player Local');
+        }
+        exit;
+    }
+
     // Si no es ninguna acción conocida
     throw new Exception('Acción no reconocida: ' . ($input['action'] ?? 'ninguna'));
     

@@ -1,0 +1,12 @@
+{
+    "id": "20251122-005803_69210a9b4b620",
+    "text": "Descubre la navidad en mall barrio independencia",
+    "audio_path": "src\/api\/temp\/mensaje_descubre_la_navidad_juan_carlos_20251122_005802.mp3",
+    "category": "sin_categoria",
+    "type": "announcement",
+    "priority": "normal",
+    "duration": null,
+    "voice_name": "juan_carlos",
+    "created_at": "2025-11-22 00:58:03",
+    "destination": "local_player"
+}

@@ -7,7 +7,7 @@
 require_once __DIR__ . '/services/tts-service-unified.php';
 
 class DuckingService {
-    private $media_path = '/var/azuracast/stations/test/media/Grabaciones/';
+    private $media_path = '/var/azuracast/stations/mediaflow/media/Grabaciones/';
     
     /**
      * Envía un mensaje TTS con ducking
@@ -44,7 +44,7 @@ class DuckingService {
             // 5. Enviar a la cola de ducking
             $queueCmd = "tts_ducking_queue.push file://$dockerPath";
             $sendCmd = sprintf(
-                'sudo docker exec azuracast bash -c \'echo "%s" | socat - UNIX-CONNECT:/var/azuracast/stations/test/config/liquidsoap.sock 2>&1\'',
+                'sudo docker exec azuracast bash -c \'echo "%s" | socat - UNIX-CONNECT:/var/azuracast/stations/mediaflow/config/liquidsoap.sock 2>&1\'',
                 addslashes($queueCmd)
             );
             

@@ -14,7 +14,7 @@ function sendToDuckingQueue($audioFile) {
     
     // Ejecutar via Docker
     $dockerCommand = sprintf(
-        'sudo docker exec azuracast bash -c \'echo "%s" | socat - UNIX-CONNECT:/var/azuracast/stations/test/config/liquidsoap.sock\'',
+        'sudo docker exec azuracast bash -c \'echo "%s" | socat - UNIX-CONNECT:/var/azuracast/stations/mediaflow/config/liquidsoap.sock\'',
         addslashes($command)
     );
     

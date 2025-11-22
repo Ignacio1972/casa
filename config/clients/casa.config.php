@@ -1,12 +1,12 @@
 <?php
 /**
- * Configuración Específica - Casa Costanera
- * Cliente: Casa Costanera
+ * Configuración Específica - MediaFlow
+ * Cliente: MediaFlow
  * Personalización y parámetros específicos
  */
 
 // Identificación del Cliente
-define('CLIENT_NAME', 'Casa Costanera');
+define('CLIENT_NAME', 'MediaFlow');
 define('CLIENT_CODE', 'CASA');
 define('CLIENT_LOGO', '/assets/images/casa-logo.png');
 define('CLIENT_PRIMARY_COLOR', '#1e40af'); // Azul profundo
@@ -16,7 +16,7 @@ define('CLIENT_SECONDARY_COLOR', '#3b82f6'); // Azul claro
 define('AZURACAST_BASE_URL', 'http://51.222.25.222');
 define('AZURACAST_API_KEY', 'c3802cba5b5e61e8:fed31be9adb82ca57f1cf482d170851f');
 define('AZURACAST_STATION_ID', 1);
-define('AZURACAST_STATION_NAME', 'Casa Costanera Radio');
+define('AZURACAST_STATION_NAME', 'MediaFlow Radio');
 define('PLAYLIST_ID_GRABACIONES', 3);
 define('AZURACAST_MEDIA_PATH', '/var/azuracast/stations/test/media/Grabaciones/');
 
@@ -69,10 +69,10 @@ $CATEGORIES_CONFIG = [
 
 // Mensajes predefinidos del cliente
 $DEFAULT_MESSAGES = [
-    'bienvenida' => 'Bienvenidos a Casa Costanera, el mejor centro comercial de la zona.',
-    'cierre' => 'Casa Costanera informa que en 30 minutos cerraremos nuestras puertas. Les agradecemos su visita.',
+    'bienvenida' => 'Bienvenidos a MediaFlow, su sistema de radio automatizada.',
+    'cierre' => 'MediaFlow informa que en 30 minutos cerraremos nuestras puertas. Les agradecemos su visita.',
     'emergencia' => 'Atención, esto es un mensaje de emergencia. Por favor, diríjanse a la salida más cercana de manera ordenada.',
-    'promocion' => 'No te pierdas las increíbles ofertas en Casa Costanera. Visita nuestras tiendas participantes.',
+    'promocion' => 'No te pierdas las increíbles ofertas. Visita nuestras tiendas participantes.',
     'estacionamiento' => 'Recuerda que contamos con estacionamiento gratuito las primeras dos horas.'
 ];
 
@@ -83,7 +83,7 @@ define('SUNDAY_OPENING', '11:00');
 define('SUNDAY_CLOSING', '21:00');
 
 // Configuración de notificaciones
-define('NOTIFICATION_EMAIL', 'admin@casacostanera.cl');
+define('NOTIFICATION_EMAIL', 'admin@mediaflow.cl');
 define('NOTIFICATION_ENABLED', true);
 
 // Límites específicos del cliente

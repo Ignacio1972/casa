@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         } else {
             logMessage("Archivo no encontrado en carpeta local, buscando en Docker");
             // Si no está en local, buscar en Docker como los demás archivos
-            $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
+            $dockerPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $filename;
             $tempFile = UPLOAD_DIR . 'temp_' . $filename;
             
             $copyCommand = sprintf(
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     } else {
         // Para archivos TTS y externos, buscar en Docker
-        $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
+        $dockerPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $filename;
         $tempFile = UPLOAD_DIR . 'temp_' . $filename;
         
         // Verificar si existe en Grabaciones
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         
         if ($exists !== 'EXISTS') {
             // Si no está en Grabaciones, buscar en raíz (archivos externos antiguos)
-            $dockerPath = '/var/azuracast/stations/test/media/' . $filename;
+            $dockerPath = '/var/azuracast/stations/mediaflow/media/' . $filename;
             logMessage("Archivo no encontrado en Grabaciones, buscando en raíz: $dockerPath");
         }
         
@@ -197,7 +197,7 @@ function listLibraryFiles() {
     try {
         // Método 1: Usar find con -printf para obtener toda la info de una vez
         // Buscar tanto archivos legacy tts* como nuevos mensaje_*
-        $findCommand = 'sudo docker exec azuracast find /var/azuracast/stations/test/media/Grabaciones/ \( -name "tts*.mp3" -o -name "mensaje_*.mp3" \) -printf "%f|%s|%T@\n" 2>/dev/null';
+        $findCommand = 'sudo docker exec azuracast find /var/azuracast/stations/mediaflow/media/Grabaciones/ \( -name "tts*.mp3" -o -name "mensaje_*.mp3" \) -printf "%f|%s|%T@\n" 2>/dev/null';
         $output = shell_exec($findCommand);
         
         if (!$output) {
@@ -284,7 +284,7 @@ function deleteLibraryFile($input) {
     
     try {
         // Eliminar archivo usando Docker exec
-        $dockerPath = '/var/azuracast/stations/test/media/Grabaciones/' . $filename;
+        $dockerPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $filename;
         $deleteCommand = sprintf(
             'sudo docker exec azuracast rm -f %s 2>&1',
             escapeshellarg($dockerPath)
@@ -319,34 +319,54 @@ function deleteLibraryFile($input) {
  */
 function sendLibraryToRadio($input) {
     $filename = $input['filename'] ?? '';
-    
+
     // Validación mínima - solo verificar que hay un nombre de archivo
     if (empty($filename)) {
         throw new Exception('Nombre de archivo no especificado');
     }
-    
+
     logMessage("Enviando archivo de biblioteca a radio: $filename");
-    
+
     try {
-        // La función interruptRadio ya maneja todo:
-        // - Busca el archivo en múltiples ubicaciones locales
-        // - Lo sube a AzuraCast si no existe ahí
-        // - Ejecuta la interrupción
-        
-        logMessage("Delegando a interruptRadio para manejar: $filename");
-        
-        $success = interruptRadio($filename);
-        
+        // Verificar si el archivo existe en AzuraCast
+        $dockerPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $filename;
+        $checkCommand = sprintf(
+            'sudo docker exec azuracast test -f %s && echo "EXISTS" || echo "NOT_FOUND" 2>&1',
+            escapeshellarg($dockerPath)
+        );
+        $exists = trim(shell_exec($checkCommand));
+
+        // Si no existe en AzuraCast, subirlo primero
+        if ($exists !== 'EXISTS') {
+            logMessage("Archivo no existe en AzuraCast, intentando subirlo desde temp");
+
+            $localPath = UPLOAD_DIR . $filename;
+            if (!file_exists($localPath)) {
+                throw new Exception('Archivo no encontrado ni en AzuraCast ni en temp local');
+            }
+
+            logMessage("Subiendo archivo a AzuraCast: $filename");
+            $uploadResult = uploadFileToAzuraCast($localPath, $filename);
+            $azuracastFilename = $uploadResult['filename'];
+            logMessage("Archivo subido a AzuraCast como: $azuracastFilename");
+        } else {
+            logMessage("Archivo ya existe en AzuraCast: $filename");
+            $azuracastFilename = $filename;
+        }
+
+        logMessage("Interrumpiendo radio con archivo: $azuracastFilename");
+        $success = interruptRadio($azuracastFilename);
+
         if ($success) {
-            logMessage("Archivo enviado exitosamente a radio: $filename");
+            logMessage("Archivo enviado exitosamente a radio: $azuracastFilename");
             echo json_encode([
                 'success' => true,
-                'message' => 'Anuncio reproduciéndose en Radio OVH'
+                'message' => 'Anuncio reproduciéndose en radio'
             ]);
         } else {
             throw new Exception('No se pudo interrumpir la radio');
         }
-        
+
     } catch (Exception $e) {
         logMessage("Error en sendLibraryToRadio: " . $e->getMessage());
         throw new Exception('Error al enviar a radio: ' . $e->getMessage());
@@ -395,8 +415,8 @@ function renameLibraryFile($input) {
     
     try {
         // Rutas completas en Docker
-        $oldPath = '/var/azuracast/stations/test/media/Grabaciones/' . $oldFilename;
-        $newPath = '/var/azuracast/stations/test/media/Grabaciones/' . $newFilename;
+        $oldPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $oldFilename;
+        $newPath = '/var/azuracast/stations/mediaflow/media/Grabaciones/' . $newFilename;
         
         // Verificar que el archivo original existe
         $checkCommand = sprintf(

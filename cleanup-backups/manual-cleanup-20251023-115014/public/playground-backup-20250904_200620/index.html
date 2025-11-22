@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 MBI-v3 API Playground</title>
+    <link rel="stylesheet" href="assets/css/playground.css">
+    <script src="assets/js/voice-admin.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header class="playground-header">
+            <h1>🧪 MBI-v3 API Playground</h1>
+            <div class="header-tools">
+                <span id="quota-display" class="quota-badge">Cargando quota...</span>
+                <button id="toggle-logs" class="btn-tool">📋 Logs</button>
+                <button id="toggle-dark" class="btn-tool">🌙</button>
+
+            </div>
+        </header>
+        
+        <nav class="playground-nav">
+            <button class="nav-btn active" data-section="tts-tester">🎤 TTS Tester</button>
+            <button class="nav-btn" data-section="voice-explorer">🎭 Voice Explorer</button>
+            <button class="nav-btn" data-section="template-builder">📝 Template Builder</button>
+            <button class="nav-btn" data-section="monitors">📊 Monitors</button>
+            <button class="nav-btn" data-section="tools">🛠️ Tools</button>
+       <button class="nav-btn" data-section="voice-admin">🎙️ Admin Voces</button>
+        </nav>
+        
+        <main class="playground-content">
+            <!-- TTS Tester Section -->
+            <section id="tts-tester" class="content-section active">
+                <div class="tester-container">
+                    <div class="input-panel">
+                        <h2>Text Input</h2>
+                        <textarea id="tts-text" placeholder="Escribe o pega tu texto aquí..." maxlength="5000"></textarea>
+                        <div class="char-counter">
+                            <span id="char-count">0</span> / 5000 caracteres
+                        </div>
+                    </div>
+                    
+                    <div class="settings-panel">
+                        <h2>Voice Settings</h2>
+                        
+                        <div class="form-group">
+                            <label>Voz:</label>
+                            <select id="voice-select">
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Style: <span id="style-value">50</span>%</label>
+                            <input type="range" id="style-slider" min="0" max="100" value="50">
+                            <small>Neutral ← → Expresivo</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Stability: <span id="stability-value">75</span>%</label>
+                            <input type="range" id="stability-slider" min="0" max="100" value="75">
+                            <small>Variable ← → Estable</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Similarity: <span id="similarity-value">80</span>%</label>
+                            <input type="range" id="similarity-slider" min="0" max="100" value="80">
+                            <small>Bajo ← → Alto</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="speaker-boost" checked>
+                                Speaker Boost
+                            </label>
+                        </div>
+                        
+                        <button id="generate-btn" class="btn btn-primary">
+                            🎵 Generar Audio
+                        </button>
+                    </div>
+                    
+                    <div class="output-panel">
+                        <h2>Output</h2>
+                        <div id="generation-status"></div>
+                        <audio id="audio-player" controls style="display:none;"></audio>
+                        <div id="audio-info"></div>
+                        <div id="api-response"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Otras secciones irán aquí -->
+<!-- Voice Explorer Section -->
+            <section id="voice-explorer" class="content-section">
+                <div class="explorer-container">
+                    <h2>🎭 Explorador de Voces</h2>
+                    
+                    <div class="voice-controls">
+                        <div class="control-group">
+                            <label>Texto de prueba:</label>
+                            <input type="text" id="sample-text" value="Bienvenidos al Mall Barrio Independencia. Hoy tenemos ofertas especiales en todas las tiendas." />
+                        </div>
+                        <button id="generate-all-samples" class="btn btn-primary">
+                            🎵 Generar Todas las Muestras
+                        </button>
+                    </div>
+                    
+                    <div id="voices-grid" class="voices-grid">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+            </section>
+            <!-- Voice Administration Section -->
+<section id="voice-admin" class="content-section" style="display: none;">
+    <h2>🎙️ Administración de Voces del Sistema</h2>
+    
+    <!-- Stats Cards -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+        <div class="stat-card" style="background: #f0f4f8; padding: 1.5rem; border-radius: 8px;">
+            <div class="stat-number" id="total-voices" style="font-size: 2rem; font-weight: bold;">0</div>
+            <div class="stat-label" style="color: #666;">Voces Totales</div>
+        </div>
+        <div class="stat-card" style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px;">
+            <div class="stat-number" id="active-voices" style="font-size: 2rem; font-weight: bold; color: #4caf50;">0</div>
+            <div class="stat-label" style="color: #666;">Activas</div>
+        </div>
+        <div class="stat-card" style="background: #fff3e0; padding: 1.5rem; border-radius: 8px;">
+            <div class="stat-number" id="custom-voices" style="font-size: 2rem; font-weight: bold; color: #ff9800;">0</div>
+            <div class="stat-label" style="color: #666;">Personalizadas</div>
+        </div>
+    </div>
+
+    <!-- Add Voice Form -->
+    <div class="add-voice-form" style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3>➕ Agregar Nueva Voz</h3>
+        <div style="display: grid; grid-template-columns: 2fr 2fr 1fr auto; gap: 1rem; align-items: end;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem;">Nombre de la Voz</label>
+                <input type="text" id="new-voice-label" placeholder="Ej: María" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem;">Voice ID (ElevenLabs)</label>
+                <input type="text" id="new-voice-id" placeholder="Ej: 21m00Tcm4TlvDq8ikWAM" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem;">Género</label>
+                <select id="new-voice-gender" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="F">Femenino</option>
+                    <option value="M">Masculino</option>
+                </select>
+            </div>
+            <button onclick="addNewVoice()" style="padding: 0.5rem 1.5rem; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Agregar
+            </button>
+        </div>
+    </div>
+
+    <!-- Voices List -->
+    <div class="voices-list" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3>📋 Lista de Voces</h3>
+        <div id="voices-table-container">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e0e0e0;">
+                        <th style="text-align: left; padding: 0.75rem;">Nombre</th>
+                        <th style="text-align: left; padding: 0.75rem;">Voice ID</th>
+                        <th style="text-align: center; padding: 0.75rem;">Género</th>
+                        <th style="text-align: center; padding: 0.75rem;">Estado</th>
+                        <th style="text-align: center; padding: 0.75rem;">Default</th>
+                        <th style="text-align: center; padding: 0.75rem;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="voices-table-body">
+                    <!-- Se llena dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+            
+            <!-- Template Builder Section -->
+            <section id="template-builder" class="content-section">
+                <div class="builder-container">
+                    <h2>📝 Constructor de Templates</h2>
+                    
+                    <div class="template-editor">
+                        <div class="editor-panel">
+                            <h3>Editor</h3>
+                            <div class="template-controls">
+                                <select id="template-category">
+                                    <option value="ofertas">Ofertas</option>
+                                    <option value="eventos">Eventos</option>
+                                    <option value="informacion">Información</option>
+                                    <option value="emergencias">Emergencias</option>
+                                </select>
+                                <input type="text" id="template-name" placeholder="Nombre del template">
+                            </div>
+                            <textarea id="template-text" placeholder="Escribe tu template aquí. Usa {{variable}} para variables dinámicas."></textarea>
+                            <div class="variable-list" id="variable-list"></div>
+                        </div>
+                        
+                        <div class="preview-panel">
+                            <h3>Preview</h3>
+                            <div id="template-preview"></div>
+                            <button id="test-template" class="btn btn-secondary">🔊 Probar Template</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Monitors Section -->
+            <section id="monitors" class="content-section">
+                <div class="monitors-container">
+                    <h2>📊 Monitores del Sistema</h2>
+                    
+                    <div class="monitor-grid">
+                        <div class="monitor-card">
+                            <h3>Uso de Quota</h3>
+                            <canvas id="quota-chart"></canvas>
+                            <div id="quota-details"></div>
+                        </div>
+                        
+                        <div class="monitor-card">
+                            <h3>Generaciones Recientes</h3>
+                            <div id="recent-generations"></div>
+                        </div>
+                        
+                        <div class="monitor-card">
+                            <h3>Performance</h3>
+                            <div id="performance-stats"></div>
+                        </div>
+                        
+                        <div class="monitor-card">
+                            <h3>Voces Más Usadas</h3>
+                            <div id="voice-usage"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Tools Section -->
+            <section id="tools" class="content-section">
+                <div class="tools-container">
+                    <h2>🛠️ Herramientas</h2>
+                    
+                    <div class="tools-grid">
+                        <div class="tool-card">
+                            <h3>📝 Analizador de Texto</h3>
+                            <textarea id="text-analyzer-input" placeholder="Pega tu texto aquí para analizar"></textarea>
+                            <button id="analyze-text" class="btn btn-secondary">Analizar</button>
+                            <div id="text-analysis-result"></div>
+                        </div>
+                        
+                        <div class="tool-card">
+                            <h3>🎯 Optimizador de Settings</h3>
+                            <select id="message-type">
+                                <option value="">Selecciona tipo de mensaje</option>
+                                <option value="oferta">Oferta/Promoción</option>
+                                <option value="emergencia">Emergencia</option>
+                                <option value="informativo">Informativo</option>
+                                <option value="evento">Evento/Celebración</option>
+                            </select>
+                            <div id="suggested-settings"></div>
+                        </div>
+                        <div class="tool-card">
+    <h3>🎤 Voice Manager</h3>
+    <div class="voice-manager">
+        <h4>Agregar Nueva Voz</h4>
+        <input type="text" id="new-voice-id" placeholder="Voice ID de ElevenLabs">
+        <input type="text" id="new-voice-name" placeholder="Nombre de la voz">
+        <select id="new-voice-gender">
+            <option value="F">Femenino</option>
+            <option value="M">Masculino</option>
+        </select>
+        <button id="add-voice-btn" class="btn btn-primary">➕ Agregar Voz</button>
+        
+        <h4 style="margin-top: 1rem;">Voces Personalizadas</h4>
+        <div id="custom-voices-list"></div>
+    </div>
+</div>
+                        
+                        <div class="tool-card">
+                            <h3>💰 Calculadora de Costos</h3>
+                            <input type="number" id="monthly-messages" placeholder="Mensajes por mes">
+                            <input type="number" id="avg-length" placeholder="Longitud promedio">
+                            <button id="calculate-cost" class="btn btn-secondary">Calcular</button>
+                            <div id="cost-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- Log Viewer (oculto inicialmente) -->
+        <aside id="log-viewer" class="log-viewer hidden">
+            <div class="log-header">
+                <h3>📋 Live Logs</h3>
+                <button id="clear-logs" class="btn-small">Clear</button>
+                <button id="close-logs" class="btn-small">✕</button>
+            </div>
+            <div id="log-content" class="log-content"></div>
+        </aside>
+    </div>
+    
+  <!-- Chart.js para gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Monitors module -->
+    <script src="assets/js/monitors.js"></script>
+    <!-- Playground principal -->
+    <script src="assets/js/playground.js" type="module"></script>
+    <script>
+// Sistema de navegación para el Playground
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando sistema de navegación...');
+    
+    // Manejar todos los botones de navegación
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetSection = this.getAttribute('data-section');
+            console.log('Navegando a sección:', targetSection);
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Ocultar todas las secciones
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+                section.style.display = 'none';
+            });
+            
+            // Mostrar la sección seleccionada
+            const section = document.getElementById(targetSection);
+            if (section) {
+                section.classList.add('active');
+                section.style.display = 'block';
+                
+                // Inicializar Voice Admin si es necesario
+                if (targetSection === 'voice-admin' && typeof voiceAdmin !== 'undefined') {
+                    console.log('Inicializando Voice Admin...');
+                    voiceAdmin.init();
+                }
+            }
+        });
+    });
+    
+    // Activar la primera sección por defecto
+    const firstBtn = document.querySelector('.nav-btn.active');
+    if (firstBtn) {
+        firstBtn.click();
+    }
+});
+</script>
+</body>
+</body>
+</html>

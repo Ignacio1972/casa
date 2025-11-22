@@ -1,0 +1,316 @@
+/**
+ * VARIABLES.CSS - MBI v3 System
+ * =================================
+ * Imports the main design tokens and adds computed variables
+ * This file acts as a bridge between design tokens and the CSS system
+ * 
+ * @version: 1.0.0
+ */
+
+/* ========================================
+   Import Main Design Tokens
+   ======================================== */
+
+@import url('../../mockups/Final Mockups/design-tokens.css');
+
+/* ========================================
+   Computed Variables & Aliases
+   ======================================== */
+
+:root {
+  /* ========================================
+     Semantic Color Aliases
+     ======================================== */
+  
+  /* Background Semantic Names */
+  --bg-body: var(--bg-primary);
+  --bg-card: var(--bg-secondary);
+  --bg-input: var(--bg-tertiary);
+  --bg-hover: var(--bg-elevated);
+  --bg-modal: var(--bg-secondary);
+  --bg-dropdown: var(--bg-elevated);
+  --bg-tooltip: var(--gray-800);
+  
+  /* Text Semantic Names */
+  --text-heading: var(--text-primary);
+  --text-body: var(--text-primary);
+  --text-subtitle: var(--text-secondary);
+  --text-placeholder: var(--text-muted);
+  --text-disabled: var(--gray-600);
+  --text-link: var(--color-primary);
+  --text-link-hover: var(--color-primary-light);
+  
+  /* Border Semantic Names */
+  --border-card: var(--border-default);
+  --border-input: var(--border-default);
+  --border-divider: var(--border-light);
+  --border-active: var(--border-focus);
+  --border-error: var(--color-danger);
+  --border-success: var(--color-success);
+  
+  /* ========================================
+     Component-Specific Variables
+     ======================================== */
+  
+  /* Button Variables */
+  --btn-bg-primary: var(--color-primary);
+  --btn-bg-primary-hover: var(--color-primary-light);
+  --btn-bg-primary-active: var(--color-primary-dark);
+  --btn-bg-secondary: var(--bg-tertiary);
+  --btn-bg-secondary-hover: var(--bg-elevated);
+  --btn-bg-danger: var(--color-danger);
+  --btn-bg-success: var(--color-success);
+  --btn-text-primary: white;
+  --btn-text-secondary: var(--text-primary);
+  
+  /* Card Variables */
+  --card-bg: var(--bg-secondary);
+  --card-bg-hover: var(--bg-tertiary);
+  --card-border: var(--border-default);
+  --card-border-hover: var(--color-primary);
+  --card-shadow-default: var(--shadow-sm);
+  --card-shadow-hover: var(--shadow-md);
+  --card-padding-sm: var(--space-4);
+  --card-padding-md: var(--space-6);
+  --card-padding-lg: var(--space-8);
+  
+  /* Input Variables */
+  --input-bg: var(--bg-tertiary);
+  --input-bg-hover: var(--bg-elevated);
+  --input-bg-focus: var(--bg-tertiary);
+  --input-border: var(--border-default);
+  --input-border-hover: var(--gray-500);
+  --input-border-focus: var(--color-primary);
+  --input-text: var(--text-primary);
+  --input-placeholder: var(--text-muted);
+  --input-padding-x: var(--space-4);
+  --input-padding-y: var(--space-3);
+  
+  /* Modal Variables */
+  --modal-bg: var(--bg-secondary);
+  --modal-backdrop: rgba(0, 0, 0, 0.7);
+  --modal-backdrop-blur: blur(4px);
+  --modal-border: var(--border-default);
+  --modal-shadow: var(--shadow-xl);
+  --modal-padding: var(--space-6);
+  --modal-radius: var(--radius-lg);
+  
+  /* Badge/Category Variables */
+  --badge-padding-x: var(--space-2);
+  --badge-padding-y: var(--space-1);
+  --badge-radius: var(--radius-sm);
+  --badge-font-size: var(--text-2xs);
+  --badge-font-weight: var(--font-medium);
+  
+  /* ========================================
+     Layout Variables
+     ======================================== */
+  
+  /* Container Widths */
+  --container-xs: 480px;
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1200px;
+  --container-2xl: 1400px;
+  --container-max: var(--container-2xl);
+  
+  /* Content Widths */
+  --content-narrow: 600px;
+  --content-medium: 800px;
+  --content-wide: 1000px;
+  
+  /* Sidebar Dimensions */
+  --sidebar-width-sm: 240px;
+  --sidebar-width-md: 280px;
+  --sidebar-width-lg: 320px;
+  
+  /* Header/Footer Heights */
+  --header-height-sm: 56px;
+  --header-height-md: 64px;
+  --header-height-lg: 72px;
+  --footer-height: 64px;
+  
+  /* ========================================
+     Responsive Variables
+     ======================================== */
+  
+  /* Spacing Scale Responsive */
+  --space-responsive-sm: clamp(0.5rem, 2vw, 1rem);
+  --space-responsive-md: clamp(1rem, 3vw, 1.5rem);
+  --space-responsive-lg: clamp(1.5rem, 4vw, 2rem);
+  --space-responsive-xl: clamp(2rem, 5vw, 3rem);
+  
+  /* Font Size Responsive */
+  --text-responsive-sm: clamp(0.75rem, 2vw, 0.875rem);
+  --text-responsive-base: clamp(0.875rem, 2.5vw, 1rem);
+  --text-responsive-lg: clamp(1rem, 3vw, 1.25rem);
+  --text-responsive-xl: clamp(1.25rem, 4vw, 1.5rem);
+  --text-responsive-2xl: clamp(1.5rem, 5vw, 2rem);
+  --text-responsive-3xl: clamp(2rem, 6vw, 3rem);
+  
+  /* ========================================
+     Animation Variables
+     ======================================== */
+  
+  /* Entrance Animations */
+  --animate-in: var(--animation-fade-in);
+  --animate-in-up: var(--animation-slide-up);
+  --animate-in-down: var(--animation-slide-down);
+  
+  /* Loading States */
+  --loading-spinner-size: 48px;
+  --loading-spinner-border: 4px;
+  --loading-spinner-color: var(--color-primary);
+  --loading-overlay-bg: rgba(28, 27, 25, 0.8);
+  
+  /* Skeleton Loading */
+  --skeleton-bg: var(--gray-700);
+  --skeleton-shine: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  
+  /* ========================================
+     Utility Variables
+     ======================================== */
+  
+  /* Aspect Ratios */
+  --aspect-square: 1 / 1;
+  --aspect-video: 16 / 9;
+  --aspect-portrait: 3 / 4;
+  --aspect-landscape: 4 / 3;
+  --aspect-wide: 21 / 9;
+  
+  /* Content Gaps */
+  --gap-xs: var(--space-2);
+  --gap-sm: var(--space-3);
+  --gap-md: var(--space-4);
+  --gap-lg: var(--space-6);
+  --gap-xl: var(--space-8);
+  
+  /* Icon Sizes */
+  --icon-xs: 12px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+  --icon-2xl: 48px;
+  
+  /* Avatar Sizes */
+  --avatar-xs: 24px;
+  --avatar-sm: 32px;
+  --avatar-md: 40px;
+  --avatar-lg: 48px;
+  --avatar-xl: 64px;
+  --avatar-2xl: 96px;
+  
+  /* ========================================
+     Dark Theme Overrides
+     ======================================== */
+  
+  /* Ensure dark theme is always active */
+  color-scheme: dark;
+  
+  /* Adjusted colors for better dark theme contrast */
+  --surface-overlay: rgba(255, 255, 255, 0.05);
+  --surface-overlay-hover: rgba(255, 255, 255, 0.08);
+  --surface-overlay-active: rgba(255, 255, 255, 0.1);
+  
+  /* Glass morphism effects */
+  --glass-bg: rgba(47, 50, 54, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(10px);
+  
+  /* Glow effects */
+  --glow-primary: 0 0 20px rgba(56, 122, 222, 0.3);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+  --glow-danger: 0 0 20px rgba(220, 38, 38, 0.3);
+  
+  /* ========================================
+     Calculated Values
+     ======================================== */
+  
+  /* Dynamic header spacing */
+  --header-total-height: calc(var(--header-height-md) + var(--space-4));
+  --main-min-height: calc(100vh - var(--header-total-height));
+  
+  /* Dynamic modal positioning */
+  --modal-margin: var(--space-8);
+  --modal-max-width: calc(100vw - (var(--modal-margin) * 2));
+  --modal-max-height: calc(100vh - (var(--modal-margin) * 2));
+  
+  /* Dynamic grid columns */
+  --grid-auto-min: 250px;
+  --grid-auto-max: 1fr;
+  --grid-gap-computed: clamp(var(--space-4), 2vw, var(--space-6));
+}
+
+/* ========================================
+   Media Query Variables Override
+   ======================================== */
+
+@media (max-width: 768px) {
+  :root {
+    /* Adjust spacing for mobile */
+    --header-height-md: var(--header-height-sm);
+    --card-padding-md: var(--space-4);
+    --modal-margin: var(--space-4);
+    --sidebar-width-md: 100%;
+    
+    /* Adjust grid for mobile */
+    --grid-auto-min: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    /* Further reduce spacing for small screens */
+    --card-padding-sm: var(--space-3);
+    --modal-padding: var(--space-4);
+    --input-padding-x: var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    /* Disable animations for accessibility */
+    --duration-instant: 0s !important;
+    --duration-fast: 0s !important;
+    --duration-base: 0s !important;
+    --duration-slow: 0s !important;
+    --animation-spin: none !important;
+    --animation-pulse: none !important;
+  }
+}
+
+/* ========================================
+   High Contrast Mode Support
+   ======================================== */
+
+@media (prefers-contrast: high) {
+  :root {
+    /* Increase contrast for accessibility */
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --bg-primary: #000000;
+    --bg-secondary: #1a1a1a;
+    --border-default: #ffffff;
+  }
+}
+
+/* ========================================
+   Print Variables
+   ======================================== */
+
+@media print {
+  :root {
+    /* Optimize for printing */
+    --bg-primary: white;
+    --text-primary: black;
+    --color-primary: black;
+    --shadow-none: none;
+  }
+}

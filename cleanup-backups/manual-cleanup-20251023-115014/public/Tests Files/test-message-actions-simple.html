@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test MessageActions - Versión Simplificada</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h2 {
+            color: #00BCD4;
+            margin-top: 0;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #81C784;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #F44336;
+            color: #EF5350;
+        }
+        
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+            color: #64B5F6;
+        }
+        
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #FFC107;
+            color: #FFD54F;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        .test-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test MessageActions - Versión Simplificada</h1>
+    
+    <div class="test-section" style="background: rgba(255,193,7,0.1); border-color: #FFC107;">
+        <h2 style="color: #FFC107;">📌 Instrucciones de Uso</h2>
+        <div class="test-result warning">
+            ⚠️ Esta es una versión simplificada que NO carga los módulos reales
+        </div>
+        <div class="test-result info">
+            📋 Esta página verifica si window.campaignLibrary está disponible en tu aplicación
+        </div>
+        <div class="test-result info">
+            🔍 Abre primero tu aplicación principal en otra pestaña para cargar los módulos
+        </div>
+        <div class="test-result info">
+            ✅ Luego usa esta página para verificar que todo funciona correctamente
+        </div>
+        <button onclick="location.reload()" style="background: #FF9800;">🔄 Recargar Página</button>
+        <button onclick="clearAllResults()" style="background: #9C27B0;">🧹 Limpiar Resultados</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>1. Estado Global de window.campaignLibrary</h2>
+        <div id="global-status"></div>
+        <div class="test-controls">
+            <button onclick="checkGlobalStatus()">🔍 Verificar Estado Global</button>
+            <button onclick="listAvailableMethods()">📋 Listar Métodos Disponibles</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Verificación de Módulos</h2>
+        <div id="module-check"></div>
+        <div class="test-controls">
+            <button onclick="checkCampaignModule()">🎯 Verificar campaignModule</button>
+            <button onclick="checkMessageActions()">📦 Verificar MessageActions</button>
+            <button onclick="checkMessages()">📨 Verificar Mensajes Cargados</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Pruebas de Funcionalidad</h2>
+        <div id="function-tests"></div>
+        <div class="test-controls">
+            <button onclick="testPlayFunction()">▶️ Probar playMessage</button>
+            <button onclick="testEditFunction()">✏️ Probar editMessage</button>
+            <button onclick="testScheduleFunction()">📅 Probar scheduleMessage</button>
+            <button onclick="testDeleteFunction()">🗑️ Probar deleteMessage</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Análisis de Delegación</h2>
+        <div id="delegation-analysis"></div>
+        <div class="test-controls">
+            <button onclick="analyzeDelegation()">🔗 Analizar Delegación</button>
+            <button onclick="verifyReferences()">🔍 Verificar Referencias</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Consola de Pruebas</h2>
+        <div id="console-output"></div>
+        <div class="test-controls">
+            <input type="text" id="console-input" placeholder="Escribe código JavaScript aquí..." style="flex: 1; padding: 10px; background: #333; color: white; border: 1px solid #555;">
+            <button onclick="executeCode()">▶️ Ejecutar</button>
+        </div>
+    </div>
+
+    <script>
+        // Función auxiliar para agregar resultados
+        function addResult(section, message, type = 'info') {
+            const element = document.getElementById(section);
+            if (!element) {
+                console.error(`Elemento ${section} no encontrado`);
+                return;
+            }
+            const result = document.createElement('div');
+            result.className = `test-result ${type}`;
+            result.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            element.appendChild(result);
+        }
+        
+        // Limpiar todos los resultados
+        function clearAllResults() {
+            document.querySelectorAll('.test-result').forEach(el => {
+                if (!el.textContent.includes('Instrucciones')) {
+                    el.remove();
+                }
+            });
+        }
+        
+        // 1. Verificar estado global
+        function checkGlobalStatus() {
+            console.log('Verificando estado global...');
+            
+            if (typeof window.campaignLibrary !== 'undefined') {
+                addResult('global-status', '✅ window.campaignLibrary está definido', 'success');
+                addResult('global-status', `Tipo: ${typeof window.campaignLibrary}`, 'info');
+                
+                if (window.campaignLibrary && typeof window.campaignLibrary === 'object') {
+                    const keys = Object.keys(window.campaignLibrary);
+                    addResult('global-status', `Número de propiedades: ${keys.length}`, 'info');
+                }
+            } else {
+                addResult('global-status', '❌ window.campaignLibrary NO está definido', 'error');
+                addResult('global-status', 'Sugerencia: Abre tu aplicación principal primero', 'warning');
+            }
+            
+            // Verificar window.campaignModule también
+            if (typeof window.campaignModule !== 'undefined') {
+                addResult('global-status', '✅ window.campaignModule también está disponible', 'success');
+            } else {
+                addResult('global-status', '⚠️ window.campaignModule no está disponible', 'warning');
+            }
+        }
+        
+        // 2. Listar métodos disponibles
+        function listAvailableMethods() {
+            if (!window.campaignLibrary) {
+                addResult('global-status', '❌ campaignLibrary no está disponible', 'error');
+                return;
+            }
+            
+            const expectedMethods = [
+                'playMessage', 'editMessage', 'sendToRadio', 'scheduleMessage',
+                'deleteMessage', 'toggleCategoryDropdown', 'updateCategory', 'changeCategory',
+                'applyFilter', 'clearFilters'
+            ];
+            
+            addResult('global-status', '<strong>Métodos en window.campaignLibrary:</strong>', 'info');
+            
+            for (const method of expectedMethods) {
+                if (typeof window.campaignLibrary[method] === 'function') {
+                    addResult('global-status', `✅ ${method}() - Disponible`, 'success');
+                } else if (window.campaignLibrary[method]) {
+                    addResult('global-status', `⚠️ ${method} - Existe pero no es función`, 'warning');
+                } else {
+                    addResult('global-status', `❌ ${method}() - NO disponible`, 'error');
+                }
+            }
+            
+            // Buscar métodos adicionales no esperados
+            const actualMethods = Object.keys(window.campaignLibrary || {});
+            const unexpected = actualMethods.filter(m => !expectedMethods.includes(m));
+            if (unexpected.length > 0) {
+                addResult('global-status', `ℹ️ Métodos adicionales encontrados: ${unexpected.join(', ')}`, 'info');
+            }
+        }
+        
+        // 3. Verificar módulo Campaign
+        function checkCampaignModule() {
+            if (window.campaignModule) {
+                addResult('module-check', '✅ window.campaignModule existe', 'success');
+                
+                // Verificar propiedades importantes
+                const props = ['messages', 'messageActions', 'container', 'initialized'];
+                props.forEach(prop => {
+                    if (window.campaignModule[prop] !== undefined) {
+                        addResult('module-check', `✅ campaignModule.${prop} existe`, 'success');
+                    } else {
+                        addResult('module-check', `❌ campaignModule.${prop} no existe`, 'error');
+                    }
+                });
+            } else {
+                addResult('module-check', '❌ window.campaignModule no existe', 'error');
+                addResult('module-check', 'El módulo principal no está cargado', 'warning');
+            }
+        }
+        
+        // 4. Verificar MessageActions
+        function checkMessageActions() {
+            if (!window.campaignModule) {
+                addResult('module-check', '❌ Necesitas campaignModule primero', 'error');
+                return;
+            }
+            
+            if (window.campaignModule.messageActions) {
+                addResult('module-check', '✅ messageActions está inicializado', 'success');
+                
+                // Verificar referencia parent
+                if (window.campaignModule.messageActions.parent === window.campaignModule) {
+                    addResult('module-check', '✅ Referencia parent correcta', 'success');
+                } else {
+                    addResult('module-check', '❌ Referencia parent incorrecta', 'error');
+                }
+                
+                // Verificar métodos de MessageActions
+                const methods = ['getMessage', 'playMessage', 'editMessage', 'sendToRadio',
+                               'scheduleMessage', 'deleteMessage', 'toggleCategoryDropdown',
+                               'updateCategory', 'changeCategory'];
+                
+                methods.forEach(method => {
+                    if (typeof window.campaignModule.messageActions[method] === 'function') {
+                        addResult('module-check', `✅ messageActions.${method} disponible`, 'success');
+                    } else {
+                        addResult('module-check', `❌ messageActions.${method} NO disponible`, 'error');
+                    }
+                });
+            } else {
+                addResult('module-check', '❌ messageActions NO está inicializado', 'error');
+            }
+        }
+        
+        // 5. Verificar mensajes cargados
+        function checkMessages() {
+            if (!window.campaignModule) {
+                addResult('module-check', '❌ campaignModule no disponible', 'error');
+                return;
+            }
+            
+            if (window.campaignModule.messages) {
+                const count = window.campaignModule.messages.length;
+                addResult('module-check', `📊 Mensajes cargados: ${count}`, 'info');
+                
+                if (count > 0) {
+                    // Mostrar primer mensaje como ejemplo
+                    const first = window.campaignModule.messages[0];
+                    addResult('module-check', 
+                        `Ejemplo: ID=${first.id}, Título="${first.title}", Tipo=${first.type}`, 
+                        'info');
+                }
+            } else {
+                addResult('module-check', '⚠️ No hay mensajes cargados', 'warning');
+            }
+        }
+        
+        // 6. Pruebas de funciones
+        function testPlayFunction() {
+            if (!window.campaignLibrary || !window.campaignLibrary.playMessage) {
+                addResult('function-tests', '❌ playMessage no disponible', 'error');
+                return;
+            }
+            
+            try {
+                // Intentar con un ID de prueba
+                addResult('function-tests', '🎵 Intentando playMessage("test")...', 'info');
+                window.campaignLibrary.playMessage('test');
+                addResult('function-tests', '✅ playMessage ejecutado (verificar consola)', 'success');
+            } catch (error) {
+                addResult('function-tests', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testEditFunction() {
+            if (!window.campaignLibrary || !window.campaignLibrary.editMessage) {
+                addResult('function-tests', '❌ editMessage no disponible', 'error');
+                return;
+            }
+            
+            try {
+                // Mock prompt para evitar interacción
+                const originalPrompt = window.prompt;
+                window.prompt = () => null;
+                
+                addResult('function-tests', '✏️ Probando editMessage("test")...', 'info');
+                window.campaignLibrary.editMessage('test');
+                
+                window.prompt = originalPrompt;
+                addResult('function-tests', '✅ editMessage ejecutado', 'success');
+            } catch (error) {
+                addResult('function-tests', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testScheduleFunction() {
+            if (!window.campaignLibrary || !window.campaignLibrary.scheduleMessage) {
+                addResult('function-tests', '❌ scheduleMessage no disponible', 'error');
+                return;
+            }
+            
+            try {
+                addResult('function-tests', '📅 Probando scheduleMessage("test", "Test Title")...', 'info');
+                window.campaignLibrary.scheduleMessage('test', 'Test Title');
+                addResult('function-tests', '✅ scheduleMessage ejecutado', 'success');
+            } catch (error) {
+                addResult('function-tests', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testDeleteFunction() {
+            if (!window.campaignLibrary || !window.campaignLibrary.deleteMessage) {
+                addResult('function-tests', '❌ deleteMessage no disponible', 'error');
+                return;
+            }
+            
+            try {
+                // Mock confirm
+                const originalConfirm = window.confirm;
+                window.confirm = () => false;
+                
+                addResult('function-tests', '🗑️ Probando deleteMessage("test")...', 'info');
+                window.campaignLibrary.deleteMessage('test');
+                
+                window.confirm = originalConfirm;
+                addResult('function-tests', '✅ deleteMessage ejecutado', 'success');
+            } catch (error) {
+                addResult('function-tests', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // 7. Analizar delegación
+        function analyzeDelegation() {
+            if (!window.campaignLibrary) {
+                addResult('delegation-analysis', '❌ campaignLibrary no disponible', 'error');
+                return;
+            }
+            
+            const methods = ['playMessage', 'editMessage', 'scheduleMessage', 'deleteMessage'];
+            
+            methods.forEach(method => {
+                if (window.campaignLibrary[method]) {
+                    const funcString = window.campaignLibrary[method].toString();
+                    
+                    // Verificar si es una arrow function
+                    if (funcString.includes('=>')) {
+                        addResult('delegation-analysis', 
+                            `✅ ${method} es arrow function (delegación correcta)`, 'success');
+                    }
+                    
+                    // Verificar si menciona messageActions
+                    if (funcString.includes('messageActions')) {
+                        addResult('delegation-analysis', 
+                            `✅ ${method} referencia a messageActions`, 'success');
+                    } else {
+                        addResult('delegation-analysis', 
+                            `⚠️ ${method} no parece referenciar messageActions`, 'warning');
+                    }
+                    
+                    // Mostrar preview del código
+                    const preview = funcString.substring(0, 100);
+                    addResult('delegation-analysis', 
+                        `<div class="code-block">${method}: ${preview}...</div>`, 'info');
+                }
+            });
+        }
+        
+        // 8. Verificar referencias
+        function verifyReferences() {
+            if (!window.campaignModule || !window.campaignModule.messageActions) {
+                addResult('delegation-analysis', '❌ Módulos no disponibles', 'error');
+                return;
+            }
+            
+            // Verificar que messageActions puede acceder a parent
+            const ma = window.campaignModule.messageActions;
+            
+            if (ma.parent === window.campaignModule) {
+                addResult('delegation-analysis', '✅ messageActions.parent apunta a campaignModule', 'success');
+            } else {
+                addResult('delegation-analysis', '❌ Referencia parent incorrecta', 'error');
+            }
+            
+            // Verificar acceso a datos críticos
+            if (ma.parent && ma.parent.messages) {
+                addResult('delegation-analysis', '✅ messageActions puede acceder a messages', 'success');
+            }
+            
+            if (ma.parent && typeof ma.parent.showError === 'function') {
+                addResult('delegation-analysis', '✅ messageActions puede acceder a showError', 'success');
+            }
+            
+            if (ma.parent && typeof ma.parent.showSuccess === 'function') {
+                addResult('delegation-analysis', '✅ messageActions puede acceder a showSuccess', 'success');
+            }
+            
+            if (ma.parent && typeof ma.parent.displayMessages === 'function') {
+                addResult('delegation-analysis', '✅ messageActions puede acceder a displayMessages', 'success');
+            }
+        }
+        
+        // 9. Ejecutar código personalizado
+        function executeCode() {
+            const input = document.getElementById('console-input');
+            const code = input.value.trim();
+            
+            if (!code) {
+                addResult('console-output', '⚠️ Escribe algo de código primero', 'warning');
+                return;
+            }
+            
+            addResult('console-output', `> ${code}`, 'info');
+            
+            try {
+                const result = eval(code);
+                addResult('console-output', 
+                    `< ${JSON.stringify(result, null, 2)}`, 'success');
+            } catch (error) {
+                addResult('console-output', `❌ Error: ${error.message}`, 'error');
+            }
+            
+            input.value = '';
+        }
+        
+        // Permitir ejecutar con Enter
+        document.getElementById('console-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                executeCode();
+            }
+        });
+        
+        // Mensaje inicial
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Página de pruebas simplificada cargada');
+            console.log('📋 Usa los botones para verificar el estado de MessageActions');
+            
+            // Auto-verificar si campaignLibrary existe
+            setTimeout(() => {
+                if (window.campaignLibrary) {
+                    addResult('global-status', '🎉 window.campaignLibrary detectado automáticamente!', 'success');
+                    checkGlobalStatus();
+                } else {
+                    addResult('global-status', 'ℹ️ window.campaignLibrary no detectado. Abre tu aplicación primero.', 'warning');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

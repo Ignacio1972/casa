@@ -1,4 +1,4 @@
-# Casa Costanera - Sistema de Radio Automatizada
+# MediaFlow - Sistema de Radio Automatizada
 
 Sistema de gestión de radio automatizada con generación de mensajes mediante Text-to-Speech.
 
@@ -44,7 +44,7 @@ chmod 666 database/casa.db
 
 ## 🎯 Uso
 
-Acceder a la aplicación en: `http://tu-servidor:4000`
+Acceder a la aplicación en: `http://tu-servidor:2082`
 
 ### Módulos principales:
 
